@@ -1,0 +1,20 @@
+# Changes here will be overwritten by Copier
+_commit: 1.4.0
+_src_path: gh:pawamoy/copier-uv
+author_email: jean-michel.perraud@csiro.au
+author_fullname: J-M
+author_username: jmp75
+copyright_date: '2024'
+copyright_holder: CSIRO
+copyright_holder_email: jean-michel.perraud@csiro.au
+copyright_license: BSD 3-Clause Clear License
+insiders: false
+project_description: Ensemble forecast time series
+project_name: efts-io
+python_package_command_line_name: efts
+python_package_distribution_name: efts-io
+python_package_import_name: efts_io
+repository_name: efts-io
+repository_namespace: csiro-hydroinformatics
+repository_provider: github.com
+

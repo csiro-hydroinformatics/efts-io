@@ -1,0 +1,74 @@
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[project]
+name = "efts-io"
+description = "Ensemble forecast time series"
+authors = [{name = "J-M", email = "jean-michel.perraud@csiro.au"}]
+license = {text = "BSD-3-Clause-Clear"}
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = []
+dynamic = ["version"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Documentation",
+    "Topic :: Software Development",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+dependencies = [
+    "pandas",
+    "numpy",
+    "xarray",
+    "cftime",
+]
+
+[project.urls]
+Homepage = "https://csiro-hydroinformatics.github.io/efts-io"
+Documentation = "https://csiro-hydroinformatics.github.io/efts-io"
+Changelog = "https://csiro-hydroinformatics.github.io/efts-io/changelog"
+Repository = "https://github.com/csiro-hydroinformatics/efts-io"
+Issues = "https://github.com/csiro-hydroinformatics/efts-io/issues"
+Discussions = "https://github.com/csiro-hydroinformatics/efts-io/discussions"
+Gitter = "https://gitter.im/csiro-hydroinformatics/efts-io"
+Funding = "https://github.com/sponsors/jmp75"
+
+[project.scripts]
+efts = "efts_io.cli:main"
+
+[tool.pdm]
+version = {source = "scm"}
+
+[tool.pdm.build]
+package-dir = "src"
+editable-backend = "editables"
+excludes = ["**/.pytest_cache"]
+source-includes = [
+    "config",
+    "docs",
+    "scripts",
+    "share",
+    "tests",
+    "devdeps.txt",
+    "duties.py",
+    "mkdocs.yml",
+    "*.md",
+    "LICENSE",
+]
+
+[tool.pdm.build.wheel-data]
+data = [
+    {path = "share/**/*", relative-to = "."},
+]
