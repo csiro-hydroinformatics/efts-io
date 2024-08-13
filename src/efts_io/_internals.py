@@ -123,11 +123,8 @@
 #   return(y)
 # }
 
-from efts_io.conventions import *
-
 #' @import magrittr
 from typing import Any, Dict
-
 
 def create_data_variable(data_var_def: Dict[str, Any], dimensions):
     import xarray as xr

@@ -1,3 +1,6 @@
+"""Naming conventions for the EFTS netCDF file format."""
+
+from typing import List, Optional
 
 TIME_DIMNAME = "time"
 
@@ -43,7 +46,12 @@ conventional_varnames = [
 mandatory_global_attributes = ["title", "institution", "source", "catchment", "comment"]
 
 
-def get_default_dim_order():
+def get_default_dim_order() -> List[str]:
+    """Default order of dimensions in the netCDF file.
+
+    Returns:
+        List[str]: dimension names: [lead_time, stations, ensemble_member, time]
+    """
     return [
         lead_time_dim_name,
         stations_dim_name,
@@ -52,13 +60,8 @@ def get_default_dim_order():
     ]
 
 
-def check_index_found(index_id, identifier, dimension_id):
+def check_index_found(index_id: Optional[int], identifier: str, dimension_id: str) -> None:
+    """Helper function to check that a value (index) was is indeed found in the dimension."""
     # return isinstance(index_id, np.int64)
     if index_id is None:
-        raise Exception(
-            str.format(
-                "identifier '{0}' not found in the dimension '{1}'",
-                identifier,
-                dimension_id,
-            )
-        )
+        raise ValueError(f"identifier '{identifier}' not found in the dimension '{dimension_id}'")

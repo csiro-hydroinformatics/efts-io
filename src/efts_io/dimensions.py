@@ -92,11 +92,11 @@ def as_naive_timestamp(d):
 #'   time_step = "hours since", time_step_delta = 3L, tzoffset = "+1000"))
 #'
 def create_time_info(
-    start, n, time_step="hours since", time_step_delta=1, tzoffset=None
+    start, n, time_step="hours since", time_step_delta=1, tzoffset=None,
 ):
     return {
         "units": create_netcdf_time_axis(
-            d=start, time_step=time_step, tzoffset=tzoffset
+            d=start, time_step=time_step, tzoffset=tzoffset,
         ),
         "values": np.arange(0, n) * time_step_delta,
     }
@@ -279,7 +279,7 @@ def create_time_info(
 #' @seealso See
 #'    \code{\link{create_efts}} for examples
 def create_nc_dims(
-    time_dim_info, str_len=30, lead_length=1, ensemble_length=1, num_stations=1
+    time_dim_info, str_len=30, lead_length=1, ensemble_length=1, num_stations=1,
 ):
 
     time_dim = (

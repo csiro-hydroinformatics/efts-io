@@ -1,14 +1,12 @@
-import xarray as xr
-import pandas as pd
-import numpy as np
-
 import os
 from typing import Any, Dict, List, Union
+
+import numpy as np
+import pandas as pd
+import xarray as xr
+
 from efts_io.conventions import *
 from efts_io.variables import create_efts_variables, create_variable_definitions
-
-
-from efts_io.conventions import *
 
 
 def _byte_to_string(x: Any):
@@ -87,12 +85,12 @@ class EftsDataSet:
             self.time_zone = var.attrs["time_standard"]
             time_coords = decod.decode(var, name=TIME_DIMNAME)
             time_coords.values = cftimes_to_pdtstamps(
-                time_coords.values, self.time_zone
+                time_coords.values, self.time_zone,
             )
             stat_coords = x.coords[self.stations_dim_name]
             station_names = _byte_stations_to_str(x[station_name_varname].values)
             x = x.assign_coords(
-                {TIME_DIMNAME: time_coords, self.stations_dim_name: station_names}
+                {TIME_DIMNAME: time_coords, self.stations_dim_name: station_names},
             )
 
             self.data = x
@@ -135,7 +133,7 @@ class EftsDataSet:
         lead_time_count=None,
     ):
         # Return a time series, representing a single ensemble member forecast for all stations over the lead time
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_ensemble_forecasts(
         self,
@@ -159,7 +157,7 @@ class EftsDataSet:
         indTime = self.index_for_time(start_time)
         # float rain_sim[lead_time,station,ens_member,time]
         ensData = self.data.get(variable_name)[
-            indTime, :nEns, index_id, :lead_time_count
+            indTime, :nEns, index_id, :lead_time_count,
         ]
         # ensData = self.data.get(variable_name), start = [1, index_id, 1, indTime],
         #     count = c(lead_time_count, 1, nEns, 1), collapse_degen = FALSE)
@@ -173,20 +171,20 @@ class EftsDataSet:
         return ensData
 
     def get_ensemble_forecasts_for_station(
-        self, variable_name="rain_sim", identifier: str = None, dimension_id=None
+        self, variable_name="rain_sim", identifier: str = None, dimension_id=None,
     ):
         # Return an array, representing all ensemble member forecasts for a single stations over all lead times
         if dimension_id is None:
             dimension_id = self.get_stations_varname()
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_ensemble_series(
-        self, variable_name="rain_ens", identifier: str = None, dimension_id=None
+        self, variable_name="rain_ens", identifier: str = None, dimension_id=None,
     ):
         # Return an ensemble of point time series for a station identifier
         if dimension_id is None:
             dimension_id = self.get_stations_varname()
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_ensemble_size(self):
         # Length of the ensemble size dimension
@@ -197,7 +195,7 @@ class EftsDataSet:
         return self.data.dims[self.lead_time_dim_name]
 
     def get_single_series(
-        self, variable_name="rain_obs", identifier: str = None, dimension_id=None
+        self, variable_name="rain_obs", identifier: str = None, dimension_id=None,
     ):
         # Return a single point time series for a station identifier. Falls back on def get_all_series if the argument "identifier" is missing
         if dimension_id is None:
@@ -235,7 +233,7 @@ class EftsDataSet:
             raise Exception(
                 variable_name
                 + " cannot be directly retrieved. Must be in "
-                + ", ".join(conventional_varnames)
+                + ", ".join(conventional_varnames),
             )
         return self.data[variable_name].values
 
@@ -272,7 +270,7 @@ class EftsDataSet:
         # Puts one or more ensemble forecast into a netCDF file
         if dimension_id is None:
             dimension_id = self.get_stations_varname()
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def put_ensemble_forecasts_for_station(
         self,
@@ -283,15 +281,15 @@ class EftsDataSet:
         start_time=None,
     ):
         # Puts a single ensemble member forecasts for all stations into a netCDF file
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def put_ensemble_series(
-        self, x, variable_name="rain_ens", identifier: str = None, dimension_id=None
+        self, x, variable_name="rain_ens", identifier: str = None, dimension_id=None,
     ):
         # Puts an ensemble of time series, e.g. replicate rainfall series
         if dimension_id is None:
             dimension_id = self.get_stations_varname()
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def put_single_series(
         self,
@@ -304,19 +302,19 @@ class EftsDataSet:
         # Puts a time series, or part thereof
         if dimension_id is None:
             dimension_id = self.get_stations_varname()
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def put_values(self, x, variable_name):
         # Puts all the values in a variable. Should be used only for dimension variables
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def set_time_zone(self, tzone_id):
         # Sets the time zone to use for the read time series
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def summary(self):
         # Print a summary of this EFTS netCDF file
-        raise NotImplementedError()
+        raise NotImplementedError
 
     # See Also
     # See create_efts and open_efts for examples on how to read or write EFTS netCDF files using this dataset.
@@ -530,13 +528,13 @@ def create_efts(
 
     if stations_ids is None:
         raise Exception(
-            "You must provide station identifiers when creating a new EFTS netCDF data set"
+            "You must provide station identifiers when creating a new EFTS netCDF data set",
         )
 
     if nc_attributes is None:
         raise Exception(
             "You must provide a suitable list for nc_attributes, including"
-            + ", ".join(mandatory_global_attributes)
+            + ", ".join(mandatory_global_attributes),
         )
 
     # check_global_attributes(nc_attributes)

@@ -1,6 +1,7 @@
-from efts_io.attributes import create_var_attribute_definition
 from efts_io._internals import create_data_variable
+from efts_io.attributes import create_var_attribute_definition
 from efts_io.dimensions import create_nc_dims
+
 
 #' Create a variable definition
 #'
@@ -112,7 +113,7 @@ def default_optional_variable_definitions_v2_0():
             units=["", "", "km^2", "m"],
             missval=[np.nan, np.nan, -9999, -9999],
             precision=np.repeat("float", 4),
-        )
+        ),
     )
     # rownames(varsDef) = varsDef$name
     return varsDef
@@ -169,7 +170,7 @@ from efts_io.conventions import *
 
 
 def create_mandatory_vardefs(
-    station_dim, str_dim, ensemble_dim, lead_time_dim, lead_time_tstep="hours"
+    station_dim, str_dim, ensemble_dim, lead_time_dim, lead_time_tstep="hours",
 ):
 
     # https://github.com/jmp75/efts/blob/107c553045a37e6ef36b2eababf6a299e7883d50/docs/netcdf_for_water_forecasting.md#mandatory-variables
@@ -290,12 +291,12 @@ def create_efts_variables(
     ensemble_dim = efts_dims["ensemble_dim"]
 
     mandatory_var_ncdefs = create_mandatory_vardefs(
-        station_dim, str_dim, ensemble_dim, lead_time_dim, lead_time_tstep
+        station_dim, str_dim, ensemble_dim, lead_time_dim, lead_time_tstep,
     )
     variables_metadata = mandatory_var_ncdefs
     if optional_vars is not None:
         optional_var_ncdefs = create_optional_vardefs(
-            station_dim, vars_def=optional_vars
+            station_dim, vars_def=optional_vars,
         )
         # TODO if not native to ncdf4: check name clashes
         # already_defs = names(variables)
@@ -306,7 +307,7 @@ def create_efts_variables(
         raise Exception(
             "Invalid dimension specifications for "
             + len(unknownDims)
-            + " variables. Only supported are characters 2, 3, 4"
+            + " variables. Only supported are characters 2, 3, 4",
         )
 
     ensFcastDataVarDef = [x for x in data_var_def if x["dim_type"] == "4"]
@@ -323,12 +324,12 @@ def create_efts_variables(
                 (
                     x["name"],
                     create_data_variable(
-                        x, [lead_time_dim, station_dim, ensemble_dim, time_dim]
+                        x, [lead_time_dim, station_dim, ensemble_dim, time_dim],
                     ),
                 )
                 for x in ensFcastDataVarDef
-            ]
-        )
+            ],
+        ),
     )
     data_variables.update(
         dict(
@@ -338,16 +339,16 @@ def create_efts_variables(
                     create_data_variable(x, [station_dim, ensemble_dim, time_dim]),
                 )
                 for x in ensDataVarDef
-            ]
-        )
+            ],
+        ),
     )
     data_variables.update(
         dict(
             [
                 (x["name"], create_data_variable(x, [station_dim, time_dim]))
                 for x in pointDataVarDef
-            ]
-        )
+            ],
+        ),
     )
     variables["datavars"] = data_variables
 
