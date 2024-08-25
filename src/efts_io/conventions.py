@@ -2,13 +2,15 @@
 
 from typing import List, Optional
 
+import netCDF4 as nc
+
 TIME_DIMNAME = "time"
 
 stations_dim_name = "station"
 lead_time_dim_name = "lead_time"
 time_dim_name = "time"
 ensemble_member_dim_name = "ens_member"
-str_length_dim_name = "str_len"
+str_length_dim_name = "strLen"
 
 # int station_id[station]
 station_id_varname = "station_id"
@@ -43,7 +45,30 @@ conventional_varnames = [
     elevation_varname,
 ]
 
-mandatory_global_attributes = ["title", "institution", "source", "catchment", "comment"]
+# mandatory_global_attributes = ["title", "institution", "source", "catchment", "comment"]
+mandatory_global_attributes = [
+    "title",
+    "institution",
+    "source",
+    "catchment",
+    "STF_convention_version",
+    "STF_nc_spec",
+    "comment",
+    "history",
+]
+
+mandatory_dimensions = ["time", "station", "lead_time", "strLen", "ens_member"]
+
+mandatory_varnames = [
+    "time",
+    "station",
+    "lead_time",
+    "station_id",
+    "station_name",
+    "ens_member",
+    "lat",
+    "lon",
+]
 
 
 def get_default_dim_order() -> List[str]:
@@ -60,8 +85,25 @@ def get_default_dim_order() -> List[str]:
     ]
 
 
-def check_index_found(index_id: Optional[int], identifier: str, dimension_id: str) -> None:
+def check_index_found(
+    index_id: Optional[int], identifier: str, dimension_id: str
+) -> None:
     """Helper function to check that a value (index) was is indeed found in the dimension."""
     # return isinstance(index_id, np.int64)
     if index_id is None:
-        raise ValueError(f"identifier '{identifier}' not found in the dimension '{dimension_id}'")
+        raise ValueError(
+            f"identifier '{identifier}' not found in the dimension '{dimension_id}'"
+        )
+
+
+def has_required_dimensions(d: nc.Dataset) -> bool:
+    return set(d.dimensions.keys()) == set(mandatory_dimensions)
+
+
+def has_required_global_attributes(d: nc.Dataset) -> bool:
+    a = d.ncattrs()
+    return set(a) == set(mandatory_global_attributes)
+
+
+def has_required_variables(d: nc.Dataset) -> bool:
+    return set(d.variables.keys()) == set(mandatory_varnames)

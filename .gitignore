@@ -1,9 +1,13 @@
 # idiosyncratic
 nocommit/
 
+# not sure yet, or not yet
+uv.lock
+
 # editors
 .idea/
 .vscode/
+*.code-workspace
 
 # python
 *.egg-info/

@@ -1,6 +1,18 @@
+"""Handling of EFTS netCDF variables definitions."""
+
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+import pandas as pd
+
 from efts_io._internals import create_data_variable
 from efts_io.attributes import create_var_attribute_definition
-from efts_io.dimensions import create_nc_dims
+from efts_io.conventions import (
+    ensemble_member_dim_name,
+    lead_time_dim_name,
+    stations_dim_name,
+)
+from efts_io.dimensions import _create_nc_dims
 
 
 #' Create a variable definition
@@ -25,13 +37,14 @@ from efts_io.dimensions import create_nc_dims
 #'     location_type = "Point"))
 def create_variable_definition(
     name: str,
-    longname="",
-    units="mm",
-    missval=-9999,
-    precision="double",
-    dim_type="4",
-    var_attribute=None,
-):
+    longname: str = "",
+    units: str = "mm",
+    missval: float = -9999.0,
+    precision: str = "double",
+    dim_type: str = "4",
+    var_attribute: Optional[str] = None,
+) -> dict[str, Any]:
+    """Create a variable definition."""
     if var_attribute is None:
         var_attribute = create_var_attribute_definition()
     return {
@@ -63,7 +76,7 @@ def create_variable_definition(
 # #' @return a data frame suitable for \code{\link{create_variable_definition}}
 # #' @seealso See
 # #'    \code{\link{create_variable_definition}} and \code{\link{create_efts}} for examples
-# create_variable_definition_dataframe(variable_names, long_names = variable_names, standard_names = variable_names, units = "mm", missval = -9999,
+# create_variable_definition_dataframe(variable_names, long_names = variable_names, standard_names = variable_names, units = "mm", missval = -9999.0,
 #   precision = "double", dimensions = 4L, var_attributes = create_var_attribute_definition()) {
 #   stopifnot(is.character(variable_names))
 #   varsDef = data.frame(name = variable_names, stringsAsFactors = FALSE)
@@ -84,6 +97,7 @@ def create_variable_definition(
 #   return(varsDef)
 # }
 
+
 #' Provide a template definition of optional geolocation variables
 #'
 #' Provide a template definition of optional geolocation and geographic variables x, y, area and elevation.
@@ -94,34 +108,34 @@ def create_variable_definition(
 #' @seealso See
 #'    \code{\link{create_variable_definition}} and \code{\link{create_efts}} for examples
 #' @export
-def default_optional_variable_definitions_v2_0():
-    varsDef = pd.DataFrame.from_dict(
-        dict(
-            name=["x", "y", "area", "elevation"],
-            longname=[
+def default_optional_variable_definitions_v2_0() -> pd.DataFrame:
+    """Provide a template definition of optional geolocation variables."""
+    return pd.DataFrame.from_dict(
+        {
+            "name": ["x", "y", "area", "elevation"],
+            "longname": [
                 "easting from the GDA94 datum in MGA Zone 55",
                 "northing from the GDA94 datum in MGA Zone 55",
                 "catchment area",
                 "station elevation above sea level",
             ],
-            standard_name=[
+            "standard_name": [
                 "northing_GDA94_zone55",
                 "easting_GDA94_zone55",
                 "area",
                 "elevation",
             ],
-            units=["", "", "km^2", "m"],
-            missval=[np.nan, np.nan, -9999, -9999],
-            precision=np.repeat("float", 4),
-        ),
+            "units": ["", "", "km^2", "m"],
+            "missval": [np.nan, np.nan, -9999.0, -9999.0],
+            "precision": np.repeat("float", 4),
+        },
     )
-    # rownames(varsDef) = varsDef$name
-    return varsDef
 
 
 # ########################################
 # # Below are functions not exported
 # ########################################
+
 
 #' Create variable definitions from a data frame
 #'
@@ -143,36 +157,38 @@ def default_optional_variable_definitions_v2_0():
 #' varsDef$location_type='Point'
 #' str(create_variable_definitions(varsDef))
 #'
-def create_variable_definitions(dframe):
+def create_variable_definitions(dframe: pd.DataFrame) -> List[Dict[str, Any]]:
+    """Create variable definitions from a data frame."""
     in_names = dframe.columns
     non_opt_attr = ["name", "longname", "units", "missval", "precision", "dimensions"]
     varargs_attr = [x for x in in_names if x not in non_opt_attr]
 
-    def f(varDef):
+    def f(var_def: Dict[str, Any]):  # noqa: ANN202
         return create_variable_definition(
-            name=varDef["name"],
-            longname=varDef["longname"],
-            units=varDef["units"],
-            missval=varDef["missval"],
-            precision=varDef["precision"],
-            dim_type=varDef["dimensions"],
-            var_attribute=varDef[varargs_attr],
+            name=var_def["name"],
+            longname=var_def["longname"],
+            units=var_def["units"],
+            missval=var_def["missval"],
+            precision=var_def["precision"],
+            dim_type=var_def["dimensions"],
+            var_attribute=var_def[varargs_attr],
         )
 
     # dframe[['rownum']] = 1:nrow(dframe)
     # r = plyr::dlply(.data = dframe, .variables = "rownum", .fun = f)
-    r = dframe.apply(lambda x: f(x), axis=1)
-    # names(r) = rownames(dframe)
-    return r
-
-
-from efts_io.conventions import *
+    variables_defs: Dict = dframe.apply(lambda x: f(x), axis=1)
+    res = {v["name"]: v for k, v in variables_defs.items()}
+    return res
 
 
 def create_mandatory_vardefs(
-    station_dim, str_dim, ensemble_dim, lead_time_dim, lead_time_tstep="hours",
-):
-
+    station_dim: str,
+    str_dim: str,
+    ensemble_dim: str,
+    lead_time_dim: str,
+    lead_time_tstep: str = "hours",
+) -> Dict[str, Dict[str, Any]]:
+    """Create mandatory variable definitions."""
     # https://github.com/jmp75/efts/blob/107c553045a37e6ef36b2eababf6a299e7883d50/docs/netcdf_for_water_forecasting.md#mandatory-variables
     # float time(time)
     # int station_id(station)
@@ -181,76 +197,114 @@ def create_mandatory_vardefs(
     # float lead_time(lead_time)
     # float lat (station)
     # float lon (station)
-    variables = dict(
-        station_ids_var=dict(
-            name=station_id_varname,
-            units="",
-            dim=list(station_dim),
-            missval=None,
-            longname="station or node identification code",
-            prec="integer",
-        ),
-        station_names_var=dict(
-            name=station_name_varname,
-            units="",
-            dim=[str_dim, station_dim],
-            missval=None,
-            longname="station or node name",
-            prec="char",
-        ),
-        ensemble_var=dict(
-            name=ensemble_member_dim_name,
-            units="member id",
-            dim=list(ensemble_dim),
-            missval=None,
-            longname="ensemble member",
-            prec="integer",
-        ),
-        lead_time_var=dict(
-            name=lead_time_dim_name,
-            units=lead_time_tstep + " since time",
-            dim=list(lead_time_dim),
-            missval=None,
-            longname="forecast lead time",
-            prec="integer",
-        ),
-        latitude_var=dict(
-            name=lat_varname,
-            units="degrees north",
-            dim=list(station_dim),
-            missval=-9999,
-            longname="latitude",
-            prec="float",
-        ),
-        longitude_var=dict(
-            name=lon_varname,
-            units="degrees east",
-            dim=list(station_dim),
-            missval=-9999,
-            longname="longitude",
-            prec="float",
-        ),
+    import xarray as xr
+
+    # stations_dim_name,
+    # lead_time_dim_name,
+    # time_dim_name,
+    # ensemble_member_dim_name,
+    # str_length_dim_name,
+
+    station_id_variable = xr.Variable(
+        dims=[stations_dim_name],
+        data=station_dim[1],
+        encoding={"_FillValue": None},
+        attrs={
+            "longname": station_dim[2]["longname"],
+            "units": "",
+            "missval": None,
+            "precision": "integer",
+        },
     )
-    return variables
+    station_names_dim_variable = xr.Variable(
+        dims=[str_dim[0], stations_dim_name],
+        # That was not intuitive to create this empty array. Not entirely sure this is what we want.
+        data=np.empty_like(
+            prototype=b"", shape=(len(str_dim[1]), len(station_dim[1])), dtype=np.bytes_
+        ),
+        encoding={"_FillValue": None},
+        attrs={
+            "longname": "station or node name",
+            "units": "",
+            "missval": None,
+            "precision": "char",
+        },
+    )
+    ensemble_member_id_variable = xr.Variable(
+        dims=[ensemble_member_dim_name],
+        data=ensemble_dim[1],
+        encoding={"_FillValue": None},
+        attrs={
+            "longname": ensemble_dim[2]["longname"],
+            "units": "",
+            "missval": None,
+            "precision": "integer",
+        },
+    )
+    lead_time_dim_variable = xr.Variable(
+        dims=[lead_time_dim_name],
+        data=lead_time_dim[1],
+        encoding={"_FillValue": None},
+        attrs={
+            "longname": lead_time_dim[2]["longname"],
+            "units": lead_time_tstep + " since time",
+            "missval": None,
+            "precision": "integer",
+        },
+    )
+    latitude_dim_variable = xr.Variable(
+        dims=[stations_dim_name],
+        data=np.empty_like(station_dim[1], dtype=float),
+        encoding={"_FillValue": -9999.0},
+        attrs={
+            "longname": "latitude",
+            "units": "degrees north",
+            "missval": -9999.0,
+            "precision": "float",
+        },
+    )
+    longitude_dim_variable = xr.Variable(
+        dims=[stations_dim_name],
+        data=np.empty_like(station_dim[1], dtype=float),
+        encoding={"_FillValue": -9999.0},
+        attrs={
+            "longname": "longitude",
+            "units": "degrees east",
+            "missval": -9999.0,
+            "precision": "float",
+        },
+    )
+
+    return {
+        "station_ids_var": station_id_variable,
+        "station_names_var": station_names_dim_variable,
+        "ensemble_var": ensemble_member_id_variable,
+        "lead_time_var": lead_time_dim_variable,
+        "latitude_var": latitude_dim_variable,
+        "longitude_var": longitude_dim_variable,
+    }
 
 
-def create_optional_vardefs(station_dim, vars_def=None):
+def create_optional_vardefs(
+    station_dim: str, vars_def: Optional[pd.DataFrame] = None
+) -> pd.Series:
+    """Create optional variable definitions."""
     if vars_def is None:
         vars_def = default_optional_variable_definitions_v2_0()
+
     # https://github.com/jmp75/efts/blob/107c553045a37e6ef36b2eababf6a299e7883d50/docs/netcdf_for_water_forecasting.md#mandatory-variables
     # vars_def$rownum = 1:nrow(vars_def)
-    def f(vd):
-        return dict(
-            name=vd["name"],
-            units=vd["units"],
-            dim=list(station_dim),
-            missval=vd["missval"],
-            longname=vd["longname"],
-            prec=vd["precision"],
-        )
+    def f(vd: Dict):  # noqa: ANN202
+        return {
+            "name": vd["name"],
+            "units": vd["units"],
+            "dim": list(station_dim),
+            "missval": vd["missval"],
+            "longname": vd["longname"],
+            "prec": vd["precision"],
+        }
 
-    r = vars_def.apply(lambda x: f(x), axis=1)
-    return r
+    return vars_def.apply(lambda x: f(x), axis=1)
 
 
 #' Create netCDF variables according to the definition
@@ -269,15 +323,16 @@ def create_optional_vardefs(station_dim, vars_def=None):
 #' @seealso See
 #'    \code{\link{create_efts}} for examples
 def create_efts_variables(
-    data_var_def,
-    time_dim_info,
-    num_stations,
-    lead_length,
-    ensemble_length,
-    optional_vars,
-    lead_time_tstep,
-):
-    efts_dims = create_nc_dims(
+    data_var_def: Dict,
+    time_dim_info: Dict,
+    num_stations: int,
+    lead_length: int,
+    ensemble_length: int,
+    optional_vars: Optional[pd.DataFrame],
+    lead_time_tstep: str,
+) -> Dict[str, Any]:
+    """Create netCDF variables according to the definition."""
+    efts_dims = _create_nc_dims(
         time_dim_info=time_dim_info,
         num_stations=num_stations,
         lead_length=lead_length,
@@ -291,64 +346,60 @@ def create_efts_variables(
     ensemble_dim = efts_dims["ensemble_dim"]
 
     mandatory_var_ncdefs = create_mandatory_vardefs(
-        station_dim, str_dim, ensemble_dim, lead_time_dim, lead_time_tstep,
+        station_dim,
+        str_dim,
+        ensemble_dim,
+        lead_time_dim,
+        lead_time_tstep,
     )
     variables_metadata = mandatory_var_ncdefs
     if optional_vars is not None:
         optional_var_ncdefs = create_optional_vardefs(
-            station_dim, vars_def=optional_vars,
+            station_dim,
+            vars_def=optional_vars,
         )
         # TODO if not native to ncdf4: check name clashes
         # already_defs = names(variables)
         variables_metadata = variables_metadata.update(optional_var_ncdefs)
 
-    unknownDims = [x for x in data_var_def if x["dim_type"] not in ["2", "3", "4"]]
-    if len(unknownDims) > 0:
-        raise Exception(
+    unknown_dims = [
+        x for x in data_var_def.values() if x["dim_type"] not in ["2", "3", "4"]
+    ]
+    if len(unknown_dims) > 0:
+        raise ValueError(
             "Invalid dimension specifications for "
-            + len(unknownDims)
+            + len(unknown_dims)
             + " variables. Only supported are characters 2, 3, 4",
         )
 
-    ensFcastDataVarDef = [x for x in data_var_def if x["dim_type"] == "4"]
-    ensDataVarDef = [x for x in data_var_def if x["dim_type"] == "3"]
-    pointDataVarDef = [x for x in data_var_def if x["dim_type"] == "2"]
+    ens_fcast_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "4"]
+    ens_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "3"]
+    point_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "2"]
 
-    variables = dict()
+    variables = {}
     variables["metadatavars"] = variables_metadata
 
-    data_variables = dict()
+    data_variables = {}
     data_variables.update(
-        dict(
-            [
-                (
-                    x["name"],
-                    create_data_variable(
-                        x, [lead_time_dim, station_dim, ensemble_dim, time_dim],
-                    ),
-                )
-                for x in ensFcastDataVarDef
-            ],
-        ),
+        {
+            x["name"]: create_data_variable(
+                x,
+                [lead_time_dim, station_dim, ensemble_dim, time_dim],
+            )
+            for x in ens_fcast_data_var_def
+        },
     )
     data_variables.update(
-        dict(
-            [
-                (
-                    x["name"],
-                    create_data_variable(x, [station_dim, ensemble_dim, time_dim]),
-                )
-                for x in ensDataVarDef
-            ],
-        ),
+        {
+            x["name"]: create_data_variable(x, [station_dim, ensemble_dim, time_dim])
+            for x in ens_data_var_def
+        },
     )
     data_variables.update(
-        dict(
-            [
-                (x["name"], create_data_variable(x, [station_dim, time_dim]))
-                for x in pointDataVarDef
-            ],
-        ),
+        {
+            x["name"]: create_data_variable(x, [station_dim, time_dim])
+            for x in point_data_var_def
+        },
     )
     variables["datavars"] = data_variables
 

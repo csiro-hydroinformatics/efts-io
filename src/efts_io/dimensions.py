@@ -1,10 +1,22 @@
+"""Functions to create and manipulate dimensions for netCDF files."""
+
+from datetime import datetime
+from typing import Any, Dict, Optional, Tuple, Union
+
 import numpy as np
 import pandas as pd
 
-from efts_io.conventions import *
+from efts_io.conventions import (
+    ensemble_member_dim_name,
+    lead_time_dim_name,
+    stations_dim_name,
+    str_length_dim_name,
+    time_dim_name,
+)
 
 
-def iso_date_time_str(t) -> str:
+def iso_date_time_str(t: Any) -> str:
+    """Convert a date-time object to a string in ISO format, using space as separator."""
     return pd.Timestamp(t).isoformat(" ")
 
 
@@ -20,13 +32,15 @@ def iso_date_time_str(t) -> str:
 #' start_time <- ISOdate(year=2010, month=08, day=01, hour = 12, min = 0, sec = 0, tz = 'UTC')
 #' check_is_utc(d=start_time)
 #'
-def check_is_utc(d):
+def check_is_utc(d: Any) -> bool:
+    """Check that a date-time is in the UTC time zone."""
     a = pd.Timestamp(d)
     if a.tz is None:
         return True  # ?
-    else:
-        z = a.tz
-        return z.zone in ["UTC", "GMT"]
+    z = a.tz
+    from datetime import timezone
+
+    return z == timezone.utc
 
 
 #' Create a time axis unit known to work for netCDF
@@ -47,15 +61,17 @@ def check_is_utc(d):
 #'   min = 0, sec = 0, tz = 'Australia/Sydney')
 #' create_netcdf_time_axis(d=start_time, tzoffset='+1000')
 #'
-def create_netcdf_time_axis(d, time_step="hours since", tzoffset: str = None):
+def create_netcdf_time_axis(d: Any, time_step: str = "hours since", tzoffset: Optional[str] = None) -> str:
+    """Create a time axis unit known to work for netCDF."""
     if tzoffset is None:
         if not check_is_utc(d):
-            raise Exception("date time must have UTC or GMT as time zone")
+            raise ValueError("date time must have UTC or GMT as time zone")
         tzoffset = "+0000"
     return " ".join([time_step, iso_date_time_str(as_naive_timestamp(d)), tzoffset])
 
 
-def as_naive_timestamp(d):
+def as_naive_timestamp(d: Union[datetime, pd.Timestamp]) -> pd.Timestamp:
+    """Convert a date-time object to a naive timestamp."""
     return pd.Timestamp(
         year=d.year,
         month=d.month,
@@ -92,11 +108,18 @@ def as_naive_timestamp(d):
 #'   time_step = "hours since", time_step_delta = 3L, tzoffset = "+1000"))
 #'
 def create_time_info(
-    start, n, time_step="hours since", time_step_delta=1, tzoffset=None,
-):
+    start: Any,
+    n: int,
+    time_step: str = "hours since",
+    time_step_delta: int = 1,
+    tzoffset: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Helper function to create the definition of the time dimension for use in a netCDF file."""
     return {
         "units": create_netcdf_time_axis(
-            d=start, time_step=time_step, tzoffset=tzoffset,
+            d=start,
+            time_step=time_step,
+            tzoffset=tzoffset,
         ),
         "values": np.arange(0, n) * time_step_delta,
     }
@@ -278,41 +301,45 @@ def create_time_info(
 #' @return A list of ncdf4 dimensions
 #' @seealso See
 #'    \code{\link{create_efts}} for examples
-def create_nc_dims(
-    time_dim_info, str_len=30, lead_length=1, ensemble_length=1, num_stations=1,
-):
-
+def _create_nc_dims(
+    time_dim_info: Dict[str, Any],
+    str_len: int = 30,
+    lead_length: int = 1,
+    ensemble_length: int = 1,
+    num_stations: int = 1,
+) -> Dict[Tuple[list[str], Any, Dict[str, Any]] | Tuple[list[str], np.ndarray, Dict[str, str]], Any]:
+    """Creates dimensions for a netCDF EFTS data set."""
     time_dim = (
-        [time_dim_name],
+        time_dim_name,
         time_dim_info["values"],
         {"units": time_dim_info["units"], "longname": "time"},
     )
     # time_dim = ncdf4::ncdim_def(time_dim_name, units = time_dim_info$units, vals = time_dim_info$values,
     #     unlim = T, create_dimvar = TRUE, longname = "time")
     station_dim = (
-        [stations_dim_name],
+        stations_dim_name,
         np.arange(1, num_stations + 1),
         {"units": "", "longname": "station"},
     )
     str_dim = (
-        [str_length_dim_name],
+        str_length_dim_name,
         np.arange(1, str_len + 1),
         {"units": "", "longname": "string length"},
     )
     lead_time_dim = (
-        [lead_time_dim_name],
+        lead_time_dim_name,
         np.arange(1, lead_length + 1),
         {"units": "", "longname": "lead time"},
     )  # TODO: check whether  time_dim_info['units'] is alwaus suitable.
     ensemble_dim = (
-        [ensemble_member_dim_name],
+        ensemble_member_dim_name,
         np.arange(1, ensemble_length + 1),
         {"units": "", "longname": "ensemble"},
     )
-    return dict(
-        time_dim=time_dim,
-        lead_time_dim=lead_time_dim,
-        station_dim=station_dim,
-        str_dim=str_dim,
-        ensemble_dim=ensemble_dim,
-    )
+    return {
+        "time_dim": time_dim,
+        "lead_time_dim": lead_time_dim,
+        "station_dim": station_dim,
+        "str_dim": str_dim,
+        "ensemble_dim": ensemble_dim,
+    }

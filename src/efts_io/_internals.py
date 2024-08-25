@@ -126,16 +126,35 @@
 #' @import magrittr
 from typing import Any, Dict
 
+
 def create_data_variable(data_var_def: Dict[str, Any], dimensions):
+    import numpy as np
     import xarray as xr
 
     a = data_var_def
     #    (c("name", "units") %in% names(a)) %>% all %>% stopifnot
     varname = a["name"]
     longname = a["longname"] if "longname" in a.keys() else varname
-    precision = a["precision"] if "longname" in a.keys() else "double"
-    missval = a["missval"] if "longname" in a.keys() else -9999
-    return xr.DataArray()
+    precision = a["precision"] if "precision" in a.keys() else "double"
+    missval = a["missval"] if "missval" in a.keys() else -9999
+
+    dimnames = [d[0] for d in dimensions]
+    if not isinstance(dimnames[0], str):
+        raise ValueError("Dimension names must be strings.")
+    shape = tuple(len(d[1]) for d in dimensions)
+    variable = xr.Variable(
+        dims=dimnames,
+        data=np.empty(shape, dtype=float),  # TODO: should this use precision?
+        encoding={"_FillValue": missval},
+        attrs={
+            "longname": longname,
+            "units": a["units"],
+            "missval": missval,
+            "precision": precision,
+        },
+    )
+    return variable
+
     # xr.Variable(dims=dimensions, data, attrs=None, encoding=None, fastpath=False)
     # vardef = ncdf4::ncvar_def(name = varname, units = a["units"], dim = dimensions,
     # longname = ifelse("longname" %in% names(a), a["longname"], varname)

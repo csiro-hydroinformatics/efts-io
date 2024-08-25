@@ -18,14 +18,15 @@
 #'   var_attribute=va)
 #'
 def create_var_attribute_definition(
-    type=2,
-    type_description="accumulated over the preceding interval",
-    dat_type="der",
-    dat_type_description="AWAP data interpolated from observations",
-    location_type="Point",
+    data_type_code: int = 2,
+    type_description: str = "accumulated over the preceding interval",
+    dat_type: str = "der",
+    dat_type_description: str = "AWAP data interpolated from observations",
+    location_type: str = "Point",
 ):
+    """Create variable attribute definition."""
     return {
-        "type": type,
+        "type": data_type_code,
         "type_description": type_description,
         "dat_type": dat_type,
         "dat_type_description": dat_type_description,
@@ -62,6 +63,7 @@ def create_var_attribute_definition(
 #   ncdf4::ncatt_put(nc, 0, attribute_name, as.character(attVal))
 # }
 
+
 #' Define a set of global attributes for netCDF files.
 #'
 #' The conventions require a set of global attributes to be present,
@@ -84,14 +86,12 @@ def create_global_attributes(
     comment: str,
     strict: bool = False,
 ):
-
     # catchment info should not have white spaces (and why was that???)
     # catchment = 'Upper  Murray River '
     # catchment = stringr::str_replace_all(catchment, pattern='\\s+', '_')
 
-    if strict:
-        if title == "":
-            raise Exception("Empty title is not accepted as a valid attribute")
+    if strict and title == "":
+        raise ValueError("Empty title is not accepted as a valid attribute")
 
     return {
         "title": title,

@@ -33,6 +33,7 @@ dependencies = [
     "numpy",
     "xarray",
     "cftime",
+    "netcdf4>=1.7.1.post2",
 ]
 
 [project.urls]
