@@ -29,4 +29,5 @@ mkdocs-literate-nav>=0.6
 mkdocs-material>=9.5
 mkdocs-minify-plugin>=0.8
 mkdocstrings[python]>=0.25
+mkdocs-jupyter>=0.24.8
 tomli>=2.0; python_version < '3.11'
