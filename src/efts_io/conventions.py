@@ -1,8 +1,16 @@
 """Naming conventions for the EFTS netCDF file format."""
 
-from typing import List, Optional
+from datetime import datetime
+from typing import List, Optional, Union
 
 import netCDF4 as nc
+import numpy as np
+import pandas as pd
+
+ConvertibleToTimestamp = Union[str, datetime, np.datetime64, pd.Timestamp]
+"""Definition of a 'type' for type hints.
+"""
+
 
 TIME_DIMNAME = "time"
 
@@ -86,13 +94,15 @@ def get_default_dim_order() -> List[str]:
 
 
 def check_index_found(
-    index_id: Optional[int], identifier: str, dimension_id: str
+    index_id: Optional[int],
+    identifier: str,
+    dimension_id: str,
 ) -> None:
     """Helper function to check that a value (index) was is indeed found in the dimension."""
     # return isinstance(index_id, np.int64)
     if index_id is None:
         raise ValueError(
-            f"identifier '{identifier}' not found in the dimension '{dimension_id}'"
+            f"identifier '{identifier}' not found in the dimension '{dimension_id}'",
         )
 
 

@@ -220,7 +220,9 @@ def create_mandatory_vardefs(
         dims=[str_dim[0], stations_dim_name],
         # That was not intuitive to create this empty array. Not entirely sure this is what we want.
         data=np.empty_like(
-            prototype=b"", shape=(len(str_dim[1]), len(station_dim[1])), dtype=np.bytes_
+            prototype=b"",
+            shape=(len(str_dim[1]), len(station_dim[1])),
+            dtype=np.bytes_,
         ),
         encoding={"_FillValue": None},
         attrs={
@@ -286,7 +288,8 @@ def create_mandatory_vardefs(
 
 
 def create_optional_vardefs(
-    station_dim: str, vars_def: Optional[pd.DataFrame] = None
+    station_dim: str,
+    vars_def: Optional[pd.DataFrame] = None,
 ) -> pd.Series:
     """Create optional variable definitions."""
     if vars_def is None:
@@ -362,9 +365,7 @@ def create_efts_variables(
         # already_defs = names(variables)
         variables_metadata = variables_metadata.update(optional_var_ncdefs)
 
-    unknown_dims = [
-        x for x in data_var_def.values() if x["dim_type"] not in ["2", "3", "4"]
-    ]
+    unknown_dims = [x for x in data_var_def.values() if x["dim_type"] not in ["2", "3", "4"]]
     if len(unknown_dims) > 0:
         raise ValueError(
             "Invalid dimension specifications for "
@@ -390,16 +391,10 @@ def create_efts_variables(
         },
     )
     data_variables.update(
-        {
-            x["name"]: create_data_variable(x, [station_dim, ensemble_dim, time_dim])
-            for x in ens_data_var_def
-        },
+        {x["name"]: create_data_variable(x, [station_dim, ensemble_dim, time_dim]) for x in ens_data_var_def},
     )
     data_variables.update(
-        {
-            x["name"]: create_data_variable(x, [station_dim, time_dim])
-            for x in point_data_var_def
-        },
+        {x["name"]: create_data_variable(x, [station_dim, time_dim]) for x in point_data_var_def},
     )
     variables["datavars"] = data_variables
 

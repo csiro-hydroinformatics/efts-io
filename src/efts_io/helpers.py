@@ -17,9 +17,7 @@ def create_empty_stfnc(
     quality: bool = False,  # Boolean. Set to true if you want to create a data quality
     stf_nc_vers: str = "1.0",  # Double version number of STF netCDF convention. Defaults to
     title: str = "",  # String specifying title of .nc file
-    institution: Optional[
-        str
-    ] = None,  # String specifying institution that made the data.
+    institution: Optional[str] = None,  # String specifying institution that made the data.
     warnings: int = 0,  # integer specifying if you wish to turn off warning
     data_class: type = float,  # Data class for variable in .nc file. Defaults to
     owr: bool = True,  # Bolean. Indicates whether you wish to overwrite the

@@ -1,7 +1,7 @@
 """A thin wrapper around xarray for reading and writing Ensemble Forecast Time Series (EFTS) data sets."""
 
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -9,6 +9,7 @@ import xarray as xr
 
 from efts_io.conventions import (
     TIME_DIMNAME,
+    ConvertibleToTimestamp,
     check_index_found,
     ensemble_member_dim_name,
     lat_varname,
@@ -48,7 +49,8 @@ _ats = np.vectorize(_cftime_to_pdtstamp)
 
 
 def _cftimes_to_pdtstamps(
-    cftimes: List[pd.Timestamp], tz_str: str
+    cftimes: List[pd.Timestamp],
+    tz_str: str,
 ) -> List[pd.Timestamp]:
     return _ats(cftimes, tz_str)
 
@@ -117,7 +119,9 @@ class EftsDataSet:
             self.data: xr.Dataset = data
 
     def get_all_series(
-        self, variable_name: str = "rain_obs", dimension_id: Optional[str] = None
+        self,
+        variable_name: str = "rain_obs",
+        dimension_id: Optional[str] = None,
     ):
         """Return a multivariate time series, where each column is the series for one of the identifiers."""
         # Return a multivariate time series, where each column is the series for one of the identifiers (self, e.g. rainfall station identifiers):
@@ -283,9 +287,7 @@ class EftsDataSet:
 
         if variable_name not in conventional_varnames:
             raise ValueError(
-                variable_name
-                + " cannot be directly retrieved. Must be in "
-                + ", ".join(conventional_varnames),
+                variable_name + " cannot be directly retrieved. Must be in " + ", ".join(conventional_varnames),
             )
         return self.data[variable_name].values
 
@@ -413,6 +415,93 @@ def open_efts(ncfile, writein=False):
     #     nc = ncfile
     # }
     return EftsDataSet(ncfile)
+
+
+def nan_like(shape: Union[Tuple, int]) -> np.ndarray:
+    if isinstance(shape, int):
+        shape = (shape,)
+    return np.full(shape=shape, fill_value=np.nan)
+
+
+def xr_efts(
+    issue_times: Iterable[ConvertibleToTimestamp],
+    station_ids: Iterable[str],
+    lead_times: Optional[Iterable[int]] = None,
+    lead_time_tstep: str = "hours",
+    ensemble_size: int = 1,
+    # variables
+    station_names: Optional[Iterable[str]] = None,
+    latitudes: Optional[Iterable[float]] = None,
+    longitudes: Optional[Iterable[float]] = None,
+    areas: Optional[Iterable[float]] = None,
+    nc_attributes: Optional[Dict[str, str]] = None,
+) -> xr.Dataset:
+    if lead_times is None:
+        lead_times = [0]
+    coords = {
+        "time": issue_times,
+        "station_id": station_ids,
+        "ens_member": np.arange(start=1, stop=ensemble_size + 1, step=1),
+        "lead_time": lead_times,
+    }
+    n_stations = len(station_ids)
+    latitudes = latitudes or nan_like(n_stations)
+    longitudes = longitudes or nan_like(n_stations)
+    areas = areas or nan_like(n_stations)
+    station_names = station_names or [f"{i}" for i in station_ids]
+    data_vars = {
+        "station_name": ("station_id", station_names),
+        "lat": ("station_id", latitudes),
+        "lon": ("station_id", longitudes),
+        "area": ("station_id", areas),
+    }
+    nc_attributes = nc_attributes or default_mandatory_global_attributes()
+    d = xr.Dataset(
+        data_vars=data_vars,
+        coords=coords,
+        attrs=nc_attributes,
+    )
+    d.time.attrs = {
+        "standard_name": "time",
+        "long_name": "time",
+        # "time_standard": "UTC",
+        "axis": "t",
+        # "units": "days since 2000-11-14 23:00:00.0 +0000",
+    }
+    d.lead_time.attrs = {
+        "standard_name": "lead time",
+        "long_name": "forecast lead time",
+        "axis": "v",
+        "units": f"{lead_time_tstep} since time",
+    }
+    d.ens_member.attrs = {
+        "standard_name": "ens_member",
+        "long_name": "ensemble member",
+        "units": "member id",
+        "axis": "u",
+    }
+    d.station_id.attrs = {"long_name": "station or node identification code"}
+    d.station_name.attrs = {"long_name": "station or node name"}
+    d.lat.attrs = {"long_name": "latitude", "units": "degrees_north", "axis": "y"}
+    d.lon.attrs = {"long_name": "longitude", "units": "degrees_east", "axis": "x"}
+    d.area.attrs = {
+        "long_name": "station area",
+        "units": "km^2",
+        "standard_name": "area",
+    }
+    return d
+
+
+def default_mandatory_global_attributes() -> Dict[str, str]:
+    return {
+        "title": "not provided",
+        "institution": "not provided",
+        "catchment": "not provided",
+        "source": "not provided",
+        "comment": "not provided",
+        "STF_convention_version": "2.0",
+        "STF_nc_spec": "https://github.com/csiro-hydroinformatics/efts/blob/107c553045a37e6ef36b2eababf6a299e7883d50/docs/netcdf_for_water_forecasting.md",
+    }
 
 
 #' Creates a EftsDataSet for write access to a netCDF EFTS data set
@@ -590,8 +679,7 @@ def create_efts(
 
     if nc_attributes is None:
         raise ValueError(
-            "You must provide a suitable list for nc_attributes, including"
-            + ", ".join(mandatory_global_attributes),
+            "You must provide a suitable list for nc_attributes, including" + ", ".join(mandatory_global_attributes),
         )
 
     # check_global_attributes(nc_attributes)
