@@ -32,6 +32,8 @@ dependencies = [
     "pandas",
     "numpy",
     "xarray",
+    "cf-xarray",
+    "pint-xarray",
     "cftime",
     "netcdf4>=1.7.1.post2",
 ]

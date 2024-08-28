@@ -31,3 +31,10 @@ mkdocs-minify-plugin>=0.8
 mkdocstrings[python]>=0.25
 mkdocs-jupyter>=0.24.8
 tomli>=2.0; python_version < '3.11'
+
+# notebooks
+ipykernel>=6.29.5
+# jupyterlab>=4.2.5
+nbstripout>=0.7.1
+jupytext>=1.16.4
+# Note to self: consider nbstripout-fast 1.0.4

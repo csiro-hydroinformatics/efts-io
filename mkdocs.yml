@@ -19,6 +19,8 @@ nav:
   - Changelog: changelog.md
   - Credits: credits.md
   - License: license.md
+- Examples:
+  - Basic use: nb/basic_usage.ipynb
 # defer to gen-files + literate-nav
 - API reference:
   - efts-io: reference/
