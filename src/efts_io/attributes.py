@@ -94,11 +94,11 @@ def create_global_attributes(
         raise ValueError("Empty title is not accepted as a valid attribute")
 
     return {
-        "title": title,
-        "institution": institution,
-        "source": source,
-        "catchment": catchment,
-        "comment": comment,
+        TITLE_ATTR_KEY: title,
+        INSTITUTION_ATTR_KEY: institution,
+        SOURCE_ATTR_KEY: source,
+        CATCHMENT_ATTR_KEY: catchment,
+        COMMENT_ATTR_KEY: comment,
     }
 
 

@@ -7,11 +7,7 @@ import pandas as pd
 
 from efts_io._internals import create_data_variable
 from efts_io.attributes import create_var_attribute_definition
-from efts_io.conventions import (
-    ensemble_member_dim_name,
-    lead_time_dim_name,
-    stations_dim_name,
-)
+from efts_io.conventions import ENS_MEMBER_DIMNAME, LEAD_TIME_DIMNAME, STATION_DIMNAME
 from efts_io.dimensions import _create_nc_dims
 
 
@@ -50,7 +46,7 @@ def create_variable_definition(
     return {
         "name": name,
         "longname": longname,
-        "units": units,
+        UNITS_ATTR_KEY: units,
         "dim_type": dim_type,
         "missval": missval,
         "precision": precision,
@@ -112,20 +108,20 @@ def default_optional_variable_definitions_v2_0() -> pd.DataFrame:
     """Provide a template definition of optional geolocation variables."""
     return pd.DataFrame.from_dict(
         {
-            "name": ["x", "y", "area", "elevation"],
+            "name": ["x", "y", AREA_VARNAME, "elevation"],
             "longname": [
                 "easting from the GDA94 datum in MGA Zone 55",
                 "northing from the GDA94 datum in MGA Zone 55",
                 "catchment area",
                 "station elevation above sea level",
             ],
-            "standard_name": [
+            STANDARD_NAME_KEY: [
                 "northing_GDA94_zone55",
                 "easting_GDA94_zone55",
-                "area",
+                AREA_VARNAME,
                 "elevation",
             ],
-            "units": ["", "", "km^2", "m"],
+            UNITS_ATTR_KEY: ["", "", "km^2", "m"],
             "missval": [np.nan, np.nan, -9999.0, -9999.0],
             "precision": np.repeat("float", 4),
         },
@@ -160,14 +156,14 @@ def default_optional_variable_definitions_v2_0() -> pd.DataFrame:
 def create_variable_definitions(dframe: pd.DataFrame) -> List[Dict[str, Any]]:
     """Create variable definitions from a data frame."""
     in_names = dframe.columns
-    non_opt_attr = ["name", "longname", "units", "missval", "precision", "dimensions"]
+    non_opt_attr = ["name", "longname", UNITS_ATTR_KEY, "missval", "precision", "dimensions"]
     varargs_attr = [x for x in in_names if x not in non_opt_attr]
 
     def f(var_def: Dict[str, Any]):  # noqa: ANN202
         return create_variable_definition(
             name=var_def["name"],
             longname=var_def["longname"],
-            units=var_def["units"],
+            units=var_def[UNITS_ATTR_KEY],
             missval=var_def["missval"],
             precision=var_def["precision"],
             dim_type=var_def["dimensions"],
@@ -199,25 +195,25 @@ def create_mandatory_vardefs(
     # float lon (station)
     import xarray as xr
 
-    # stations_dim_name,
-    # lead_time_dim_name,
-    # time_dim_name,
-    # ensemble_member_dim_name,
-    # str_length_dim_name,
+    # STATION_DIMNAME,
+    # LEAD_TIME_DIMNAME,
+    # TIME_DIMNAME,
+    # ENS_MEMBER_DIMNAME,
+    # STR_LEN_DIMNAME,
 
     station_id_variable = xr.Variable(
-        dims=[stations_dim_name],
+        dims=[STATION_DIMNAME],
         data=station_dim[1],
         encoding={"_FillValue": None},
         attrs={
             "longname": station_dim[2]["longname"],
-            "units": "",
+            UNITS_ATTR_KEY: "",
             "missval": None,
             "precision": "integer",
         },
     )
     station_names_dim_variable = xr.Variable(
-        dims=[str_dim[0], stations_dim_name],
+        dims=[str_dim[0], STATION_DIMNAME],
         # That was not intuitive to create this empty array. Not entirely sure this is what we want.
         data=np.empty_like(
             prototype=b"",
@@ -227,51 +223,51 @@ def create_mandatory_vardefs(
         encoding={"_FillValue": None},
         attrs={
             "longname": "station or node name",
-            "units": "",
+            UNITS_ATTR_KEY: "",
             "missval": None,
             "precision": "char",
         },
     )
     ensemble_member_id_variable = xr.Variable(
-        dims=[ensemble_member_dim_name],
+        dims=[ENS_MEMBER_DIMNAME],
         data=ensemble_dim[1],
         encoding={"_FillValue": None},
         attrs={
             "longname": ensemble_dim[2]["longname"],
-            "units": "",
+            UNITS_ATTR_KEY: "",
             "missval": None,
             "precision": "integer",
         },
     )
     lead_time_dim_variable = xr.Variable(
-        dims=[lead_time_dim_name],
+        dims=[LEAD_TIME_DIMNAME],
         data=lead_time_dim[1],
         encoding={"_FillValue": None},
         attrs={
             "longname": lead_time_dim[2]["longname"],
-            "units": lead_time_tstep + " since time",
+            UNITS_ATTR_KEY: lead_time_tstep + " since time",
             "missval": None,
             "precision": "integer",
         },
     )
     latitude_dim_variable = xr.Variable(
-        dims=[stations_dim_name],
+        dims=[STATION_DIMNAME],
         data=np.empty_like(station_dim[1], dtype=float),
         encoding={"_FillValue": -9999.0},
         attrs={
             "longname": "latitude",
-            "units": "degrees north",
+            UNITS_ATTR_KEY: "degrees north",
             "missval": -9999.0,
             "precision": "float",
         },
     )
     longitude_dim_variable = xr.Variable(
-        dims=[stations_dim_name],
+        dims=[STATION_DIMNAME],
         data=np.empty_like(station_dim[1], dtype=float),
         encoding={"_FillValue": -9999.0},
         attrs={
             "longname": "longitude",
-            "units": "degrees east",
+            UNITS_ATTR_KEY: "degrees east",
             "missval": -9999.0,
             "precision": "float",
         },
@@ -300,7 +296,7 @@ def create_optional_vardefs(
     def f(vd: Dict):  # noqa: ANN202
         return {
             "name": vd["name"],
-            "units": vd["units"],
+            UNITS_ATTR_KEY: vd[UNITS_ATTR_KEY],
             "dim": list(station_dim),
             "missval": vd["missval"],
             "longname": vd["longname"],

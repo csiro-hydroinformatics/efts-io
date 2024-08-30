@@ -1,11 +1,12 @@
 """Naming conventions for the EFTS netCDF file format."""
 
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import Iterable, List, Optional, Union
 
 import netCDF4 as nc
 import numpy as np
 import pandas as pd
+import xarray as xr
 
 ConvertibleToTimestamp = Union[str, datetime, np.datetime64, pd.Timestamp]
 """Definition of a 'type' for type hints.
@@ -13,69 +14,85 @@ ConvertibleToTimestamp = Union[str, datetime, np.datetime64, pd.Timestamp]
 
 
 TIME_DIMNAME = "time"
-
-stations_dim_name = "station"
-lead_time_dim_name = "lead_time"
-time_dim_name = "time"
-ensemble_member_dim_name = "ens_member"
-str_length_dim_name = "strLen"
+STATION_DIMNAME = "station"
+ENS_MEMBER_DIMNAME = "ens_member"
+LEAD_TIME_DIMNAME = "lead_time"
+STR_LEN_DIMNAME = "strLen"
 
 # int station_id[station]
-station_id_varname = "station_id"
+STATION_ID_VARNAME = "station_id"
 # char station_name[str_len,station]
-station_name_varname = "station_name"
+STATION_NAME_VARNAME = "station_name"
 # float lat[station]
-lat_varname = "lat"
+LAT_VARNAME = "lat"
 # float lon[station]
-lon_varname = "lon"
+LON_VARNAME = "lon"
 # float x[station]
-x_varname = "x"
+X_VARNAME = "x"
 # float y[station]
-y_varname = "y"
+Y_VARNAME = "y"
 # float area[station]
-area_varname = "area"
+AREA_VARNAME = "area"
 # float elevation[station]
-elevation_varname = "elevation"
+ELEVATION_VARNAME = "elevation"
 
 conventional_varnames = [
-    stations_dim_name,
-    lead_time_dim_name,
-    time_dim_name,
-    ensemble_member_dim_name,
-    str_length_dim_name,
-    station_id_varname,
-    station_name_varname,
-    lat_varname,
-    lon_varname,
-    x_varname,
-    y_varname,
-    area_varname,
-    elevation_varname,
+    STATION_DIMNAME,
+    LEAD_TIME_DIMNAME,
+    TIME_DIMNAME,
+    ENS_MEMBER_DIMNAME,
+    STR_LEN_DIMNAME,
+    STATION_ID_VARNAME,
+    STATION_NAME_VARNAME,
+    LAT_VARNAME,
+    LON_VARNAME,
+    X_VARNAME,
+    Y_VARNAME,
+    AREA_VARNAME,
+    ELEVATION_VARNAME,
 ]
 
-# mandatory_global_attributes = ["title", "institution", "source", "catchment", "comment"]
+TITLE_ATTR_KEY = "title"
+INSTITUTION_ATTR_KEY = "institution"
+SOURCE_ATTR_KEY = "source"
+CATCHMENT_ATTR_KEY = "catchment"
+STF_CONVENTION_VERSION_ATTR_KEY = "STF_convention_version"
+STF_NC_SPEC_ATTR_KEY = "STF_nc_spec"
+COMMENT_ATTR_KEY = "comment"
+HISTORY_ATTR_KEY = "history"
+
+TIME_STANDARD_ATTR_KEY = "time_standard"
+STANDARD_NAME_ATTR_KEY = "standard_name"
+LONG_NAME_ATTR_KEY = "long_name"
+AXIS_ATTR_KEY = "axis"
+UNITS_ATTR_KEY = "units"
+
+STF_2_0_URL = "https://github.com/csiro-hydroinformatics/efts/blob/d7d43a995fb5e459bcb894e09b7bb89de03e285c/docs/netcdf_for_water_forecasting.md"
+
+
 mandatory_global_attributes = [
-    "title",
-    "institution",
-    "source",
-    "catchment",
-    "STF_convention_version",
-    "STF_nc_spec",
-    "comment",
-    "history",
+    TITLE_ATTR_KEY,
+    INSTITUTION_ATTR_KEY,
+    SOURCE_ATTR_KEY,
+    CATCHMENT_ATTR_KEY,
+    STF_CONVENTION_VERSION_ATTR_KEY,
+    STF_NC_SPEC_ATTR_KEY,
+    COMMENT_ATTR_KEY,
+    HISTORY_ATTR_KEY,
 ]
 
-mandatory_dimensions = ["time", "station", "lead_time", "strLen", "ens_member"]
+mandatory_netcdf_dimensions = [TIME_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME, STR_LEN_DIMNAME, ENS_MEMBER_DIMNAME]
+mandatory_xarray_dimensions = [TIME_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME, ENS_MEMBER_DIMNAME]
 
 mandatory_varnames = [
-    "time",
-    "station",
-    "lead_time",
-    "station_id",
-    "station_name",
-    "ens_member",
-    "lat",
-    "lon",
+    TIME_DIMNAME,
+    STATION_DIMNAME,
+    LEAD_TIME_DIMNAME,
+    STATION_ID_VARNAME,
+    STATION_NAME_VARNAME,
+    ENS_MEMBER_DIMNAME,
+    LAT_VARNAME,
+    LON_VARNAME,
 ]
 
 
@@ -86,10 +103,10 @@ def get_default_dim_order() -> List[str]:
         List[str]: dimension names: [lead_time, stations, ensemble_member, time]
     """
     return [
-        lead_time_dim_name,
-        stations_dim_name,
-        ensemble_member_dim_name,
-        time_dim_name,
+        LEAD_TIME_DIMNAME,
+        STATION_DIMNAME,
+        ENS_MEMBER_DIMNAME,
+        TIME_DIMNAME,
     ]
 
 
@@ -106,14 +123,42 @@ def check_index_found(
         )
 
 
-def has_required_dimensions(d: nc.Dataset) -> bool:
-    return set(d.dimensions.keys()) == set(mandatory_dimensions)
+def _has_required_dimensions(
+    d: Union[nc.Dataset, xr.Dataset, xr.DataArray],
+    mandatory_dimensions: Iterable[str],
+) -> bool:
+    if isinstance(d, nc.Dataset):
+        return set(d.dimensions.keys()) == set(mandatory_dimensions)
+    return set(d.dims.keys()) == set(mandatory_dimensions)
 
 
-def has_required_global_attributes(d: nc.Dataset) -> bool:
-    a = d.ncattrs()
-    return set(a) == set(mandatory_global_attributes)
+def has_required_stf2_dimensions(d: Union[nc.Dataset, xr.Dataset, xr.DataArray]) -> bool:
+    return _has_required_dimensions(d, mandatory_netcdf_dimensions)
 
 
-def has_required_variables(d: nc.Dataset) -> bool:
-    return set(d.variables.keys()) == set(mandatory_varnames)
+def has_required_xarray_dimensions(d: Union[nc.Dataset, xr.Dataset, xr.DataArray]) -> bool:
+    return _has_required_dimensions(d, mandatory_xarray_dimensions)
+
+
+def _has_all_members(tested: Iterable[str], reference: Iterable[str]) -> bool:
+    r = set(reference)
+    return set(tested).intersection(r) == r
+
+
+def has_required_global_attributes(d: Union[nc.Dataset, xr.Dataset, xr.DataArray]) -> bool:
+    if isinstance(d, nc.Dataset):
+        a = d.ncattrs()
+        tested = set(a)
+    else:
+        a = d.attrs.keys()
+        tested = set(a)
+    return _has_all_members(tested, mandatory_global_attributes)
+
+
+def has_required_variables(d: Union[nc.Dataset, xr.Dataset, xr.DataArray]) -> bool:
+    a = d.variables.keys()
+    tested = set(a)
+    # Note: even if xarray, we do not need to check for the 'data_vars' attribute here.
+    # a = d.data_vars.keys()
+    # tested = set(a)
+    return _has_all_members(tested, mandatory_varnames)

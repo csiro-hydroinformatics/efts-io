@@ -9,21 +9,37 @@ import xarray as xr
 from cftime import DatetimeGregorian
 
 from efts_io.conventions import (
+    AREA_VARNAME,
+    AXIS_ATTR_KEY,
+    CATCHMENT_ATTR_KEY,
+    COMMENT_ATTR_KEY,
+    ENS_MEMBER_DIMNAME,
+    HISTORY_ATTR_KEY,
+    INSTITUTION_ATTR_KEY,
+    LAT_VARNAME,
+    LEAD_TIME_DIMNAME,
+    LON_VARNAME,
+    LONG_NAME_ATTR_KEY,
+    SOURCE_ATTR_KEY,
+    STANDARD_NAME_ATTR_KEY,
+    STATION_DIMNAME,
+    STATION_ID_VARNAME,
+    STATION_NAME_VARNAME,
+    STF_2_0_URL,
+    STF_CONVENTION_VERSION_ATTR_KEY,
+    STF_NC_SPEC_ATTR_KEY,
     TIME_DIMNAME,
+    TIME_STANDARD_ATTR_KEY,
+    TITLE_ATTR_KEY,
+    UNITS_ATTR_KEY,
     ConvertibleToTimestamp,
     check_index_found,
-    ensemble_member_dim_name,
-    lat_varname,
-    lead_time_dim_name,
-    lon_varname,
-    station_id_varname,
-    station_name_varname,
-    time_dim_name,
 )
 from efts_io.variables import create_efts_variables
 
 
-def _byte_to_string(x: Any) -> str:
+def byte_to_string(x: Union[int, bytes]) -> str:
+    """Convert a byte to a string."""
     if isinstance(x, int):
         if x > 255 or x < 0:
             raise ValueError("Integer value to bytes: must be in range [0-255]")
@@ -33,13 +49,13 @@ def _byte_to_string(x: Any) -> str:
     return str(x, encoding="UTF-8")
 
 
-def _byte_array_to_string(x: np.ndarray) -> str:
-    s = "".join([_byte_to_string(s) for s in x])
+def byte_array_to_string(x: np.ndarray) -> str:
+    s = "".join([byte_to_string(s) for s in x])
     return s.strip()
 
 
-def _byte_stations_to_str(byte_names: np.ndarray) -> np.ndarray:
-    return np.array([_byte_array_to_string(x) for x in byte_names])
+def byte_stations_to_str(byte_names: np.ndarray) -> np.ndarray:
+    return np.array([byte_array_to_string(x) for x in byte_names])
 
 
 def _cftime_to_pdtstamp(t: pd.Timestamp, tz_str: Optional[str]) -> pd.Timestamp:
@@ -90,10 +106,10 @@ class EftsDataSet:
         self.time_dim = None
         self.time_zone = "UTC"
         self.time_zone_timestamps = False  # https://github.com/csiro-hydroinformatics/efts-io/issues/3
-        self.stations_dim_name = "station"
-        self.stations_varname = "station_id"
-        self.lead_time_dim_name = "lead_time"
-        self.ensemble_member_dim_name = "ens_member"
+        self.STATION_DIMNAME = STATION_DIMNAME
+        self.stations_varname = STATION_ID_VARNAME
+        self.LEAD_TIME_DIMNAME = LEAD_TIME_DIMNAME
+        self.ENS_MEMBER_DIMNAME = ENS_MEMBER_DIMNAME
         self.identifiers_dimensions = []
         if isinstance(data, str):
             # work around https://jira.csiro.au/browse/WIRADA-635
@@ -104,17 +120,17 @@ class EftsDataSet:
             # TODO This is probably not a long term solution for round-tripping a read/write or vice and versa
             decod = times.CFDatetimeCoder(use_cftime=True)
             var = xr.as_variable(x.coords[TIME_DIMNAME])
-            self.time_zone = var.attrs["time_standard"]
+            self.time_zone = var.attrs[TIME_STANDARD_ATTR_KEY]
             time_coords = decod.decode(var, name=TIME_DIMNAME)
             tz = self.time_zone if self.time_zone_timestamps else None
             time_coords.values = cftimes_to_pdtstamps(
                 time_coords.values,
                 tz_str=tz,
             )
-            # stat_coords = x.coords[self.stations_dim_name]
-            station_names = _byte_stations_to_str(x[station_name_varname].values)
+            # stat_coords = x.coords[self.STATION_DIMNAME]
+            station_names = byte_stations_to_str(x[STATION_NAME_VARNAME].values)
             x = x.assign_coords(
-                {TIME_DIMNAME: time_coords, self.stations_dim_name: station_names},
+                {TIME_DIMNAME: time_coords, self.STATION_DIMNAME: station_names},
             )
 
             self.data: xr.Dataset = x
@@ -149,8 +165,8 @@ class EftsDataSet:
         # collapse_degen = FALSE)
         # dim_names(rawData) = ncdims
         # # [station,time] to [time, station] for xts creation
-        # # NOTE: why can this not be dimension_id instead of stations_dim_name?
-        # tsData = reduce_dimensions(rawData,c(time_dim_name, stations_dim_name))
+        # # NOTE: why can this not be dimension_id instead of STATION_DIMNAME?
+        # tsData = reduce_dimensions(rawData,c(TIME_DIMNAME, STATION_DIMNAME))
         # v = xts(x = tsData, order.by = td, tzone = tz(td))
         # colnames(v) = identifiers
         # return(v)
@@ -163,7 +179,7 @@ class EftsDataSet:
         self,
         variable_name: str = "rain_sim",
         identifier: Optional[str] = None,
-        dimension_id: str = "ens_member",
+        dimension_id: str = ENS_MEMBER_DIMNAME,
         start_time: pd.Timestamp = None,
         lead_time_count: Optional[int] = None,
     ) -> xr.DataArray:
@@ -236,19 +252,19 @@ class EftsDataSet:
 
     def get_ensemble_size(self):
         """Return the length of the ensemble size dimension."""
-        return self.data.dims[self.ensemble_member_dim_name]
+        return self.data.dims[self.ENS_MEMBER_DIMNAME]
 
     def get_lead_time_count(self):
         """Length of the lead time dimension."""
-        return self.data.dims[self.lead_time_dim_name]
+        return self.data.dims[self.LEAD_TIME_DIMNAME]
 
     def get_lead_time_values(self):
         """Return the values of the lead time dimension."""
-        return self.data[self.lead_time_dim_name].values
+        return self.data[self.LEAD_TIME_DIMNAME].values
 
     def put_lead_time_values(self, values):
         """Set the values of the lead time dimension."""
-        self.data[self.lead_time_dim_name].values = values
+        self.data[self.LEAD_TIME_DIMNAME].values = values
 
     def get_single_series(
         self,
@@ -264,13 +280,13 @@ class EftsDataSet:
 
     def get_station_count(self) -> int:
         """Return the number of stations in the data set."""
-        self.data.dims[self.stations_dim_name]
+        self.data.dims[self.STATION_DIMNAME]
 
     def get_stations_varname(self) -> str:
         """Return the name of the variable that has the station identifiers."""
         # Gets the name of the variable that has the station identifiers
         # TODO: station is integer normally in STF (Euargh)
-        return station_id_varname
+        return STATION_ID_VARNAME
 
     def get_time_dim(self):
         """Return the time dimension variable as a vector of date-time stamps."""
@@ -339,7 +355,7 @@ class EftsDataSet:
         x,
         variable_name="rain_sim",
         identifier: str = None,
-        dimension_id="ens_member",
+        dimension_id=ENS_MEMBER_DIMNAME,
         start_time=None,
     ):
         # Puts a single ensemble member forecasts for all stations into a netCDF file
@@ -448,68 +464,81 @@ def xr_efts(
     if lead_times is None:
         lead_times = [0]
     coords = {
-        "time": issue_times,
-        "station_id": station_ids,
-        "ens_member": np.arange(start=1, stop=ensemble_size + 1, step=1),
-        "lead_time": lead_times,
+        TIME_DIMNAME: issue_times,
+        STATION_DIMNAME: np.arange(start=1, stop=len(station_ids) + 1, step=1),
+        ENS_MEMBER_DIMNAME: np.arange(start=1, stop=ensemble_size + 1, step=1),
+        LEAD_TIME_DIMNAME: lead_times,
+        # New coordinate can also be attached to an existing dimension:
+        # https://docs.xarray.dev/en/latest/generated/xarray.DataArray.assign_coords.html#xarray.DataArray.assign_coords
+        STATION_ID_VARNAME: (STATION_DIMNAME, station_ids),
     }
     n_stations = len(station_ids)
-    latitudes = latitudes or nan_like(n_stations)
-    longitudes = longitudes or nan_like(n_stations)
-    areas = areas or nan_like(n_stations)
-    station_names = station_names or [f"{i}" for i in station_ids]
+    latitudes = latitudes if latitudes is not None else nan_like(n_stations)
+    longitudes = longitudes if longitudes is not None else nan_like(n_stations)
+    areas = areas if areas is not None else nan_like(n_stations)
+    station_names = station_names if station_names is not None else [f"{i}" for i in station_ids]
     data_vars = {
-        "station_name": ("station_id", station_names),
-        "lat": ("station_id", latitudes),
-        "lon": ("station_id", longitudes),
-        "area": ("station_id", areas),
+        STATION_NAME_VARNAME: (STATION_DIMNAME, station_names),
+        LAT_VARNAME: (STATION_DIMNAME, latitudes),
+        LON_VARNAME: (STATION_DIMNAME, longitudes),
+        AREA_VARNAME: (STATION_DIMNAME, areas),
     }
-    nc_attributes = nc_attributes or default_mandatory_global_attributes()
+    nc_attributes = nc_attributes or stf2_mandatory_global_attributes()
     d = xr.Dataset(
         data_vars=data_vars,
         coords=coords,
         attrs=nc_attributes,
     )
+    # Credits to the work reported in https://github.com/pydata/xarray/issues/2028#issuecomment-1265252754
+    d = d.set_xindex(STATION_ID_VARNAME)
     d.time.attrs = {
-        "standard_name": "time",
-        "long_name": "time",
-        # "time_standard": "UTC",
-        "axis": "t",
-        # "units": "days since 2000-11-14 23:00:00.0 +0000",
+        STANDARD_NAME_ATTR_KEY: TIME_DIMNAME,
+        LONG_NAME_ATTR_KEY: TIME_DIMNAME,
+        # TIME_STANDARD_KEY: "UTC",
+        AXIS_ATTR_KEY: "t",
+        # UNITS_ATTR_KEY: "days since 2000-11-14 23:00:00.0 +0000",
     }
     d.lead_time.attrs = {
-        "standard_name": "lead time",
-        "long_name": "forecast lead time",
-        "axis": "v",
-        "units": f"{lead_time_tstep} since time",
+        STANDARD_NAME_ATTR_KEY: "lead time",
+        LONG_NAME_ATTR_KEY: "forecast lead time",
+        AXIS_ATTR_KEY: "v",
+        UNITS_ATTR_KEY: f"{lead_time_tstep} since time",
     }
     d.ens_member.attrs = {
-        "standard_name": "ens_member",
-        "long_name": "ensemble member",
-        "units": "member id",
-        "axis": "u",
+        STANDARD_NAME_ATTR_KEY: ENS_MEMBER_DIMNAME,
+        LONG_NAME_ATTR_KEY: "ensemble member",
+        UNITS_ATTR_KEY: "member id",
+        AXIS_ATTR_KEY: "u",
     }
-    d.station_id.attrs = {"long_name": "station or node identification code"}
-    d.station_name.attrs = {"long_name": "station or node name"}
-    d.lat.attrs = {"long_name": "latitude", "units": "degrees_north", "axis": "y"}
-    d.lon.attrs = {"long_name": "longitude", "units": "degrees_east", "axis": "x"}
+    d.station_id.attrs = {LONG_NAME_ATTR_KEY: "station or node identification code"}
+    d.station_name.attrs = {LONG_NAME_ATTR_KEY: "station or node name"}
+    d.lat.attrs = {LONG_NAME_ATTR_KEY: "latitude", UNITS_ATTR_KEY: "degrees_north", AXIS_ATTR_KEY: "y"}
+    d.lon.attrs = {LONG_NAME_ATTR_KEY: "longitude", UNITS_ATTR_KEY: "degrees_east", AXIS_ATTR_KEY: "x"}
     d.area.attrs = {
-        "long_name": "station area",
-        "units": "km^2",
-        "standard_name": "area",
+        LONG_NAME_ATTR_KEY: "station area",
+        UNITS_ATTR_KEY: "km^2",
+        STANDARD_NAME_ATTR_KEY: AREA_VARNAME,
     }
     return d
 
 
-def default_mandatory_global_attributes() -> Dict[str, str]:
+def stf2_mandatory_global_attributes(
+    title: str = "not provided",
+    institution: str = "not provided",
+    catchment: str = "not provided",
+    source: str = "not provided",
+    comment: str = "not provided",
+    history: str = "not provided",
+) -> Dict[str, str]:
     return {
-        "title": "not provided",
-        "institution": "not provided",
-        "catchment": "not provided",
-        "source": "not provided",
-        "comment": "not provided",
-        "STF_convention_version": "2.0",
-        "STF_nc_spec": "https://github.com/csiro-hydroinformatics/efts/blob/d7d43a995fb5e459bcb894e09b7bb89de03e285c/docs/netcdf_for_water_forecasting.md",
+        TITLE_ATTR_KEY: title,
+        INSTITUTION_ATTR_KEY: institution,
+        CATCHMENT_ATTR_KEY: catchment,
+        SOURCE_ATTR_KEY: source,
+        COMMENT_ATTR_KEY: comment,
+        HISTORY_ATTR_KEY: history,
+        STF_CONVENTION_VERSION_ATTR_KEY: "2.0",
+        STF_NC_SPEC_ATTR_KEY: STF_2_0_URL,
     }
 
 
@@ -647,7 +676,7 @@ def default_mandatory_global_attributes() -> Dict[str, str]:
 #' # We can get/put values for some metadata variables:
 #' snc$get_values("x")
 #' snc$put_values(c(1.1, 2.2), "x")
-#' snc$put_values(letters[1:2], "station_name")
+#' snc$put_values(letters[1:2], STATION_NAME_VARNAME)
 #'
 #' # Direct get/set access to data variables, however, is prevented;
 #' #  the following would thus cause an error:
@@ -715,15 +744,15 @@ def create_efts(
     def add_dim_attribute(v, dimname, attr_key, attr_value):
         pass
 
-    add_dim_attribute(varDefs, time_dim_name, "standard_name", time_dim_name)
-    add_dim_attribute(varDefs, time_dim_name, "time_standard", "UTC")
-    add_dim_attribute(varDefs, time_dim_name, "axis", "t")
-    add_dim_attribute(varDefs, ensemble_member_dim_name, "standard_name", "ens_member")
-    add_dim_attribute(varDefs, ensemble_member_dim_name, "axis", "u")
-    add_dim_attribute(varDefs, lead_time_dim_name, "standard_name", "lead_time")
-    add_dim_attribute(varDefs, lead_time_dim_name, "axis", "v")
-    add_dim_attribute(varDefs, lat_varname, "axis", "y")
-    add_dim_attribute(varDefs, lon_varname, "axis", "x")
+    add_dim_attribute(varDefs, TIME_DIMNAME, STANDARD_NAME_ATTR_KEY, TIME_DIMNAME)
+    add_dim_attribute(varDefs, TIME_DIMNAME, TIME_STANDARD_ATTR_KEY, "UTC")
+    add_dim_attribute(varDefs, TIME_DIMNAME, AXIS_ATTR_KEY, "t")
+    add_dim_attribute(varDefs, ENS_MEMBER_DIMNAME, STANDARD_NAME_ATTR_KEY, ENS_MEMBER_DIMNAME)
+    add_dim_attribute(varDefs, ENS_MEMBER_DIMNAME, AXIS_ATTR_KEY, "u")
+    add_dim_attribute(varDefs, LEAD_TIME_DIMNAME, STANDARD_NAME_ATTR_KEY, LEAD_TIME_DIMNAME)
+    add_dim_attribute(varDefs, LEAD_TIME_DIMNAME, AXIS_ATTR_KEY, "v")
+    add_dim_attribute(varDefs, LAT_VARNAME, AXIS_ATTR_KEY, "y")
+    add_dim_attribute(varDefs, LON_VARNAME, AXIS_ATTR_KEY, "x")
 
     d = xr.Dataset(
         data_vars=varDefs["datavars"],
@@ -765,38 +794,38 @@ def create_efts(
 #   lapply(data_var_definitions, put_variable_attributes, nc)
 
 #   ## attributes for dimensions variables
-#   ncdf4::ncatt_put(nc, time_dim_name, "standard_name", time_dim_name)
-#   ncdf4::ncatt_put(nc, time_dim_name, "time_standard", "UTC")
-#   ncdf4::ncatt_put(nc, time_dim_name, "axis", "t")
-#   ncdf4::ncatt_put(nc, ensemble_member_dim_name, "standard_name", "ens_member")
-#   ncdf4::ncatt_put(nc, ensemble_member_dim_name, "axis", "u")
-#   ncdf4::ncatt_put(nc, lead_time_dim_name, "standard_name", "lead_time")
-#   ncdf4::ncatt_put(nc, lead_time_dim_name, "axis", "v")
-#   ncdf4::ncatt_put(nc, lat_varname, "axis", "y")
-#   ncdf4::ncatt_put(nc, lon_varname, "axis", "x")
+#   ncdf4::ncatt_put(nc, TIME_DIMNAME, STANDARD_NAME_KEY, TIME_DIMNAME)
+#   ncdf4::ncatt_put(nc, TIME_DIMNAME, TIME_STANDARD_KEY, "UTC")
+#   ncdf4::ncatt_put(nc, TIME_DIMNAME, AXIS_ATTR_KEY, "t")
+#   ncdf4::ncatt_put(nc, ENS_MEMBER_DIMNAME, STANDARD_NAME_KEY, ENS_MEMBER_DIMNAME)
+#   ncdf4::ncatt_put(nc, ENS_MEMBER_DIMNAME, AXIS_ATTR_KEY, "u")
+#   ncdf4::ncatt_put(nc, LEAD_TIME_DIMNAME, STANDARD_NAME_KEY, LEAD_TIME_DIMNAME)
+#   ncdf4::ncatt_put(nc, LEAD_TIME_DIMNAME, AXIS_ATTR_KEY, "v")
+#   ncdf4::ncatt_put(nc, LAT_VARNAME, AXIS_ATTR_KEY, "y")
+#   ncdf4::ncatt_put(nc, lon_varname, AXIS_ATTR_KEY, "x")
 
 #   ## attributes for optional metadata variables
 #   if(!is.None(optional_vars))
 #   {
 #     var_names = rownames(optional_vars)
-#     if("standard_name" %in% colnames(optional_vars)){
+#     if(STANDARD_NAME_KEY %in% colnames(optional_vars)){
 #       for (v in var_names) {
-#         sn = optional_vars[v, "standard_name"]
-#         if(!is.na(sn)) ncdf4::ncatt_put(nc, v, "standard_name", sn)
+#         sn = optional_vars[v, STANDARD_NAME_KEY]
+#         if(!is.na(sn)) ncdf4::ncatt_put(nc, v, STANDARD_NAME_KEY, sn)
 #       }
 #     }
 #     if(x_varname %in% var_names){
-#       ncdf4::ncatt_put(nc, x_varname, "axis", "x")
+#       ncdf4::ncatt_put(nc, x_varname, AXIS_ATTR_KEY, "x")
 #     }
 #     if(y_varname %in% var_names){
-#       ncdf4::ncatt_put(nc, y_varname, "axis", "y")
+#       ncdf4::ncatt_put(nc, y_varname, AXIS_ATTR_KEY, "y")
 #     }
 #   }
 
 #   ## Add global attributes
-#   ncdf4::ncatt_put(nc, 0, "STF_convention_version", 2)
+#   ncdf4::ncatt_put(nc, 0, STF_CONVENTION_VERSION_ATTR_KEY, 2)
 #   ncdf4::ncatt_put(nc, 0, "STF_nc_spec", "https://github.com/jmp75/efts/blob/107c553045a37e6ef36b2eababf6a299e7883d50/docs/netcdf_for_water_forecasting.md")
-#   ncdf4::ncatt_put(nc, 0, "history",
+#   ncdf4::ncatt_put(nc, 0, HISTORY_ATTR_KEY,
 #     paste(
 #       as.character(lubridate::now(tzone="UTC")),
 #       "UTC",
@@ -810,11 +839,11 @@ def create_efts(
 #   }
 
 #   ## populate metadata variables
-#   ncdf4::ncvar_put(nc, station_id_varname, stations_ids)
-#   ncdf4::ncvar_put(nc, lead_time_dim_name, 1:lead_length)
-#   ncdf4::ncvar_put(nc, ensemble_member_dim_name, 1:ensemble_length)
+#   ncdf4::ncvar_put(nc, STATION_ID_VARNAME, stations_ids)
+#   ncdf4::ncvar_put(nc, LEAD_TIME_DIMNAME, 1:lead_length)
+#   ncdf4::ncvar_put(nc, ENS_MEMBER_DIMNAME, 1:ensemble_length)
 #   if (!is.None(station_names)) {
-#     ncdf4::ncvar_put(nc, station_name_varname, station_names)
+#     ncdf4::ncvar_put(nc, STATION_NAME_VARNAME, station_names)
 #   }
 #   # One seems to need to close/reopen the newly created file, otherwise some
 #   # ncvar_get operations will fail with a cryptic message.  I follow the

@@ -6,13 +6,7 @@ from typing import Any, Dict, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from efts_io.conventions import (
-    ensemble_member_dim_name,
-    lead_time_dim_name,
-    stations_dim_name,
-    str_length_dim_name,
-    time_dim_name,
-)
+from efts_io.conventions import ENS_MEMBER_DIMNAME, LEAD_TIME_DIMNAME, STATION_DIMNAME, STR_LEN_DIMNAME, TIME_DIMNAME
 
 
 def iso_date_time_str(t: Any) -> str:
@@ -116,7 +110,7 @@ def create_time_info(
 ) -> Dict[str, Any]:
     """Helper function to create the definition of the time dimension for use in a netCDF file."""
     return {
-        "units": create_netcdf_time_axis(
+        UNITS_ATTR_KEY: create_netcdf_time_axis(
             d=start,
             time_step=time_step,
             tzoffset=tzoffset,
@@ -169,22 +163,22 @@ def create_time_info(
 # #'
 # #' @export
 # #' @param ncfile an object of class ncdf4
-# #' @param time_dim_name The name of the time dimension, by default 'time' as per the CF conventions.
+# #' @param TIME_DIMNAME The name of the time dimension, by default 'time' as per the CF conventions.
 # #' @return a character
-# get_time_units(ncfile, time_dim_name = "time") {
-#   return(ncdf4::ncatt_get(ncfile, time_dim_name, "units")$value)
+# get_time_units(ncfile, TIME_DIMNAME = "time") {
+#   return(ncdf4::ncatt_get(ncfile, TIME_DIMNAME, UNITS_ATTR_KEY)$value)
 # }
 
 # #' Retrieves the time dimension from a netCDF file
 # #'
 # #' @export
 # #' @param ncfile an object of class ncdf4
-# #' @param time_dim_name The name of the time dimension, by default 'time' as per the CF conventions.
+# #' @param TIME_DIMNAME The name of the time dimension, by default 'time' as per the CF conventions.
 # #' @param time_zone the time zone to use for the returned value.
 # #' @return A vector of Dates
-# get_time_dimension(ncfile, time_dim_name = "time", time_zone = "UTC") {
-#   time_units <- get_time_units(ncfile, time_dim_name)
-#   timeValues <- ncdf4::ncvar_get(ncfile, time_dim_name)
+# get_time_dimension(ncfile, TIME_DIMNAME = "time", time_zone = "UTC") {
+#   time_units <- get_time_units(ncfile, TIME_DIMNAME)
+#   timeValues <- ncdf4::ncvar_get(ncfile, TIME_DIMNAME)
 #   startDate <- get_start_date(time_units, time_zone = time_zone)
 #   offsetFun <- get_time_step_function(time_units)
 #   startDate + offsetFun(timeValues)
@@ -310,31 +304,31 @@ def _create_nc_dims(
 ) -> Dict[Tuple[list[str], Any, Dict[str, Any]] | Tuple[list[str], np.ndarray, Dict[str, str]], Any]:
     """Creates dimensions for a netCDF EFTS data set."""
     time_dim = (
-        time_dim_name,
+        TIME_DIMNAME,
         time_dim_info["values"],
-        {"units": time_dim_info["units"], "longname": "time"},
+        {UNITS_ATTR_KEY: time_dim_info[UNITS_ATTR_KEY], "longname": "time"},
     )
-    # time_dim = ncdf4::ncdim_def(time_dim_name, units = time_dim_info$units, vals = time_dim_info$values,
+    # time_dim = ncdf4::ncdim_def(TIME_DIMNAME, units = time_dim_info$units, vals = time_dim_info$values,
     #     unlim = T, create_dimvar = TRUE, longname = "time")
     station_dim = (
-        stations_dim_name,
+        STATION_DIMNAME,
         np.arange(1, num_stations + 1),
-        {"units": "", "longname": "station"},
+        {UNITS_ATTR_KEY: "", "longname": STATION_DIMNAME},
     )
     str_dim = (
-        str_length_dim_name,
+        STR_LEN_DIMNAME,
         np.arange(1, str_len + 1),
-        {"units": "", "longname": "string length"},
+        {UNITS_ATTR_KEY: "", "longname": "string length"},
     )
     lead_time_dim = (
-        lead_time_dim_name,
+        LEAD_TIME_DIMNAME,
         np.arange(1, lead_length + 1),
-        {"units": "", "longname": "lead time"},
+        {UNITS_ATTR_KEY: "", "longname": "lead time"},
     )  # TODO: check whether  time_dim_info['units'] is alwaus suitable.
     ensemble_dim = (
-        ensemble_member_dim_name,
+        ENS_MEMBER_DIMNAME,
         np.arange(1, ensemble_length + 1),
-        {"units": "", "longname": "ensemble"},
+        {UNITS_ATTR_KEY: "", "longname": "ensemble"},
     )
     return {
         "time_dim": time_dim,

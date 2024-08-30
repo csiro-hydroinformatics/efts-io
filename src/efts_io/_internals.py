@@ -4,18 +4,18 @@
 #       dimension_id, "'"))
 # }
 
-# stations_dim_name = "station"
-# lead_time_dim_name = "lead_time"
-# time_dim_name = "time"
-# ensemble_member_dim_name = "ens_member"
-# str_length_dim_name = "str_len"
+# STATION_DIMNAME = "station"
+# LEAD_TIME_DIMNAME = "lead_time"
+# TIME_DIMNAME = "time"
+# ENS_MEMBER_DIMNAME = "ens_member"
+# STR_LEN_DIMNAME = "str_len"
 
 # # int station_id[station]
-# station_id_varname = "station_id"
+# STATION_ID_VARNAME = "station_id"
 # # char station_name[str_len,station]
-# station_name_varname = "station_name"
+# STATION_NAME_VARNAME = "station_name"
 # # float lat[station]
-# lat_varname = "lat"
+# LAT_VARNAME = LAT_VARNAME
 # # float lon[station]
 # lon_varname = "lon"
 # # float x[station]
@@ -28,14 +28,14 @@
 # elevation_varname = "elevation"
 
 # conventional_varnames = c(
-#   stations_dim_name ,
-#   lead_time_dim_name ,
-#   time_dim_name ,
-#   ensemble_member_dim_name ,
-#   str_length_dim_name ,
-#   station_id_varname ,
-#   station_name_varname ,
-#   lat_varname ,
+#   STATION_DIMNAME ,
+#   LEAD_TIME_DIMNAME ,
+#   TIME_DIMNAME ,
+#   ENS_MEMBER_DIMNAME ,
+#   STR_LEN_DIMNAME ,
+#   STATION_ID_VARNAME ,
+#   STATION_NAME_VARNAME ,
+#   LAT_VARNAME ,
 #   lon_varname ,
 #   x_varname ,
 #   y_varname ,
@@ -47,7 +47,7 @@
 
 
 # get_default_dim_order() {
-#   return(c(lead_time_dim_name, stations_dim_name, ensemble_member_dim_name, time_dim_name))
+#   return(c(LEAD_TIME_DIMNAME, STATION_DIMNAME, ENS_MEMBER_DIMNAME, TIME_DIMNAME))
 # }
 
 # splice_named_var(d, ncdims = character()) {
@@ -132,7 +132,7 @@ def create_data_variable(data_var_def: Dict[str, Any], dimensions):
     import xarray as xr
 
     a = data_var_def
-    #    (c("name", "units") %in% names(a)) %>% all %>% stopifnot
+    #    (c("name", UNITS_ATTR_KEY) %in% names(a)) %>% all %>% stopifnot
     varname = a["name"]
     longname = a["longname"] if "longname" in a.keys() else varname
     precision = a["precision"] if "precision" in a.keys() else "double"
@@ -148,7 +148,7 @@ def create_data_variable(data_var_def: Dict[str, Any], dimensions):
         encoding={"_FillValue": missval},
         attrs={
             "longname": longname,
-            "units": a["units"],
+            UNITS_ATTR_KEY: a[UNITS_ATTR_KEY],
             "missval": missval,
             "precision": precision,
         },
@@ -156,9 +156,9 @@ def create_data_variable(data_var_def: Dict[str, Any], dimensions):
     return variable
 
     # xr.Variable(dims=dimensions, data, attrs=None, encoding=None, fastpath=False)
-    # vardef = ncdf4::ncvar_def(name = varname, units = a["units"], dim = dimensions,
+    # vardef = ncdf4::ncvar_def(name = varname, units = a[UNITS_ATTR_KEY], dim = dimensions,
     # longname = ifelse("longname" %in% names(a), a["longname"], varname)
     # precision = ifelse("precision" %in% names(a), a["precision"], "double")
     # missval = ifelse("missval" %in% names(a), a["missval"]], -9999)
-    # vardef = ncdf4::ncvar_def(name = varname, units = a["units"], dim = dimensions,
+    # vardef = ncdf4::ncvar_def(name = varname, units = a[UNITS_ATTR_KEY], dim = dimensions,
     #     missval = missval, longname = longname, prec = precision)
