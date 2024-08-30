@@ -21,6 +21,7 @@ nav:
   - License: license.md
 - Examples:
   - Basic use: nb/basic_usage.ipynb
+  - Design rationale: nb/design_rationale.ipynb
 # defer to gen-files + literate-nav
 - API reference:
   - efts-io: reference/

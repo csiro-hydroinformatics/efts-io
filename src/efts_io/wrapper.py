@@ -6,6 +6,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 import xarray as xr
+from cftime import DatetimeGregorian
 
 from efts_io.conventions import (
     TIME_DIMNAME,
@@ -41,18 +42,18 @@ def _byte_stations_to_str(byte_names: np.ndarray) -> np.ndarray:
     return np.array([_byte_array_to_string(x) for x in byte_names])
 
 
-def _cftime_to_pdtstamp(t: pd.Timestamp, tz_str: str) -> pd.Timestamp:
+def _cftime_to_pdtstamp(t: pd.Timestamp, tz_str: Optional[str]) -> pd.Timestamp:
     return pd.Timestamp(t.isoformat(), tz=tz_str)
 
 
-_ats = np.vectorize(_cftime_to_pdtstamp)
+_as_tstamps = np.vectorize(_cftime_to_pdtstamp)
 
 
-def _cftimes_to_pdtstamps(
-    cftimes: List[pd.Timestamp],
-    tz_str: str,
+def cftimes_to_pdtstamps(
+    cftimes: List[DatetimeGregorian],
+    tz_str: Optional[str] = None,
 ) -> List[pd.Timestamp]:
-    return _ats(cftimes, tz_str)
+    return _as_tstamps(cftimes, tz_str)
 
 
 def _first_where(condition: np.ndarray) -> int:
@@ -88,6 +89,7 @@ class EftsDataSet:
 
         self.time_dim = None
         self.time_zone = "UTC"
+        self.time_zone_timestamps = False  # https://github.com/csiro-hydroinformatics/efts-io/issues/3
         self.stations_dim_name = "station"
         self.stations_varname = "station_id"
         self.lead_time_dim_name = "lead_time"
@@ -104,9 +106,10 @@ class EftsDataSet:
             var = xr.as_variable(x.coords[TIME_DIMNAME])
             self.time_zone = var.attrs["time_standard"]
             time_coords = decod.decode(var, name=TIME_DIMNAME)
-            time_coords.values = _cftimes_to_pdtstamps(
+            tz = self.time_zone if self.time_zone_timestamps else None
+            time_coords.values = cftimes_to_pdtstamps(
                 time_coords.values,
-                self.time_zone,
+                tz_str=tz,
             )
             # stat_coords = x.coords[self.stations_dim_name]
             station_names = _byte_stations_to_str(x[station_name_varname].values)
@@ -117,6 +120,12 @@ class EftsDataSet:
             self.data: xr.Dataset = x
         else:
             self.data: xr.Dataset = data
+
+    def to_netcdf(self, path: str, version: str = "2.0") -> None:
+        """Write the data set to a netCDF file."""
+        if version != "2.0":
+            raise ValueError("Only version 2.0 is supported for now")
+        self.data.to_netcdf(path)
 
     def get_all_series(
         self,
@@ -500,7 +509,7 @@ def default_mandatory_global_attributes() -> Dict[str, str]:
         "source": "not provided",
         "comment": "not provided",
         "STF_convention_version": "2.0",
-        "STF_nc_spec": "https://github.com/csiro-hydroinformatics/efts/blob/107c553045a37e6ef36b2eababf6a299e7883d50/docs/netcdf_for_water_forecasting.md",
+        "STF_nc_spec": "https://github.com/csiro-hydroinformatics/efts/blob/d7d43a995fb5e459bcb894e09b7bb89de03e285c/docs/netcdf_for_water_forecasting.md",
     }
 
 
