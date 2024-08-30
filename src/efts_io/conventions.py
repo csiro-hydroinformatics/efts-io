@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Iterable, List, Optional, Union
 
-import netCDF4 as nc
+import netCDF4 as nc  # noqa: N813
 import numpy as np
 import pandas as pd
 import xarray as xr
