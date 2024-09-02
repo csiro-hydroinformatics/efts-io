@@ -1,9 +1,9 @@
 """Naming conventions for the EFTS netCDF file format."""
 
 from datetime import datetime
-from typing import Iterable, List, Optional, Union
+from typing import Any, Iterable, List, Optional, Union
 
-import netCDF4 as nc  # noqa: N813
+# import netCDF4 as nc
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -123,20 +123,30 @@ def check_index_found(
         )
 
 
+# MdDatasetsType = Union[nc.Dataset, xr.Dataset, xr.DataArray]
+MdDatasetsType = Union[xr.Dataset, xr.DataArray]
+
+
+def _is_nc_dataset(d: Any) -> bool:
+    # Have to disable using directly netCDF4 for now due to issue #4
+    return False
+    # return isinstance(d, nc.Dataset)
+
+
 def _has_required_dimensions(
-    d: Union[nc.Dataset, xr.Dataset, xr.DataArray],
+    d: MdDatasetsType,
     mandatory_dimensions: Iterable[str],
 ) -> bool:
-    if isinstance(d, nc.Dataset):
+    if _is_nc_dataset(d):
         return set(d.dimensions.keys()) == set(mandatory_dimensions)
     return set(d.dims.keys()) == set(mandatory_dimensions)
 
 
-def has_required_stf2_dimensions(d: Union[nc.Dataset, xr.Dataset, xr.DataArray]) -> bool:
+def has_required_stf2_dimensions(d: MdDatasetsType) -> bool:
     return _has_required_dimensions(d, mandatory_netcdf_dimensions)
 
 
-def has_required_xarray_dimensions(d: Union[nc.Dataset, xr.Dataset, xr.DataArray]) -> bool:
+def has_required_xarray_dimensions(d: MdDatasetsType) -> bool:
     return _has_required_dimensions(d, mandatory_xarray_dimensions)
 
 
@@ -145,8 +155,8 @@ def _has_all_members(tested: Iterable[str], reference: Iterable[str]) -> bool:
     return set(tested).intersection(r) == r
 
 
-def has_required_global_attributes(d: Union[nc.Dataset, xr.Dataset, xr.DataArray]) -> bool:
-    if isinstance(d, nc.Dataset):
+def has_required_global_attributes(d: MdDatasetsType) -> bool:
+    if _is_nc_dataset(d):
         a = d.ncattrs()
         tested = set(a)
     else:
@@ -155,7 +165,7 @@ def has_required_global_attributes(d: Union[nc.Dataset, xr.Dataset, xr.DataArray
     return _has_all_members(tested, mandatory_global_attributes)
 
 
-def has_required_variables(d: Union[nc.Dataset, xr.Dataset, xr.DataArray]) -> bool:
+def has_required_variables(d: MdDatasetsType) -> bool:
     a = d.variables.keys()
     tested = set(a)
     # Note: even if xarray, we do not need to check for the 'data_vars' attribute here.

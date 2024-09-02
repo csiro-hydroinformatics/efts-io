@@ -3,7 +3,7 @@
 import os
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
-import netCDF4  # noqa: F401
+# import netCDF4
 import numpy as np
 import pandas as pd
 import xarray as xr

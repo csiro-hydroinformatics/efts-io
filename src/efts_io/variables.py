@@ -2,7 +2,7 @@
 
 from typing import Any, Dict, List, Optional
 
-import netCDF4  # noqa: F401
+# import netCDF4
 import numpy as np
 import pandas as pd
 

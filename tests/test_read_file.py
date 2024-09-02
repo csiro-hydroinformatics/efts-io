@@ -1,16 +1,12 @@
 import os
 
+# import netCDF4
 import numpy as np
 import pandas as pd
 
 from efts_io.wrapper import EftsDataSet
 
 pkg_dir = os.path.join(os.path.dirname(__file__), "..")
-# sys.path.insert(0, pkg_dir)
-
-# from efts_io.attributes import *
-# from efts_io.dimensions import *
-# from efts_io.wrapper import *
 
 variable_names = ["variable_1", "variable_2"]
 stations_ids = [123, 456]
