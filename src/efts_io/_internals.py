@@ -126,6 +126,8 @@
 #' @import magrittr
 from typing import Any, Dict
 
+from efts_io.conventions import UNITS_ATTR_KEY
+
 
 def create_data_variable(data_var_def: Dict[str, Any], dimensions):
     import numpy as np

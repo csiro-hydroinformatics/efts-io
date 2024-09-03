@@ -7,7 +7,6 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 import xarray as xr
-from cftime import DatetimeGregorian
 
 from efts_io.conventions import (
     AREA_VARNAME,
@@ -36,6 +35,7 @@ from efts_io.conventions import (
     ConvertibleToTimestamp,
     check_index_found,
 )
+from efts_io.dimensions import cftimes_to_pdtstamps
 from efts_io.variables import create_efts_variables
 
 
@@ -57,20 +57,6 @@ def byte_array_to_string(x: np.ndarray) -> str:
 
 def byte_stations_to_str(byte_names: np.ndarray) -> np.ndarray:
     return np.array([byte_array_to_string(x) for x in byte_names])
-
-
-def _cftime_to_pdtstamp(t: pd.Timestamp, tz_str: Optional[str]) -> pd.Timestamp:
-    return pd.Timestamp(t.isoformat(), tz=tz_str)
-
-
-_as_tstamps = np.vectorize(_cftime_to_pdtstamp)
-
-
-def cftimes_to_pdtstamps(
-    cftimes: List[DatetimeGregorian],
-    tz_str: Optional[str] = None,
-) -> List[pd.Timestamp]:
-    return _as_tstamps(cftimes, tz_str)
 
 
 def _first_where(condition: np.ndarray) -> int:
@@ -106,7 +92,7 @@ class EftsDataSet:
 
         self.time_dim = None
         self.time_zone = "UTC"
-        self.time_zone_timestamps = False  # https://github.com/csiro-hydroinformatics/efts-io/issues/3
+        self.time_zone_timestamps = True  # Not sure about https://github.com/csiro-hydroinformatics/efts-io/issues/3
         self.STATION_DIMNAME = STATION_DIMNAME
         self.stations_varname = STATION_ID_VARNAME
         self.LEAD_TIME_DIMNAME = LEAD_TIME_DIMNAME
@@ -143,6 +129,44 @@ class EftsDataSet:
         if version != "2.0":
             raise ValueError("Only version 2.0 is supported for now")
         self.data.to_netcdf(path)
+
+    def create_data_variables(self, data_var_def: Dict[str, Dict[str, Any]]) -> None:
+        """Create data variables in the data set.
+
+        var_defs_dict["variable_1"].keys()
+        dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'attributes'])
+        """
+        ens_fcast_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "4"]
+        ens_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "3"]
+        point_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "2"]
+
+        four_dims_names = (LEAD_TIME_DIMNAME, STATION_DIMNAME, ENS_MEMBER_DIMNAME, TIME_DIMNAME)
+        three_dims_names = (STATION_DIMNAME, ENS_MEMBER_DIMNAME, TIME_DIMNAME)
+        two_dims_names = (STATION_DIMNAME, TIME_DIMNAME)
+
+        four_dims_shape = tuple(self.data.sizes[dimname] for dimname in four_dims_names)
+        three_dims_shape = tuple(self.data.sizes[dimname] for dimname in three_dims_names)
+        two_dims_shape = tuple(self.data.sizes[dimname] for dimname in two_dims_names)
+        for vardefs, dims_shape, dims_names in [
+            (ens_fcast_data_var_def, four_dims_shape, four_dims_names),
+            (ens_data_var_def, three_dims_shape, three_dims_names),
+            (point_data_var_def, two_dims_shape, two_dims_names),
+        ]:
+            for x in vardefs:
+                varname = x["name"]
+                self.data[varname] = xr.DataArray(
+                    name=varname,
+                    data=nan_full(dims_shape),
+                    coords=self.data.coords,
+                    dims=dims_names,
+                    attrs={
+                        "longname": x["longname"],
+                        UNITS_ATTR_KEY: x[UNITS_ATTR_KEY],
+                        "missval": x["missval"],
+                        "precision": x["precision"],
+                        **x["attributes"],
+                    },
+                )
 
     def get_all_series(
         self,
@@ -443,7 +467,7 @@ def open_efts(ncfile, writein=False):
     return EftsDataSet(ncfile)
 
 
-def nan_like(shape: Union[Tuple, int]) -> np.ndarray:
+def nan_full(shape: Union[Tuple, int]) -> np.ndarray:
     if isinstance(shape, int):
         shape = (shape,)
     return np.full(shape=shape, fill_value=np.nan)
@@ -474,9 +498,9 @@ def xr_efts(
         STATION_ID_VARNAME: (STATION_DIMNAME, station_ids),
     }
     n_stations = len(station_ids)
-    latitudes = latitudes if latitudes is not None else nan_like(n_stations)
-    longitudes = longitudes if longitudes is not None else nan_like(n_stations)
-    areas = areas if areas is not None else nan_like(n_stations)
+    latitudes = latitudes if latitudes is not None else nan_full(n_stations)
+    longitudes = longitudes if longitudes is not None else nan_full(n_stations)
+    areas = areas if areas is not None else nan_full(n_stations)
     station_names = station_names if station_names is not None else [f"{i}" for i in station_ids]
     data_vars = {
         STATION_NAME_VARNAME: (STATION_DIMNAME, station_names),

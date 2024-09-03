@@ -1,15 +1,17 @@
 import os
+from typing import Optional
 
 # import netCDF4
 import numpy as np
 import pandas as pd
 
+from efts_io.dimensions import create_time_info, create_timestamps
 from efts_io.wrapper import EftsDataSet
 
 pkg_dir = os.path.join(os.path.dirname(__file__), "..")
 
 variable_names = ["variable_1", "variable_2"]
-stations_ids = [123, 456]
+station_ids_ints = [123, 456]
 
 nEns = 3
 nLead = 4
@@ -28,9 +30,9 @@ timeAxisStart = pd.Timestamp(
 )
 tested_fcast_issue_time = timeAxisStart + pd.Timedelta(6, "h")
 v1 = variable_names[0]
-s1 = stations_ids[0]
+s1 = station_ids_ints[0]
 v2 = variable_names[1]
-s2 = stations_ids[1]
+s2 = station_ids_ints[1]
 
 
 def dhours(i):
@@ -64,6 +66,57 @@ def test_read_thing():
     # fcast_timeaxis = index(r1)
     # assert (fcast_timeaxis[0], tested_fcast_issue_time + lead_ts(lead_time_step_start_offset))
     # assert (fcast_timeaxis[1], tested_fcast_issue_time + lead_ts(lead_time_step_start_offset + lead_time_step_delta))
+
+
+def _do_time_axis_test(
+    tstart: pd.Timestamp,
+    time_step: str = "days since",
+    time_step_delta: int = 1,
+    n: int = 10,
+    tz_str: Optional[str] = None,
+    expected_offset: Optional[pd.DateOffset] = None,
+):
+    time_dim_info = create_time_info(
+        start=tstart,
+        n=n,
+        time_step=time_step,
+        time_step_delta=time_step_delta,
+    )
+    timestamps = create_timestamps(time_dim_info, tz_str)
+    expected_timestamps = [tstart + expected_offset * i for i in range(n)]
+    assert np.all(timestamps == expected_timestamps)
+
+
+def test_time_axis():
+    n = 10
+    tz_str = "UTC"
+    tstart = pd.Timestamp(
+        year=2010,
+        month=8,
+        day=1,
+        hour=23,
+        minute=0,
+        second=0,
+        tz=tz_str,
+    )
+
+    for time_step, time_step_delta, expected_offset in [
+        ("hours since", 1, pd.DateOffset(hours=1)),
+        ("hours since", 3, pd.DateOffset(hours=3)),
+        ("days since", 1, pd.DateOffset(days=1)),
+        ("days since", 3, pd.DateOffset(days=3)),
+        # TODO
+        # ("weeks since", 1, pd.DateOffset(weeks=1)),
+        # ("months since", 1, pd.DateOffset(months=1)),
+    ]:
+        _do_time_axis_test(
+            tstart,
+            time_step,
+            time_step_delta,
+            n,
+            tz_str=tz_str,
+            expected_offset=expected_offset,
+        )
 
 
 # put tests in a tryCatch, to maximise the chances of cleaning up temporary
@@ -130,25 +183,44 @@ def doTests(
     )
 
     from efts_io.variables import create_variable_definitions
-    from efts_io.wrapper import create_efts
 
     var_defs_dict = create_variable_definitions(varsDef)
     lead_times_offsets = (
         np.arange(lead_time_step_start_offset, lead_time_step_start_offset + nLead) * lead_time_step_delta
     )
 
-    snc = create_efts(
-        tempNcFname,
-        time_dim_info,
-        var_defs_dict,
-        stations_ids,
+    tz_str = "UTC"
+
+    issue_times = create_timestamps(time_dim_info, tz_str)
+    from efts_io.wrapper import xr_efts
+
+    # TODO: expand to test non-integer station_ids
+    station_ids = [str(i) for i in station_ids_ints]
+    ensemble_size = nEns
+    station_names = ["station_" + str(i) for i in station_ids_ints]
+    xr_data = xr_efts(
+        issue_times,
+        station_ids,
+        lead_times_offsets,
+        lead_time_tstep,
+        ensemble_size,
+        station_names,
         nc_attributes=glob_attr,
-        lead_length=nLead,
-        ensemble_length=nEns,
-        lead_time_tstep=lead_time_tstep,
     )
 
-    snc.put_lead_time_values(lead_times_offsets)
+    # snc = create_efts(
+    #     tempNcFname,
+    #     time_dim_info,
+    #     var_defs_dict,
+    #     station_ids_ints,
+    #     nc_attributes=glob_attr,
+    #     lead_length=nLead,
+    #     ensemble_length=nEns,
+    #     lead_time_tstep=lead_time_tstep,
+    # )
+    snc = EftsDataSet(xr_data)
+
+    snc.create_data_variables(var_defs_dict)
 
     snc.put_ensemble_forecasts(
         x,
@@ -181,6 +253,8 @@ def doTests(
         lead_ts = dhours
     elif lead_time_tstep == "days":
         lead_ts = ddays
+
+    snc.to_netcdf(tempNcFname)
 
     from efts_io.wrapper import open_efts
 
@@ -249,5 +323,6 @@ def test_round_trip():
 
 
 if __name__ == "__main__":
+    # test_time_axis()
     # test_read_thing()
     test_round_trip()

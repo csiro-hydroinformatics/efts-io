@@ -1,13 +1,21 @@
 """Functions to create and manipulate dimensions for netCDF files."""
 
 from datetime import datetime
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 # import netCDF4
 import numpy as np
 import pandas as pd
+from cftime import DatetimeGregorian
 
-from efts_io.conventions import ENS_MEMBER_DIMNAME, LEAD_TIME_DIMNAME, STATION_DIMNAME, STR_LEN_DIMNAME, TIME_DIMNAME
+from efts_io.conventions import (
+    ENS_MEMBER_DIMNAME,
+    LEAD_TIME_DIMNAME,
+    STATION_DIMNAME,
+    STR_LEN_DIMNAME,
+    TIME_DIMNAME,
+    UNITS_ATTR_KEY,
+)
 
 
 def iso_date_time_str(t: Any) -> str:
@@ -283,6 +291,43 @@ def create_time_info(
 # }
 
 
+def _cftime_to_pdtstamp(t: pd.Timestamp, tz_str: Optional[str]) -> pd.Timestamp:
+    return pd.Timestamp(t.isoformat(), tz=tz_str)
+
+
+_as_tstamps = np.vectorize(_cftime_to_pdtstamp)
+
+
+def cftimes_to_pdtstamps(
+    cftimes: List[DatetimeGregorian],
+    tz_str: Optional[str] = None,
+) -> List[pd.Timestamp]:
+    return _as_tstamps(cftimes, tz_str)
+
+
+def create_timestamps(
+    time_dim_info: Dict[str, Any],
+    tz_str: Optional[str] = None,
+) -> np.ndarray:
+    import xarray as xr
+
+    axis_units = time_dim_info[UNITS_ATTR_KEY]
+    axis_values = time_dim_info["values"]
+    var = xr.Variable(
+        dims=[TIME_DIMNAME],
+        data=axis_values,
+        encoding={"_FillValue": None},
+        attrs={
+            UNITS_ATTR_KEY: axis_units,
+        },
+    )
+    from xarray.coding import times
+
+    decod = times.CFDatetimeCoder(use_cftime=True)
+    time_coords = decod.decode(var, name=TIME_DIMNAME)
+    return cftimes_to_pdtstamps(time_coords.values, tz_str=tz_str)
+
+
 #' Creates dimensions for a netCDF EFTS data set
 #'
 #' Creates dimensions for a netCDF EFTS data set. Note that end users are unlikely to need to use this function directly, hence this is not exported
@@ -302,7 +347,7 @@ def _create_nc_dims(
     lead_length: int = 1,
     ensemble_length: int = 1,
     num_stations: int = 1,
-) -> Dict[Tuple[list[str], Any, Dict[str, Any]] | Tuple[list[str], np.ndarray, Dict[str, str]], Any]:
+) -> Dict[str, Tuple[str, np.ndarray, Dict[str, str]]]:
     """Creates dimensions for a netCDF EFTS data set."""
     time_dim = (
         TIME_DIMNAME,

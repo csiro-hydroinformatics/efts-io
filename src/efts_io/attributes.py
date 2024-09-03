@@ -17,6 +17,15 @@
 #'   units='mm', missval=-9999.0, precision='double',
 #'   var_attribute=va)
 #'
+from efts_io.conventions import (
+    CATCHMENT_ATTR_KEY,
+    COMMENT_ATTR_KEY,
+    INSTITUTION_ATTR_KEY,
+    SOURCE_ATTR_KEY,
+    TITLE_ATTR_KEY,
+)
+
+
 def create_var_attribute_definition(
     data_type_code: int = 2,
     type_description: str = "accumulated over the preceding interval",

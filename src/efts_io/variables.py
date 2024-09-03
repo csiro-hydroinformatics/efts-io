@@ -8,7 +8,14 @@ import pandas as pd
 
 from efts_io._internals import create_data_variable
 from efts_io.attributes import create_var_attribute_definition
-from efts_io.conventions import ENS_MEMBER_DIMNAME, LEAD_TIME_DIMNAME, STATION_DIMNAME
+from efts_io.conventions import (
+    AREA_VARNAME,
+    ENS_MEMBER_DIMNAME,
+    LEAD_TIME_DIMNAME,
+    STANDARD_NAME_ATTR_KEY,
+    STATION_DIMNAME,
+    UNITS_ATTR_KEY,
+)
 from efts_io.dimensions import _create_nc_dims
 
 
@@ -116,7 +123,7 @@ def default_optional_variable_definitions_v2_0() -> pd.DataFrame:
                 "catchment area",
                 "station elevation above sea level",
             ],
-            STANDARD_NAME_KEY: [
+            STANDARD_NAME_ATTR_KEY: [
                 "northing_GDA94_zone55",
                 "easting_GDA94_zone55",
                 AREA_VARNAME,
@@ -370,14 +377,22 @@ def create_efts_variables(
             + " variables. Only supported are characters 2, 3, 4",
         )
 
+    variables = {}
+    variables["metadatavars"] = variables_metadata
+
+    data_variables = empty_data_variables(data_var_def, time_dim, lead_time_dim, station_dim, ensemble_dim)
+    variables["datavars"] = data_variables
+
+    return variables
+
+
+def empty_data_variables(data_var_def, time_dim, lead_time_dim, station_dim, ensemble_dim):
+    data_variables = {}
+
     ens_fcast_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "4"]
     ens_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "3"]
     point_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "2"]
 
-    variables = {}
-    variables["metadatavars"] = variables_metadata
-
-    data_variables = {}
     data_variables.update(
         {
             x["name"]: create_data_variable(
@@ -393,6 +408,5 @@ def create_efts_variables(
     data_variables.update(
         {x["name"]: create_data_variable(x, [station_dim, time_dim]) for x in point_data_var_def},
     )
-    variables["datavars"] = data_variables
 
-    return variables
+    return data_variables

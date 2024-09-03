@@ -139,7 +139,14 @@ def _has_required_dimensions(
 ) -> bool:
     if _is_nc_dataset(d):
         return set(d.dimensions.keys()) == set(mandatory_dimensions)
-    return set(d.dims.keys()) == set(mandatory_dimensions)
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter(action="ignore", category=FutureWarning)
+        # FutureWarning: The return type of `Dataset.dims` will be changed
+        # to return a set of dimension names in future, in order to be more
+        # consistent with `DataArray.dims`.
+        return set(d.dims.keys()) == set(mandatory_dimensions)
 
 
 def has_required_stf2_dimensions(d: MdDatasetsType) -> bool:
