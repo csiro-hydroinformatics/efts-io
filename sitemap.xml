@@ -2,102 +2,86 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/changelog/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/code-reference/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/code_of_conduct/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/contributing/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/credits/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/license/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/tech_notes/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/nb/basic_usage/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
+    </url>
+    <url>
+         <loc>https://csiro-hydroinformatics.github.io/efts-io/nb/design_rationale/</loc>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/reference/SUMMARY/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/reference/efts_io/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/reference/efts_io/attributes/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/reference/efts_io/cli/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/reference/efts_io/conventions/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/reference/efts_io/debug/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/reference/efts_io/dimensions/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/reference/efts_io/helpers/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/reference/efts_io/variables/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/reference/efts_io/wrapper/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
     <url>
          <loc>https://csiro-hydroinformatics.github.io/efts-io/coverage/</loc>
-         <lastmod>2024-08-29</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2024-09-04</lastmod>
     </url>
 </urlset>
