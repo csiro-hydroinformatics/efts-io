@@ -1,4 +1,8 @@
-# refcount tech notes
+# tech notes
+
+https://pawamoy.github.io/copier-uv/work/
+
+echo $PYTHON_VERSIONS 3.12
 
 **These are notes for the package maintainer(s)**. Most users can ignore them.
 
