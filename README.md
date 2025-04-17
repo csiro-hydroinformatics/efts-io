@@ -10,7 +10,7 @@ Ensemble forecast time series
 
 ## Installation
 
-**Placeholder**, the package is under development. See [CONTRIBUTING](./CONTRIBUTING.md) for contributing or installing as a developer.
+**Placeholder**, the package is under development. See CONTRIBUTING.md for contributing or installing as a developer.
 
 <!-- With `pip`:
 
