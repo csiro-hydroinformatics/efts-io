@@ -10,9 +10,9 @@ Ensemble forecast time series
 
 ## Installation
 
-**Placeholder**: August 2024 - the package is in alpha (re)development and not yet up to date on `pypi`
+**Placeholder**, the package is under development. See [CONTRIBUTING](./CONTRIBUTING.md) for contributing or installing as a developer.
 
-With `pip`:
+<!-- With `pip`:
 
 ```bash
 pip install efts-io
@@ -23,4 +23,4 @@ With [`pipx`](https://github.com/pipxproject/pipx):
 ```bash
 python -m pip install --user pipx
 pipx install efts-io
-```
+``` -->
