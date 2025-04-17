@@ -124,12 +124,14 @@
 # }
 
 #' @import magrittr
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
+
+import xarray as xr
 
 from efts_io.conventions import UNITS_ATTR_KEY
 
 
-def create_data_variable(data_var_def: Dict[str, Any], dimensions):
+def create_data_variable(data_var_def: Dict[str, Any], dimensions: Tuple[str, Tuple]) -> xr.Variable:
     import numpy as np
     import xarray as xr
 

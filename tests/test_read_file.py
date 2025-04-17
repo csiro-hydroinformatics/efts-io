@@ -47,9 +47,7 @@ def test_read_thing():
     fn = os.path.join(pkg_dir, "tests", "data", "hourly_test.nc")
     assert os.path.exists(fn)
     ds = EftsDataSet(fn)
-    assert set(ds.get_dim_names()) == set(
-        ["ens_member", "lead_time", "station", "str_len", "time"],
-    )
+    assert set(ds.get_dim_names()) == {"ens_member", "lead_time", "station", "str_len", "time"}
     r1 = ds.get_ensemble_forecasts(
         variable_name=v1,
         identifier=s1,
