@@ -13,12 +13,14 @@
         "--config-file=config/pytest.ini"
     ],
     "ruff.enable": true,
-    "ruff.format.args": [
-        "--config=config/ruff.toml"
-    ],
-    "ruff.lint.args": [
-        "--config=config/ruff.toml"
-    ],
+    // https://docs.astral.sh/ruff/editors/migration/#new-settings
+    "ruff.configuration": "config/ruff.toml",
+    // "ruff.format.args": [
+    //     "--config=config/ruff.toml"
+    // ],
+    // "ruff.lint.args": [
+    //     "--config=config/ruff.toml"
+    // ],
     "yaml.schemas": {
         "https://squidfunk.github.io/mkdocs-material/schema.json": "mkdocs.yml"
     },

@@ -127,7 +127,7 @@ def check_index_found(
 MdDatasetsType = Union[xr.Dataset, xr.DataArray]
 
 
-def _is_nc_dataset(d: Any) -> bool:
+def _is_nc_dataset(d: Any) -> bool:  # noqa: ARG001
     # Have to disable using directly netCDF4 for now due to issue #4
     return False
     # return isinstance(d, nc.Dataset)
@@ -150,19 +150,30 @@ def _has_required_dimensions(
 
 
 def has_required_stf2_dimensions(d: MdDatasetsType) -> bool:
+    """Has the dataset the required dimensions for STF conventions.
+
+    Args:
+        d (MdDatasetsType): data object to check
+
+    Returns:
+        bool: Has it the minimum STF dimentions
+    """
     return _has_required_dimensions(d, mandatory_netcdf_dimensions)
 
 
 def has_required_xarray_dimensions(d: MdDatasetsType) -> bool:
+    """Has the dataset the required dimensions for an in memory xarray representation."""
     return _has_required_dimensions(d, mandatory_xarray_dimensions)
 
 
 def _has_all_members(tested: Iterable[str], reference: Iterable[str]) -> bool:
+    """Tests whether all the expected members are present in the tested set."""
     r = set(reference)
     return set(tested).intersection(r) == r
 
 
 def has_required_global_attributes(d: MdDatasetsType) -> bool:
+    """has_required_global_attributes."""
     if _is_nc_dataset(d):
         a = d.ncattrs()
         tested = set(a)
@@ -173,6 +184,7 @@ def has_required_global_attributes(d: MdDatasetsType) -> bool:
 
 
 def has_required_variables(d: MdDatasetsType) -> bool:
+    """has_required_variables."""
     a = d.variables.keys()
     tested = set(a)
     # Note: even if xarray, we do not need to check for the 'data_vars' attribute here.

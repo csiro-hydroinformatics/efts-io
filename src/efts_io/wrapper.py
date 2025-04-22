@@ -42,7 +42,7 @@ from efts_io.variables import create_efts_variables
 def byte_to_string(x: Union[int, bytes]) -> str:
     """Convert a byte to a string."""
     if isinstance(x, int):
-        if x > 255 or x < 0:
+        if x > 255 or x < 0:  # noqa: PLR2004
             raise ValueError("Integer value to bytes: must be in range [0-255]")
         x = x.to_bytes(1, "little")
     if not isinstance(x, bytes):
@@ -51,15 +51,18 @@ def byte_to_string(x: Union[int, bytes]) -> str:
 
 
 def byte_array_to_string(x: np.ndarray) -> str:
+    """Convert a byte array to a string."""
     s = "".join([byte_to_string(s) for s in x])
     return s.strip()
 
 
 def byte_stations_to_str(byte_names: np.ndarray) -> np.ndarray:
+    """Convert byte array of station names to string array."""
     return np.array([byte_array_to_string(x) for x in byte_names])
 
 
 def _first_where(condition: np.ndarray) -> int:
+    """Return the first index where the condition is true."""
     x = np.where(condition)[0]
     if len(x) < 1:
         raise ValueError("first_where: Invalid condition, no element is true")
@@ -171,8 +174,8 @@ class EftsDataSet:
     def get_all_series(
         self,
         variable_name: str = "rain_obs",
-        dimension_id: Optional[str] = None,
-    ):
+        dimension_id: Optional[str] = None,  # noqa: ARG002
+    ) -> xr.DataArray:
         """Return a multivariate time series, where each column is the series for one of the identifiers."""
         # Return a multivariate time series, where each column is the series for one of the identifiers (self, e.g. rainfall station identifiers):
         return self.data[variable_name]
@@ -249,45 +252,44 @@ class EftsDataSet:
         # timeAxis = start_time + lubridate::dhours(1) * ncfile$dim$lead_time$vals
         # }
         # out = xts(x = ensData[, 1, , 1], order.by = timeAxis, tzone = tz(start_time))
-        return ens_data
+        return ens_data  # noqa: RET504
 
-    def get_ensemble_forecasts_for_station(
-        self,
-        variable_name: str = "rain_sim",
-        identifier: Optional[str] = None,
-        dimension_id: Optional[str] = None,
-    ):
-        """Return an array, representing all ensemble member forecasts for a single stations over all lead times."""
-        # Return an array, representing all ensemble member forecasts for a single stations over all lead times
-        if dimension_id is None:
-            dimension_id = self.get_stations_varname()
-        raise NotImplementedError
+    # def get_ensemble_forecasts_for_station(
+    #     self,
+    #     variable_name: str = "rain_sim",
+    #     identifier: Optional[str] = None,
+    #     dimension_id: Optional[str] = None,
+    # ):
+    #     """Return an array, representing all ensemble member forecasts for a single stations over all lead times."""
+    #     if dimension_id is None:
+    #         dimension_id = self.get_stations_varname()
+    #     raise NotImplementedError
 
-    def get_ensemble_series(
-        self,
-        variable_name: str = "rain_ens",
-        identifier: Optional[str] = None,
-        dimension_id: Optional[str] = None,
-    ):
-        """Return an ensemble of point time series for a station identifier."""
-        # Return an ensemble of point time series for a station identifier
-        if dimension_id is None:
-            dimension_id = self.get_stations_varname()
-        raise NotImplementedError
+    # def get_ensemble_series(
+    #     self,
+    #     variable_name: str = "rain_ens",
+    #     identifier: Optional[str] = None,
+    #     dimension_id: Optional[str] = None,
+    # ):
+    #     """Return an ensemble of point time series for a station identifier."""
+    #     # Return an ensemble of point time series for a station identifier
+    #     if dimension_id is None:
+    #         dimension_id = self.get_stations_varname()
+    #     raise NotImplementedError
 
-    def get_ensemble_size(self):
+    def get_ensemble_size(self) -> int:
         """Return the length of the ensemble size dimension."""
         return self.data.dims[self.ENS_MEMBER_DIMNAME]
 
-    def get_lead_time_count(self):
+    def get_lead_time_count(self) -> int:
         """Length of the lead time dimension."""
         return self.data.dims[self.LEAD_TIME_DIMNAME]
 
-    def get_lead_time_values(self):
+    def get_lead_time_values(self) -> np.ndarray:
         """Return the values of the lead time dimension."""
         return self.data[self.LEAD_TIME_DIMNAME].values
 
-    def put_lead_time_values(self, values):
+    def put_lead_time_values(self, values:Iterable[float]) -> None:
         """Set the values of the lead time dimension."""
         self.data[self.LEAD_TIME_DIMNAME].values = values
 
@@ -296,7 +298,7 @@ class EftsDataSet:
         variable_name: str = "rain_obs",
         identifier: Optional[str] = None,
         dimension_id: Optional[str] = None,
-    ):
+    ) -> xr.DataArray:
         """Return a single point time series for a station identifier."""
         # Return a single point time series for a station identifier. Falls back on def get_all_series if the argument "identifier" is missing
         if dimension_id is None:
@@ -313,115 +315,115 @@ class EftsDataSet:
         # TODO: station is integer normally in STF (Euargh)
         return STATION_ID_VARNAME
 
-    def get_time_dim(self):
+    def get_time_dim(self) -> np.ndarray:
         """Return the time dimension variable as a vector of date-time stamps."""
         # Gets the time dimension variable as a vector of date-time stamps
         return self.data.time.values  # but loosing attributes.
 
-    def get_time_unit(self):
-        """Return the time units of a read time series."""
-        # Gets the time units of a read time series, i.e. "hours since 2015-10-04 00:00:00 +1030". Returns the string "hours"
-        return "dummy"
+    # def get_time_unit(self) -> str:
+    #     """Return the time units of a read time series."""
+    #     # Gets the time units of a read time series, i.e. "hours since 2015-10-04 00:00:00 +1030". Returns the string "hours"
+    #     return "dummy"
 
-    def get_time_zone(self):
-        # Gets the time zone to use for the read time series
-        return "dummy"
+    # def get_time_zone(self) -> str:
+    #     # Gets the time zone to use for the read time series
+    #     return "dummy"
 
-    def get_utc_offset(self, as_string: bool = True):
-        # Gets the time zone to use for the read time series, i.e. "hours since 2015-10-04 00:00:00 +1030". Returns the string "+1030" or "-0845" if as_string is TRUE, or a lubridate Duration object if FALSE
-        return None
+    # def get_utc_offset(self, as_string: bool = True):
+    #     # Gets the time zone to use for the read time series, i.e. "hours since 2015-10-04 00:00:00 +1030". Returns the string "+1030" or "-0845" if as_string is TRUE, or a lubridate Duration object if FALSE
+    #     return None
 
-    def _get_values(self, variable_name: str):
-        # Gets (and cache in memory) all the values in a variable. Should be used only for dimension variables
-        from efts_io.conventions import conventional_varnames
+    # def _get_values(self, variable_name: str):
+    #     # Gets (and cache in memory) all the values in a variable. Should be used only for dimension variables
+    #     from efts_io.conventions import conventional_varnames
 
-        if variable_name not in conventional_varnames:
-            raise ValueError(
-                variable_name + " cannot be directly retrieved. Must be in " + ", ".join(conventional_varnames),
-            )
-        return self.data[variable_name].values
+    #     if variable_name not in conventional_varnames:
+    #         raise ValueError(
+    #             variable_name + " cannot be directly retrieved. Must be in " + ", ".join(conventional_varnames),
+    #         )
+    #     return self.data[variable_name].values
 
-    def get_variable_dim_names(self, variable_name):
-        # Gets the names of the dimensions that define the geometry of a given variable
-        return [x for x in self.data[[variable_name]].coords.keys()]
+    # def get_variable_dim_names(self, variable_name):
+    #     # Gets the names of the dimensions that define the geometry of a given variable
+    #     return [x for x in self.data[[variable_name]].coords.keys()]
 
-    def get_variable_names(self):
-        # Gets the name of all variables in the data set
-        return [x for x in self.data.variables.keys()]
+    # def get_variable_names(self):
+    #     # Gets the name of all variables in the data set
+    #     return [x for x in self.data.variables.keys()]
 
-    def index_for_identifier(self, identifier, dimension_id=None):
-        # Gets the index at which an identifier is found in a dimension variable
-        if dimension_id is None:
-            dimension_id = self.get_stations_varname()
-        identValues = self._get_values(dimension_id)
-        if identifier is None:
-            raise Exception("Identifier cannot be NA")
-        return _first_where(identifier == identValues)
+    # def index_for_identifier(self, identifier, dimension_id=None):
+    #     # Gets the index at which an identifier is found in a dimension variable
+    #     if dimension_id is None:
+    #         dimension_id = self.get_stations_varname()
+    #     identValues = self._get_values(dimension_id)
+    #     if identifier is None:
+    #         raise Exception("Identifier cannot be NA")
+    #     return _first_where(identifier == identValues)
 
-    def index_for_time(self, dateTime):
-        # Gets the index at which a date-time is found in the main time axis of this data set
-        return _first_where(self.data.time == dateTime)
+    # def index_for_time(self, dateTime):
+    #     # Gets the index at which a date-time is found in the main time axis of this data set
+    #     return _first_where(self.data.time == dateTime)
 
-    def put_ensemble_forecasts(
-        self,
-        x,
-        variable_name="rain_sim",
-        identifier: str = None,
-        dimension_id=None,
-        start_time=None,
-    ):
-        # Puts one or more ensemble forecast into a netCDF file
-        if dimension_id is None:
-            dimension_id = self.get_stations_varname()
-        raise NotImplementedError
+    # def put_ensemble_forecasts(
+    #     self,
+    #     x,
+    #     variable_name="rain_sim",
+    #     identifier: str = None,
+    #     dimension_id=None,
+    #     start_time=None,
+    # ):
+    #     # Puts one or more ensemble forecast into a netCDF file
+    #     if dimension_id is None:
+    #         dimension_id = self.get_stations_varname()
+    #     raise NotImplementedError
 
-    def put_ensemble_forecasts_for_station(
-        self,
-        x,
-        variable_name="rain_sim",
-        identifier: str = None,
-        dimension_id=ENS_MEMBER_DIMNAME,
-        start_time=None,
-    ):
-        # Puts a single ensemble member forecasts for all stations into a netCDF file
-        raise NotImplementedError
+    # def put_ensemble_forecasts_for_station(
+    #     self,
+    #     x,
+    #     variable_name="rain_sim",
+    #     identifier: str = None,
+    #     dimension_id=ENS_MEMBER_DIMNAME,
+    #     start_time=None,
+    # ):
+    #     # Puts a single ensemble member forecasts for all stations into a netCDF file
+    #     raise NotImplementedError
 
-    def put_ensemble_series(
-        self,
-        x,
-        variable_name="rain_ens",
-        identifier: str = None,
-        dimension_id=None,
-    ):
-        # Puts an ensemble of time series, e.g. replicate rainfall series
-        if dimension_id is None:
-            dimension_id = self.get_stations_varname()
-        raise NotImplementedError
+    # def put_ensemble_series(
+    #     self,
+    #     x,
+    #     variable_name="rain_ens",
+    #     identifier: str = None,
+    #     dimension_id=None,
+    # ):
+    #     # Puts an ensemble of time series, e.g. replicate rainfall series
+    #     if dimension_id is None:
+    #         dimension_id = self.get_stations_varname()
+    #     raise NotImplementedError
 
-    def put_single_series(
-        self,
-        x,
-        variable_name="rain_obs",
-        identifier: str = None,
-        dimension_id=None,
-        start_time=None,
-    ):
-        # Puts a time series, or part thereof
-        if dimension_id is None:
-            dimension_id = self.get_stations_varname()
-        raise NotImplementedError
+    # def put_single_series(
+    #     self,
+    #     x,
+    #     variable_name="rain_obs",
+    #     identifier: str = None,
+    #     dimension_id=None,
+    #     start_time=None,
+    # ):
+    #     # Puts a time series, or part thereof
+    #     if dimension_id is None:
+    #         dimension_id = self.get_stations_varname()
+    #     raise NotImplementedError
 
-    def put_values(self, x, variable_name):
-        # Puts all the values in a variable. Should be used only for dimension variables
-        raise NotImplementedError
+    # def put_values(self, x, variable_name):
+    #     # Puts all the values in a variable. Should be used only for dimension variables
+    #     raise NotImplementedError
 
-    def set_time_zone(self, tzone_id):
-        # Sets the time zone to use for the read time series
-        raise NotImplementedError
+    # def set_time_zone(self, tzone_id):
+    #     # Sets the time zone to use for the read time series
+    #     raise NotImplementedError
 
-    def summary(self):
-        # Print a summary of this EFTS netCDF file
-        raise NotImplementedError
+    # def summary(self):
+    #     # Print a summary of this EFTS netCDF file
+    #     raise NotImplementedError
 
     # See Also
     # See create_efts and open_efts for examples on how to read or write EFTS netCDF files using this dataset.
@@ -457,7 +459,8 @@ class EftsDataSet:
 #'
 #' @return A EftsDataSet object
 #' @importFrom methods is
-def open_efts(ncfile, writein=False):
+def open_efts(ncfile:Any, writein:bool=False) -> EftsDataSet:  # noqa: ARG001, FBT001, FBT002
+    """Open an EFTS NetCDF file."""
     # raise NotImplemented("open_efts")
     # if isinstance(ncfile, str):
     #     nc = ncdf4::nc_open(ncfile, readunlim = FALSE, write = writein)
@@ -468,6 +471,7 @@ def open_efts(ncfile, writein=False):
 
 
 def nan_full(shape: Union[Tuple, int]) -> np.ndarray:
+    """Create a full array of NaNs with the given shape."""
     if isinstance(shape, int):
         shape = (shape,)
     return np.full(shape=shape, fill_value=np.nan)
@@ -486,6 +490,7 @@ def xr_efts(
     areas: Optional[Iterable[float]] = None,
     nc_attributes: Optional[Dict[str, str]] = None,
 ) -> xr.Dataset:
+    """Create an xarray Dataset for EFTS data."""
     if lead_times is None:
         lead_times = [0]
     coords = {
@@ -555,6 +560,7 @@ def stf2_mandatory_global_attributes(
     comment: str = "not provided",
     history: str = "not provided",
 ) -> Dict[str, str]:
+    """Create a dictionary of mandatory global attributes for an EFTS dataset."""
     return {
         TITLE_ATTR_KEY: title,
         INSTITUTION_ATTR_KEY: institution,
@@ -724,13 +730,14 @@ def create_efts(
     time_dim_info: Dict,
     data_var_definitions: List[Dict[str, Any]],
     stations_ids: List[int],
-    station_names: Optional[List[str]] = None,
+    station_names: Optional[List[str]] = None,  # noqa: ARG001
     nc_attributes: Optional[Dict[str, str]] = None,
-    optional_vars=None,
-    lead_length=48,
-    ensemble_length=50,
-    lead_time_tstep="hours",
-):
+    optional_vars:Optional[dict[str,Any]]=None,
+    lead_length:int=48,
+    ensemble_length:int=50,
+    lead_time_tstep:str="hours",
+) -> EftsDataSet:
+    """Create a new EFTS dataset."""
     import xarray as xr
 
     if stations_ids is None:
@@ -751,11 +758,11 @@ def create_efts(
         raise FileExistsError("File already exists: " + fname)
 
     if isinstance(data_var_definitions, pd.DataFrame):
-        raise ValueError(
+        raise TypeError(
             "data_var_definitions should be a list of dictionaries, not a pandas DataFrame",
         )
 
-    varDefs = create_efts_variables(
+    var_defs = create_efts_variables(
         data_var_definitions,
         time_dim_info,
         num_stations=len(stations_ids),
@@ -766,23 +773,23 @@ def create_efts(
     )
 
     ## attributes for dimensions variables
-    def add_dim_attribute(v, dimname, attr_key, attr_value):
+    def add_dim_attribute(v: xr.Variable, dimname: str, attr_key: str, attr_value: str) -> None:
         pass
 
-    add_dim_attribute(varDefs, TIME_DIMNAME, STANDARD_NAME_ATTR_KEY, TIME_DIMNAME)
-    add_dim_attribute(varDefs, TIME_DIMNAME, TIME_STANDARD_ATTR_KEY, "UTC")
-    add_dim_attribute(varDefs, TIME_DIMNAME, AXIS_ATTR_KEY, "t")
-    add_dim_attribute(varDefs, ENS_MEMBER_DIMNAME, STANDARD_NAME_ATTR_KEY, ENS_MEMBER_DIMNAME)
-    add_dim_attribute(varDefs, ENS_MEMBER_DIMNAME, AXIS_ATTR_KEY, "u")
-    add_dim_attribute(varDefs, LEAD_TIME_DIMNAME, STANDARD_NAME_ATTR_KEY, LEAD_TIME_DIMNAME)
-    add_dim_attribute(varDefs, LEAD_TIME_DIMNAME, AXIS_ATTR_KEY, "v")
-    add_dim_attribute(varDefs, LAT_VARNAME, AXIS_ATTR_KEY, "y")
-    add_dim_attribute(varDefs, LON_VARNAME, AXIS_ATTR_KEY, "x")
+    add_dim_attribute(var_defs, TIME_DIMNAME, STANDARD_NAME_ATTR_KEY, TIME_DIMNAME)
+    add_dim_attribute(var_defs, TIME_DIMNAME, TIME_STANDARD_ATTR_KEY, "UTC")
+    add_dim_attribute(var_defs, TIME_DIMNAME, AXIS_ATTR_KEY, "t")
+    add_dim_attribute(var_defs, ENS_MEMBER_DIMNAME, STANDARD_NAME_ATTR_KEY, ENS_MEMBER_DIMNAME)
+    add_dim_attribute(var_defs, ENS_MEMBER_DIMNAME, AXIS_ATTR_KEY, "u")
+    add_dim_attribute(var_defs, LEAD_TIME_DIMNAME, STANDARD_NAME_ATTR_KEY, LEAD_TIME_DIMNAME)
+    add_dim_attribute(var_defs, LEAD_TIME_DIMNAME, AXIS_ATTR_KEY, "v")
+    add_dim_attribute(var_defs, LAT_VARNAME, AXIS_ATTR_KEY, "y")
+    add_dim_attribute(var_defs, LON_VARNAME, AXIS_ATTR_KEY, "x")
 
     d = xr.Dataset(
-        data_vars=varDefs["datavars"],
-        coords=varDefs["metadatavars"],
-        attrs=dict(description="TODO: put the right attributes"),
+        data_vars=var_defs["datavars"],
+        coords=var_defs["metadatavars"],
+        attrs={"description": "TODO: put the right attributes"},
     )
 
     ## Determine if there is real value in a tryCatch. What is the point if we cannot close/delete the file.

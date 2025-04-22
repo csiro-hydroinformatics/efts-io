@@ -302,6 +302,7 @@ def cftimes_to_pdtstamps(
     cftimes: List[DatetimeGregorian],
     tz_str: Optional[str] = None,
 ) -> List[pd.Timestamp]:
+    """Convert one or more Climate and Forecast (CF) times to timestamps."""
     return _as_tstamps(cftimes, tz_str)
 
 
@@ -309,6 +310,7 @@ def create_timestamps(
     time_dim_info: Dict[str, Any],
     tz_str: Optional[str] = None,
 ) -> np.ndarray:
+    """Create time axis timestamps given the time dimension information."""
     import xarray as xr
 
     axis_units = time_dim_info[UNITS_ATTR_KEY]

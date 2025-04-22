@@ -4,6 +4,7 @@ line-length = 120
 [lint]
 exclude = [
     "tests/fixtures/*.py",
+    "tests/*.py",
 ]
 select = [
     "A", "ANN", "ARG",

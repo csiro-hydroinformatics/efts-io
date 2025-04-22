@@ -138,15 +138,15 @@ def create_data_variable(data_var_def: Dict[str, Any], dimensions: Tuple[str, Tu
     a = data_var_def
     #    (c("name", UNITS_ATTR_KEY) %in% names(a)) %>% all %>% stopifnot
     varname = a["name"]
-    longname = a["longname"] if "longname" in a.keys() else varname
-    precision = a["precision"] if "precision" in a.keys() else "double"
-    missval = a["missval"] if "missval" in a.keys() else -9999
+    longname = a.get("longname", varname)
+    precision = a.get("precision", "double")
+    missval = a.get("missval", -9999)
 
     dimnames = [d[0] for d in dimensions]
     if not isinstance(dimnames[0], str):
-        raise ValueError("Dimension names must be strings.")
+        raise TypeError("Dimension names must be strings.")
     shape = tuple(len(d[1]) for d in dimensions)
-    variable = xr.Variable(
+    return xr.Variable(
         dims=dimnames,
         data=np.empty(shape, dtype=float),  # TODO: should this use precision?
         encoding={"_FillValue": missval},
@@ -157,7 +157,6 @@ def create_data_variable(data_var_def: Dict[str, Any], dimensions: Tuple[str, Tu
             "precision": precision,
         },
     )
-    return variable
 
     # xr.Variable(dims=dimensions, data, attrs=None, encoding=None, fastpath=False)
     # vardef = ncdf4::ncvar_def(name = varname, units = a[UNITS_ATTR_KEY], dim = dimensions,

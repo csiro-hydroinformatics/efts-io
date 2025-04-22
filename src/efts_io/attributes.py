@@ -1,3 +1,5 @@
+"""Management of netCDF attributes."""
+
 #' Create variable attribute definition
 #'
 #' Create variable attribute definition
@@ -32,10 +34,10 @@ def create_var_attribute_definition(
     dat_type: str = "der",
     dat_type_description: str = "AWAP data interpolated from observations",
     location_type: str = "Point",
-):
+) -> dict[str, str]:
     """Create variable attribute definition."""
     return {
-        "type": data_type_code,
+        "type": str(data_type_code),
         "type_description": type_description,
         "dat_type": dat_type,
         "dat_type_description": dat_type_description,
@@ -93,13 +95,27 @@ def create_global_attributes(
     source: str,
     catchment: str,
     comment: str,
-    strict: bool = False,
-):
+) -> dict[str, str]:
+    """Creates STF global attributes.
+
+    Args:
+        title (str): title
+        institution (str): institution
+        source (str): source
+        catchment (str): catchment
+        comment (str): comment
+
+    Raises:
+        ValueError: Unexpected or insufficient information
+
+    Returns:
+        dict[str, str]: _description_
+    """
     # catchment info should not have white spaces (and why was that???)
     # catchment = 'Upper  Murray River '
     # catchment = stringr::str_replace_all(catchment, pattern='\\s+', '_')
 
-    if strict and title == "":
+    if title == "":
         raise ValueError("Empty title is not accepted as a valid attribute")
 
     return {

@@ -12,6 +12,10 @@ Ensemble forecast time series
 
 **Placeholder**, the package is under development. See CONTRIBUTING.md for contributing or installing as a developer.
 
+## Development workflow
+
+[copier-uv: Working on a project](https://pawamoy.github.io/copier-uv/work)
+
 <!-- With `pip`:
 
 ```bash

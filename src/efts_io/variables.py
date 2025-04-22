@@ -181,8 +181,7 @@ def create_variable_definitions(dframe: pd.DataFrame) -> List[Dict[str, Any]]:
     # dframe[['rownum']] = 1:nrow(dframe)
     # r = plyr::dlply(.data = dframe, .variables = "rownum", .fun = f)
     variables_defs: Dict = dframe.apply(lambda x: f(x), axis=1)
-    res = {v["name"]: v for k, v in variables_defs.items()}
-    return res
+    return {v["name"]: v for k, v in variables_defs.items()}
 
 
 def create_mandatory_vardefs(
@@ -386,7 +385,8 @@ def create_efts_variables(
     return variables
 
 
-def empty_data_variables(data_var_def, time_dim, lead_time_dim, station_dim, ensemble_dim):
+def empty_data_variables(data_var_def:dict, time_dim:str, lead_time_dim:str, station_dim:str, ensemble_dim:str) -> dict:
+    """Create data variables as defined in the definition."""
     data_variables = {}
 
     ens_fcast_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "4"]
