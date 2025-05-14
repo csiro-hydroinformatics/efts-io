@@ -1,7 +1,7 @@
 """Functions to create and manipulate dimensions for netCDF files."""
 
 from datetime import datetime
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, Optional, Tuple, Union
 
 # import netCDF4
 import numpy as np

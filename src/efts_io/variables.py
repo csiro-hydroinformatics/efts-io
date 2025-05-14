@@ -1,6 +1,6 @@
 """Handling of EFTS netCDF variables definitions."""
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 # import netCDF4
 import numpy as np
@@ -391,13 +391,12 @@ def create_efts_variables(
 
 def empty_data_variables(
     data_var_def: dict,
-    time_dim_tmp: Tuple[str, np.ndarray, Dict[str, str]],
-    lead_time_dim_tmp: Tuple[str, np.ndarray, Dict[str, str]],
-    station_dim_tmp: Tuple[str, np.ndarray, Dict[str, str]],
-    ensemble_dim_tmp: Tuple[str, np.ndarray, Dict[str, str]],
+    time_dim_tmp: Tuple[str, np.ndarray, Dict[str, str]],  # noqa: ARG001
+    lead_time_dim_tmp: Tuple[str, np.ndarray, Dict[str, str]],  # noqa: ARG001
+    station_dim_tmp: Tuple[str, np.ndarray, Dict[str, str]],  # noqa: ARG001
+    ensemble_dim_tmp: Tuple[str, np.ndarray, Dict[str, str]],  # noqa: ARG001
 ) -> dict:
     """Create data variables as defined in the definition."""
-
     raise NotImplementedError("Not implemented yet")
 
     data_variables = {}
