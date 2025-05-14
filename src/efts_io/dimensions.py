@@ -1,7 +1,7 @@
 """Functions to create and manipulate dimensions for netCDF files."""
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 # import netCDF4
 import numpy as np
@@ -299,9 +299,9 @@ _as_tstamps = np.vectorize(_cftime_to_pdtstamp)
 
 
 def cftimes_to_pdtstamps(
-    cftimes: List[DatetimeGregorian],
+    cftimes: Iterable[DatetimeGregorian],
     tz_str: Optional[str] = None,
-) -> List[pd.Timestamp]:
+) -> np.ndarray[pd.Timestamp,pd.Timestamp]:
     """Convert one or more Climate and Forecast (CF) times to timestamps."""
     return _as_tstamps(cftimes, tz_str)
 
@@ -309,7 +309,7 @@ def cftimes_to_pdtstamps(
 def create_timestamps(
     time_dim_info: Dict[str, Any],
     tz_str: Optional[str] = None,
-) -> np.ndarray:
+) -> np.ndarray[pd.Timestamp,pd.Timestamp]:
     """Create time axis timestamps given the time dimension information."""
     import xarray as xr
 

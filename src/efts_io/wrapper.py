@@ -100,7 +100,8 @@ class EftsDataSet:
         self.stations_varname = STATION_ID_VARNAME
         self.LEAD_TIME_DIMNAME = LEAD_TIME_DIMNAME
         self.ENS_MEMBER_DIMNAME = ENS_MEMBER_DIMNAME
-        self.identifiers_dimensions = []
+        # self.identifiers_dimensions: list = []
+        self.data: xr.Dataset
         if isinstance(data, str):
             # work around https://jira.csiro.au/browse/WIRADA-635
             # lead_time can be a problem with xarray, so do not decode "times"
@@ -123,9 +124,9 @@ class EftsDataSet:
                 {TIME_DIMNAME: time_coords, self.STATION_DIMNAME: station_names},
             )
 
-            self.data: xr.Dataset = x
+            self.data = x
         else:
-            self.data: xr.Dataset = data
+            self.data = data
 
     def to_netcdf(self, path: str, version: str = "2.0") -> None:
         """Write the data set to a netCDF file."""
@@ -201,7 +202,7 @@ class EftsDataSet:
 
     def get_dim_names(self) -> List[str]:
         """Gets the name of all dimensions in the data set."""
-        return list(self.data.dims.keys())
+        return [x for x in self.data.dims.keys()]  # noqa: C416, SIM118
 
     def get_ensemble_for_stations(
         self,
@@ -231,6 +232,9 @@ class EftsDataSet:
         if start_time is None:
             start_time = td[0]
         n_ens = self.get_ensemble_size()
+        raise NotImplementedError(
+            "get_ensemble_forecasts: not yet implemented",
+        )
         index_id = self.index_for_identifier(identifier, dimension_id)
         check_index_found(index_id, identifier, dimension_id)
         if lead_time_count is None:

@@ -1,10 +1,11 @@
 """Handling of EFTS netCDF variables definitions."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 # import netCDF4
 import numpy as np
 import pandas as pd
+import xarray as xr
 
 from efts_io._internals import create_data_variable
 from efts_io.attributes import create_var_attribute_definition
@@ -46,7 +47,7 @@ def create_variable_definition(
     missval: float = -9999.0,
     precision: str = "double",
     dim_type: str = "4",
-    var_attribute: Optional[str] = None,
+    var_attribute: Optional[dict[str,str]] = None,
 ) -> dict[str, Any]:
     """Create a variable definition."""
     if var_attribute is None:
@@ -161,11 +162,17 @@ def default_optional_variable_definitions_v2_0() -> pd.DataFrame:
 #' varsDef$location_type='Point'
 #' str(create_variable_definitions(varsDef))
 #'
-def create_variable_definitions(dframe: pd.DataFrame) -> List[Dict[str, Any]]:
+def create_variable_definitions(dframe: pd.DataFrame) -> Dict[str, Any]:
     """Create variable definitions from a data frame."""
     in_names = dframe.columns
     non_opt_attr = ["name", "longname", UNITS_ATTR_KEY, "missval", "precision", "dimensions"]
     varargs_attr = [x for x in in_names if x not in non_opt_attr]
+
+    def dataframe_to_dict(df: pd.DataFrame, columns: list) -> dict:
+        """Convert a single-row DataFrame to a dictionary for specified columns."""
+        if df.shape[0] != 1:
+            raise ValueError("DataFrame must contain exactly one row.")
+        return {col: df[col].values[0] for col in columns if col in df.columns}
 
     def f(var_def: Dict[str, Any]):  # noqa: ANN202
         return create_variable_definition(
@@ -175,22 +182,22 @@ def create_variable_definitions(dframe: pd.DataFrame) -> List[Dict[str, Any]]:
             missval=var_def["missval"],
             precision=var_def["precision"],
             dim_type=var_def["dimensions"],
-            var_attribute=var_def[varargs_attr],
+            var_attribute=dataframe_to_dict(var_def, varargs_attr),
         )
 
     # dframe[['rownum']] = 1:nrow(dframe)
     # r = plyr::dlply(.data = dframe, .variables = "rownum", .fun = f)
-    variables_defs: Dict = dframe.apply(lambda x: f(x), axis=1)
-    return {v["name"]: v for k, v in variables_defs.items()}
+    variables_defs: Dict = dframe.apply(lambda x: f(x), axis=1).to_dict()
+    return {v["name"]: v for _, v in variables_defs.items()}
 
 
 def create_mandatory_vardefs(
-    station_dim: str,
-    str_dim: str,
-    ensemble_dim: str,
-    lead_time_dim: str,
+    station_dim: Tuple[str, np.ndarray, Dict[str, str]],
+    str_dim: Tuple[str, np.ndarray, Dict[str, str]],
+    ensemble_dim: Tuple[str, np.ndarray, Dict[str, str]],
+    lead_time_dim: Tuple[str, np.ndarray, Dict[str, str]],
     lead_time_tstep: str = "hours",
-) -> Dict[str, Dict[str, Any]]:
+) -> Dict[str, xr.Variable]:
     """Create mandatory variable definitions."""
     # https://github.com/jmp75/efts/blob/107c553045a37e6ef36b2eababf6a299e7883d50/docs/netcdf_for_water_forecasting.md#mandatory-variables
     # float time(time)
@@ -200,7 +207,6 @@ def create_mandatory_vardefs(
     # float lead_time(lead_time)
     # float lat (station)
     # float lon (station)
-    import xarray as xr
 
     # STATION_DIMNAME,
     # LEAD_TIME_DIMNAME,
@@ -291,7 +297,7 @@ def create_mandatory_vardefs(
 
 
 def create_optional_vardefs(
-    station_dim: str,
+    station_dim: Tuple[str, np.ndarray, Dict[str, str]],
     vars_def: Optional[pd.DataFrame] = None,
 ) -> pd.Series:
     """Create optional variable definitions."""
@@ -304,7 +310,7 @@ def create_optional_vardefs(
         return {
             "name": vd["name"],
             UNITS_ATTR_KEY: vd[UNITS_ATTR_KEY],
-            "dim": list(station_dim),
+            "dim": list(station_dim[0]), # TOCHECK or not a list but the str?
             "missval": vd["missval"],
             "longname": vd["longname"],
             "prec": vd["precision"],
@@ -366,14 +372,12 @@ def create_efts_variables(
         )
         # TODO if not native to ncdf4: check name clashes
         # already_defs = names(variables)
-        variables_metadata = variables_metadata.update(optional_var_ncdefs)
+        variables_metadata.update(optional_var_ncdefs)
 
     unknown_dims = [x for x in data_var_def.values() if x["dim_type"] not in ["2", "3", "4"]]
     if len(unknown_dims) > 0:
         raise ValueError(
-            "Invalid dimension specifications for "
-            + len(unknown_dims)
-            + " variables. Only supported are characters 2, 3, 4",
+            f"Invalid dimension specifications for {len(unknown_dims)} variables. Only supported are characters 2, 3, 4",
         )
 
     variables = {}
@@ -385,13 +389,27 @@ def create_efts_variables(
     return variables
 
 
-def empty_data_variables(data_var_def:dict, time_dim:str, lead_time_dim:str, station_dim:str, ensemble_dim:str) -> dict:
+def empty_data_variables(
+    data_var_def: dict,
+    time_dim_tmp: Tuple[str, np.ndarray, Dict[str, str]],
+    lead_time_dim_tmp: Tuple[str, np.ndarray, Dict[str, str]],
+    station_dim_tmp: Tuple[str, np.ndarray, Dict[str, str]],
+    ensemble_dim_tmp: Tuple[str, np.ndarray, Dict[str, str]],
+) -> dict:
     """Create data variables as defined in the definition."""
+
+    raise NotImplementedError("Not implemented yet")
+
     data_variables = {}
 
     ens_fcast_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "4"]
     ens_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "3"]
     point_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "2"]
+
+    time_dim = "not implemented"
+    lead_time_dim = "not implemented"
+    station_dim = "not implemented"
+    ensemble_dim = "not implemented"
 
     data_variables.update(
         {

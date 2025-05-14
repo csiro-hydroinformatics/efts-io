@@ -146,7 +146,10 @@ def _has_required_dimensions(
         # FutureWarning: The return type of `Dataset.dims` will be changed
         # to return a set of dimension names in future, in order to be more
         # consistent with `DataArray.dims`.
-        return set(d.dims.keys()) == set(mandatory_dimensions)
+        dims = d.dims
+        # work around legacy discrepancy between data arrays and datasets: list and dict.
+        kk = set([k for k in dims])  # noqa: C403, C416
+        return kk == set(mandatory_dimensions)
 
 
 def has_required_stf2_dimensions(d: MdDatasetsType) -> bool:
