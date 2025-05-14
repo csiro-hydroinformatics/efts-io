@@ -10,11 +10,7 @@ Ensemble forecast time series
 
 ## Installation
 
-**Placeholder**, the package is under development. See CONTRIBUTING.md for contributing or installing as a developer.
-
-## Development workflow
-
-[copier-uv: Working on a project](https://pawamoy.github.io/copier-uv/work)
+**Placeholder**, the package is under development. See [contributing.md](./contributing.md) for contributing or installing as a developer.
 
 <!-- With `pip`:
 
@@ -28,3 +24,7 @@ With [`pipx`](https://github.com/pipxproject/pipx):
 python -m pip install --user pipx
 pipx install efts-io
 ``` -->
+
+## Development workflow
+
+Quick link to [copier-uv: Working on a project](https://pawamoy.github.io/copier-uv/work), but see [contributing.md](./contributing.md) for details.

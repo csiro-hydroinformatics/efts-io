@@ -4,7 +4,7 @@ site_url: "https://csiro-hydroinformatics.github.io/efts-io"
 repo_url: "https://github.com/csiro-hydroinformatics/efts-io"
 repo_name: "csiro-hydroinformatics/efts-io"
 site_dir: "site"
-watch: [mkdocs.yml, README.md, CONTRIBUTING.md, CHANGELOG.md, src/efts_io]
+watch: [mkdocs.yml, README.md, contributing.md, CHANGELOG.md, src/efts_io]
 copyright: Copyright &copy; 2024 CSIRO
 edit_uri: edit/main/docs/
 
