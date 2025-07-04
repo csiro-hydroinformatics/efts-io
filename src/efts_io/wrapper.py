@@ -1,7 +1,7 @@
 """A thin wrapper around xarray for reading and writing Ensemble Forecast Time Series (EFTS) data sets."""
 
 import os
-from typing import Any, Dict, Iterable, List, Optional, Sized, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 # import netCDF4
 import numpy as np
@@ -139,7 +139,7 @@ class EftsDataSet:
 
     def save_to_stf2(self, path: str) -> None:
         """Save to file."""
-        pass
+        # pass
 
     def create_data_variables(self, data_var_def: Dict[str, Dict[str, Any]]) -> None:
         """Create data variables in the data set.
@@ -211,7 +211,7 @@ class EftsDataSet:
         """Gets the name of all dimensions in the data set."""
         return [x for x in self.data.sizes.keys()]  # noqa: C416, SIM118
         # Note: self._dim_size will return a list of str in the future
-        # return [x for x in self._dim_size.keys()]  # noqa: C416, SIM118
+        # return [x for x in self._dim_size.keys()]
 
     def get_ensemble_for_stations(
         self,
@@ -290,7 +290,7 @@ class EftsDataSet:
     #         dimension_id = self.get_stations_varname()
     #     raise NotImplementedError
 
-    def _dim_size(self, dimname:str):
+    def _dim_size(self, dimname:str) -> int:
         return self.data.sizes[dimname]
 
     def get_ensemble_size(self) -> int:
@@ -756,12 +756,13 @@ def create_efts(
     """Create a new EFTS dataset."""
     import xarray as xr
 
+    from efts_io.conventions import mandatory_global_attributes
+
     if stations_ids is None:
         raise ValueError(
             "You must provide station identifiers when creating a new EFTS netCDF data set",
         )
 
-    from efts_io.conventions import mandatory_global_attributes
 
     if nc_attributes is None:
         raise ValueError(
