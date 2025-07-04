@@ -235,7 +235,7 @@ def write_nc_stf2(
         else:
             # print("Sim")
             var_name_s = f"{v_type[var_type]}_sim"
-            var_name_l = f"simulated v_type_long[var_type]"
+            var_name_l = f"simulated {v_type_long[var_type]}"
 
     qsim_var = ncfile.createVariable(var_name_s, "f", ("time", "ens_member", "station", "lead_time"), fill_value=-9999)
     qsim_var.setncattr("standard_name", var_name_s)
