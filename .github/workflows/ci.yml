@@ -67,7 +67,8 @@ jobs:
         - "3.11"
         resolution:
         - highest
-        - lowest-direct
+        # for now foget about lowest, otherwise leads to errors like:Failed to build `pandas==0.1`
+        # - lowest-direct
         # exclude:
         # - os: macos-latest
         #   resolution: lowest-direct

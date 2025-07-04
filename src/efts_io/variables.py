@@ -170,9 +170,9 @@ def create_variable_definitions(dframe: pd.DataFrame) -> Dict[str, Any]:
 
     def dataframe_to_dict(df: pd.DataFrame, columns: list) -> dict:
         """Convert a single-row DataFrame to a dictionary for specified columns."""
-        if df.shape[0] != 1:
-            raise ValueError("DataFrame must contain exactly one row.")
-        return {col: df[col].values[0] for col in columns if col in df.columns}
+        if not isinstance(df, pd.Series):
+            raise TypeError("single row of a data frame: expected a pandas series")
+        return {col: df[col] for col in columns if col in df}
 
     def f(var_def: Dict[str, Any]):  # noqa: ANN202
         return create_variable_definition(

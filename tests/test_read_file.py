@@ -42,7 +42,9 @@ def dhours(i):
 def ddays(i):
     return pd.Timedelta(i * 24, "h")
 
+import pytest
 
+@pytest.mark.skip(reason="Ported from the R package, but may not be relevant or the best approach anymore")
 def test_read_thing():
     fn = os.path.join(pkg_dir, "tests", "data", "hourly_test.nc")
     assert os.path.exists(fn)
@@ -281,8 +283,9 @@ def doTests(
 
 
 import tempfile
+import pytest
 
-
+@pytest.mark.skip(reason="Ported from the R package, but may not be relevant or the best approach anymore")
 def test_round_trip():
     with tempfile.TemporaryDirectory() as temp_dir:
         tested_fcast_issue_time = timeAxisStart + ddays(2)

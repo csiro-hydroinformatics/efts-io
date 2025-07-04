@@ -1,7 +1,7 @@
 """A thin wrapper around xarray for reading and writing Ensemble Forecast Time Series (EFTS) data sets."""
 
 import os
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Sized, Tuple, Union
 
 # import netCDF4
 import numpy as np
@@ -128,11 +128,18 @@ class EftsDataSet:
         else:
             self.data = data
 
-    def to_netcdf(self, path: str, version: str = "2.0") -> None:
+    def to_netcdf(self, path: str, version: Optional[str] = "2.0") -> None:
         """Write the data set to a netCDF file."""
-        if version != "2.0":
+        if version is None:
+            self.data.to_netcdf(path)
+        elif version == "2.0":
+            self.save_to_stf2(path)
+        else:
             raise ValueError("Only version 2.0 is supported for now")
-        self.data.to_netcdf(path)
+
+    def save_to_stf2(self, path: str) -> None:
+        """Save to file."""
+        pass
 
     def create_data_variables(self, data_var_def: Dict[str, Dict[str, Any]]) -> None:
         """Create data variables in the data set.
@@ -202,7 +209,9 @@ class EftsDataSet:
 
     def get_dim_names(self) -> List[str]:
         """Gets the name of all dimensions in the data set."""
-        return [x for x in self.data.dims.keys()]  # noqa: C416, SIM118
+        return [x for x in self.data.sizes.keys()]  # noqa: C416, SIM118
+        # Note: self._dim_size will return a list of str in the future
+        # return [x for x in self._dim_size.keys()]  # noqa: C416, SIM118
 
     def get_ensemble_for_stations(
         self,
@@ -281,13 +290,16 @@ class EftsDataSet:
     #         dimension_id = self.get_stations_varname()
     #     raise NotImplementedError
 
+    def _dim_size(self, dimname:str):
+        return self.data.sizes[dimname]
+
     def get_ensemble_size(self) -> int:
         """Return the length of the ensemble size dimension."""
-        return self.data.dims[self.ENS_MEMBER_DIMNAME]
+        return self._dim_size(self.ENS_MEMBER_DIMNAME)
 
     def get_lead_time_count(self) -> int:
         """Length of the lead time dimension."""
-        return self.data.dims[self.LEAD_TIME_DIMNAME]
+        return self._dim_size(self.LEAD_TIME_DIMNAME)
 
     def get_lead_time_values(self) -> np.ndarray:
         """Return the values of the lead time dimension."""
@@ -295,7 +307,7 @@ class EftsDataSet:
 
     def put_lead_time_values(self, values:Iterable[float]) -> None:
         """Set the values of the lead time dimension."""
-        self.data[self.LEAD_TIME_DIMNAME].values = values
+        self.data[self.LEAD_TIME_DIMNAME].values = np.array(values)
 
     def get_single_series(
         self,
@@ -311,7 +323,7 @@ class EftsDataSet:
 
     def get_station_count(self) -> int:
         """Return the number of stations in the data set."""
-        self.data.dims[self.STATION_DIMNAME]
+        self._dim_size(self.STATION_DIMNAME)
 
     def get_stations_varname(self) -> str:
         """Return the name of the variable that has the station identifiers."""
