@@ -28,8 +28,8 @@ select = [
 ]
 ignore = [
     "A001",  # Variable is shadowing a Python builtin
-    "ANN101",  # Missing type annotation for self
-    "ANN102",  # Missing type annotation for cls
+    # "ANN101",  # Missing type annotation for self
+    # "ANN102",  # Missing type annotation for cls
     "ANN204",  # Missing return type annotation for special method __str__
     "ANN401",  # Dynamically typed expressions (typing.Any) are disallowed
     "ARG005",  # Unused lambda argument
@@ -43,6 +43,7 @@ ignore = [
     "PLR0912",  # Too many branches
     "PLR0913",  # Too many arguments to function call
     "PLR0915",  # Too many statements
+    "PLC0415", # `import` should be at the top-level of a file
     "SLF001", # Private member accessed
     "TRY003",  # Avoid specifying long messages outside the exception class
 ]
