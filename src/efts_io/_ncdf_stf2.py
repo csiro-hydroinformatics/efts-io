@@ -60,16 +60,16 @@ def write_nc_stf2(
     if loc_info is None:
         station_id = np.arange(1, n_stations+1)
         station_name = [str(num) for num in station_id]
-        subXCentroid = np.nan
-        subYCentroid = np.nan
-        subArea = np.nan
+        sub_x_centroid = np.nan
+        sub_y_centroid = np.nan
+        sub_area = np.nan
         other_station_id = ""
     else:
         station_id = loc_info["station_id"]
         station_name = loc_info["station_name"]
-        subXCentroid = loc_info["subXCentroid"]
-        subYCentroid = loc_info["subYCentroid"]
-        subArea = loc_info["subArea"]
+        sub_x_centroid = loc_info["subXCentroid"]
+        sub_y_centroid = loc_info["subYCentroid"]
+        sub_area = loc_info["subArea"]
         other_station_id = loc_info["other_station_id"]
 
     if timestep in ["weeks", "w", "wk", "week"]:
@@ -140,16 +140,16 @@ def write_nc_stf2(
     lat_var.setncattr("long_name", "latitude")
     lat_var.setncattr("units", "degrees_north")
     lat_var.setncattr("axis", "y")
-    lat_var[:] = subYCentroid
+    lat_var[:] = sub_y_centroid
 
     lon_var = ncfile.createVariable("lon", "f", ("station",), fill_value=-9999)
     lon_var.setncattr("long_name", "longitude")
     lon_var.setncattr("units", "degrees_east")
     lon_var.setncattr("axis", "x")
-    lon_var[:] = subXCentroid
+    lon_var[:] = sub_x_centroid
 
     area_var = ncfile.createVariable("area", "f", ("station",), fill_value=-9999)
-    area_var[:] = subArea
+    area_var[:] = sub_area
 
     # lead time
     # ------------
@@ -244,7 +244,7 @@ def write_nc_stf2(
 
     qsim_var.setncattr("type", v_ttype[var_type])
     qsim_var.setncattr("type_description", v_ttype_name[var_type])
-    if int(stf_nc_vers) == 2:
+    if int(stf_nc_vers) == 2:  # noqa: PLR2004
         qsim_var.setncattr("dat_type", var_name_attr)
         qsim_var.setncattr("dat_type_description", dat_type_description)
         qsim_var.setncattr("location_type", "Point")
@@ -258,7 +258,7 @@ def write_nc_stf2(
     if data_qual is not None:
         qu_var_name_s = f"{var_name_s}_qual"
         if int(stf_nc_vers) == 1:
-            if data_type ==2:
+            if data_type ==2:  # noqa: PLR2004
                 qsim_qual_var = ncfile.createVariable(qu_var_name_s, "f", ("time", "station", "lead_time"), fill_value=-1)
                 qsim_qual_var[:,:,:] = data_qual.values[:]
             else:
@@ -272,12 +272,9 @@ def write_nc_stf2(
 
         qsim_qual_var.setncattr("standard_name", qu_var_name_s)
         qsim_qual_var.setncattr("long_name", qu_var_name_l)
-        if "quality_code" in data_qual.attrs.keys():
-            Quality_code  = data_qual.attrs["quality_code"]
-        else:
-            Quality_code  = "Quality codes"
+        quality_code = data_qual.attrs.get("quality_code", "Quality codes")
 
-        qsim_qual_var.setncattr("units", Quality_code)
+        qsim_qual_var.setncattr("units", quality_code)
         # Write data
 
     # close file
