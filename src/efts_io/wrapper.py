@@ -139,7 +139,20 @@ class EftsDataSet:
 
     def save_to_stf2(self, path: str) -> None:
         """Save to file."""
-        # pass
+        from efts_io._ncdf_stf2 import write_nc_stf2
+        write_nc_stf2(
+            out_nc_file=path, # : str,
+            data=self.data, # : xr.DataArray,
+            var_type, # : int = 1,
+            data_type, # : int = 3,
+            stf_nc_vers, # : int = 2,
+            ens, # : bool = False,  # noqa: FBT001, FBT002
+            timestep, # :str="days",
+            data_qual, # : Optional[xr.DataArray] = None,
+            overwrite, # :bool=True, # noqa: FBT001, FBT002
+            loc_info, # : Optional[Dict[str, Any]] = None,
+            global_att, # : Optional[Dict[str, Any]] = None,
+        )
 
     def create_data_variables(self, data_var_def: Dict[str, Dict[str, Any]]) -> None:
         """Create data variables in the data set.

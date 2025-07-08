@@ -5,6 +5,7 @@ These are functions ported from a collection of utilities initially in https://b
 
 import os
 from datetime import datetime, timezone
+from enum import Enum
 from typing import Any, Dict, Optional
 
 import numpy as np
@@ -12,11 +13,25 @@ import xarray as xr
 from netCDF4 import Dataset
 
 
+class StfVariable(Enum):
+    STREAMFLOW = 1
+    POTENTIAL_EVAPOTRANSPIRATION = 2
+    RAINFALL = 3
+    SNOW_WATER_EQUIVALENT = 4
+    MINIMUM_TEMPERATURE = 5
+    MAXIMUM_TEMPERATURE = 6
+
+class StfDataType(Enum):
+    DERIVED_FROM_OBSERVATIONS = 1
+    FORECAST = 2
+    OBSERVED = 3
+    SIMULATED = 4
+
 def write_nc_stf2(
     out_nc_file: str,
     data: xr.DataArray,
-    var_type: int = 1,
-    data_type: int = 3,
+    var_type: StfVariable = StfVariable.STREAMFLOW,
+    data_type: StfDataType = StfDataType.OBSERVED,
     stf_nc_vers: int = 2,
     ens: bool = False,  # noqa: FBT001, FBT002
     timestep:str="days",
@@ -25,36 +40,55 @@ def write_nc_stf2(
     loc_info: Optional[Dict[str, Any]] = None,
     global_att: Optional[Dict[str, Any]] = None,
 ) -> None:
+    from efts_io.conventions import (
+        AXIS_ATTR_KEY,
+        CATCHMENT_ATTR_KEY,
+        COMMENT_ATTR_KEY,
+        ENS_MEMBER_DIMNAME,
+        HISTORY_ATTR_KEY,
+        INSTITUTION_ATTR_KEY,
+        LEAD_TIME_DIMNAME,
+        LONG_NAME_ATTR_KEY,
+        SOURCE_ATTR_KEY,
+        STANDARD_NAME_ATTR_KEY,
+        STATION_DIMNAME,
+        STATION_ID_VARNAME,
+        STATION_NAME_VARNAME,
+        STF_2_0_URL,
+        STF_CONVENTION_VERSION_ATTR_KEY,
+        STF_NC_SPEC_ATTR_KEY,
+        STR_LEN_DIMNAME,
+        TIME_DIMNAME,
+        TIME_STANDARD_ATTR_KEY,
+        TITLE_ATTR_KEY,
+        UNITS_ATTR_KEY,
+        has_required_xarray_dimensions,
+        mandatory_xarray_dimensions,
+    )
+
+    if not has_required_xarray_dimensions(data):
+        raise ValueError(
+            f"DataArray must have the following dimensions: {mandatory_xarray_dimensions}",
+        )
 
     intdata_type = "i4"
-    #var_type    -   Integer specifying the variable, as follows:
-    #                   1 - streamflow
-    #                   2 - potential evapotranspiration
-    #                   3 - rainfall
-    #                   4 - snow water equivalent
-    #                   5 - minimum temperature
-    #                   6 - maximum temperature
 
-    #data_type   -   Integer specifying the data type of the variable, as
-    #                   follows:
-    #                   1 - derived from observations
-    #                   2 - forecast
-    #                   3 - observed
-    #                   4 - simulated
+    var_type = var_type.value
+    data_type = data_type.value
 
-    n_stations = len(data["station"])
+    n_stations = len(data[STATION_DIMNAME])
     if global_att is None:
-        nc_title=""
-        catchment=""
-        inst="CSIRO Environment"
-        comment=""
-        source=""
+        nc_title = ""
+        catchment = ""
+        inst = ""  # was "CSIRO Environment" but problematic default
+        comment = ""
+        source = ""
     else:
-        nc_title=global_att["nc_title"]
-        catchment=global_att["catchment"]
-        inst = global_att["inst"]
-        comment = global_att["comment"]
-        source = global_att["source"]
+        nc_title = global_att.get("nc_title", "")
+        catchment = global_att.get("catchment", "")
+        inst = global_att.get("inst", "")
+        comment = global_att.get("comment", "")
+        source = global_att.get("source", "")
 
     station = np.arange(1, n_stations+1)
     if loc_info is None:
@@ -65,8 +99,8 @@ def write_nc_stf2(
         sub_area = np.nan
         other_station_id = ""
     else:
-        station_id = loc_info["station_id"]
-        station_name = loc_info["station_name"]
+        station_id = loc_info[STATION_ID_VARNAME]
+        station_name = loc_info[STATION_NAME_VARNAME]
         sub_x_centroid = loc_info["subXCentroid"]
         sub_y_centroid = loc_info["subYCentroid"]
         sub_area = loc_info["subArea"]
@@ -102,24 +136,24 @@ def write_nc_stf2(
     ncfile.source = source
     ncfile.catchment = catchment
     ncfile.STF_convention_version = stf_nc_vers
-    ncfile.STF_nc_spec = "https://wiki.csiro.au/display/wirada/NetCDF+for+SWIFT"
+    ncfile.STF_nc_spec = STF_2_0_URL
     ncfile.comment = comment
 
     #  station
     # --------------------
-    ncfile.createDimension("station", n_stations)
-    station_var = ncfile.createVariable("station", intdata_type, ("station",), fill_value=-9999)
+    ncfile.createDimension(STATION_DIMNAME, n_stations)
+    station_var = ncfile.createVariable(STATION_DIMNAME, intdata_type, (STATION_DIMNAME,), fill_value=-9999)
     station_var[:] = station
 
     #  station_id
-    station_id_var = ncfile.createVariable("station_id", intdata_type, ("station",), fill_value=-9999)
-    station_id_var.setncattr("long_name", "station or node identification code")
+    station_id_var = ncfile.createVariable(STATION_ID_VARNAME, intdata_type, (STATION_DIMNAME,), fill_value=-9999)
+    station_id_var.setncattr(LONG_NAME_ATTR_KEY, "station or node identification code")
     station_id_var[:] = station_id
 
     #  station_name
-    ncfile.createDimension("strLen", 30)
-    station_name_var = ncfile.createVariable("station_name", "c", ("station", "strLen"))
-    station_name_var.setncattr("long_name", "station or node name")
+    ncfile.createDimension(STR_LEN_DIMNAME, 30)
+    station_name_var = ncfile.createVariable(STATION_NAME_VARNAME, "c", (STATION_DIMNAME, STR_LEN_DIMNAME))
+    station_name_var.setncattr(LONG_NAME_ATTR_KEY, "station or node name")
     for s_i, stn_name in enumerate(station_name):
         char_stn_name = [" "] * 30  # 30 char length
         stn_name_30 = stn_name[:30]
@@ -127,8 +161,8 @@ def write_nc_stf2(
         station_name_var[s_i, :] = char_stn_name
 
     # additional station id e.g. BoM
-    other_station_id_var = ncfile.createVariable("other_station_id", "c", ("station", "strLen"))
-    other_station_id_var.setncattr("long_name", "other station id e.g. BoM")
+    other_station_id_var = ncfile.createVariable("other_station_id", "c", (STATION_DIMNAME, STR_LEN_DIMNAME))
+    other_station_id_var.setncattr(LONG_NAME_ATTR_KEY, "other station id e.g. BoM")
     for s_i, stn_name in enumerate(other_station_id):
         char_stn_name = [" "] * 30  # 30 char length
         stn_name_30 = stn_name[:30]
@@ -136,55 +170,55 @@ def write_nc_stf2(
         other_station_id_var[s_i, :] = char_stn_name
     # coordinates, area
     # --------------------
-    lat_var = ncfile.createVariable("lat", "f", ("station", ), fill_value=-9999)
-    lat_var.setncattr("long_name", "latitude")
-    lat_var.setncattr("units", "degrees_north")
-    lat_var.setncattr("axis", "y")
+    lat_var = ncfile.createVariable("lat", "f", (STATION_DIMNAME, ), fill_value=-9999)
+    lat_var.setncattr(LONG_NAME_ATTR_KEY, "latitude")
+    lat_var.setncattr(UNITS_ATTR_KEY, "degrees_north")
+    lat_var.setncattr(AXIS_ATTR_KEY, "y")
     lat_var[:] = sub_y_centroid
 
-    lon_var = ncfile.createVariable("lon", "f", ("station",), fill_value=-9999)
-    lon_var.setncattr("long_name", "longitude")
-    lon_var.setncattr("units", "degrees_east")
-    lon_var.setncattr("axis", "x")
+    lon_var = ncfile.createVariable("lon", "f", (STATION_DIMNAME,), fill_value=-9999)
+    lon_var.setncattr(LONG_NAME_ATTR_KEY, "longitude")
+    lon_var.setncattr(UNITS_ATTR_KEY, "degrees_east")
+    lon_var.setncattr(AXIS_ATTR_KEY, "x")
     lon_var[:] = sub_x_centroid
 
-    area_var = ncfile.createVariable("area", "f", ("station",), fill_value=-9999)
+    area_var = ncfile.createVariable("area", "f", (STATION_DIMNAME,), fill_value=-9999)
     area_var[:] = sub_area
 
     # lead time
     # ------------
-    ncfile.createDimension("lead_time", len(data["lead_time"]))
-    lt_var = ncfile.createVariable("lead_time", intdata_type, ("lead_time",), fill_value=-9999)
-    lt_var.setncattr("standard_name", "lead time")
-    lt_var.setncattr("long_name", "forecast lead time")
-    lt_var.setncattr("units", "days since time")
-    lt_var.setncattr("axis", "v")
-    lt_var[:] = data["lead_time"].values
+    ncfile.createDimension(LEAD_TIME_DIMNAME, len(data[LEAD_TIME_DIMNAME]))
+    lt_var = ncfile.createVariable(LEAD_TIME_DIMNAME, intdata_type, (LEAD_TIME_DIMNAME,), fill_value=-9999)
+    lt_var.setncattr(STANDARD_NAME_ATTR_KEY, "lead time")
+    lt_var.setncattr(LONG_NAME_ATTR_KEY, "forecast lead time")
+    lt_var.setncattr(UNITS_ATTR_KEY, "days since time")
+    lt_var.setncattr(AXIS_ATTR_KEY, "v")
+    lt_var[:] = data[LEAD_TIME_DIMNAME].values
 
     # ensemble members
     # ------------------
-    ncfile.createDimension("ens_member", len(data["ens_member"]))
-    ens_mem_var = ncfile.createVariable("ens_member", intdata_type, ("ens_member",), fill_value=-9999)
-    ens_mem_var.setncattr("standard_name", "ens_member")
-    ens_mem_var.setncattr("long_name", "ensemble member")
-    ens_mem_var.setncattr("units", "member id")
-    ens_mem_var.setncattr("axis", "u")
-    ens_mem_var[:] = np.arange(1, len(data["ens_member"])+1)
+    ncfile.createDimension(ENS_MEMBER_DIMNAME, len(data[ENS_MEMBER_DIMNAME]))
+    ens_mem_var = ncfile.createVariable(ENS_MEMBER_DIMNAME, intdata_type, (ENS_MEMBER_DIMNAME,), fill_value=-9999)
+    ens_mem_var.setncattr(STANDARD_NAME_ATTR_KEY, ENS_MEMBER_DIMNAME)
+    ens_mem_var.setncattr(LONG_NAME_ATTR_KEY, "ensemble member")
+    ens_mem_var.setncattr(UNITS_ATTR_KEY, "member id")
+    ens_mem_var.setncattr(AXIS_ATTR_KEY, "u")
+    ens_mem_var[:] = np.arange(1, len(data[ENS_MEMBER_DIMNAME])+1)
 
     # time
     # ------
-    ncfile.createDimension("time", len(data["time"]))
-    time_var = ncfile.createVariable("time", intdata_type, ("time",), fill_value=-9999)
-    time_var.setncattr("standard_name", "time")
-    time_var.setncattr("long_name", "time")
-    time_var.setncattr("time_standard", "UTC+00:00")
-    time_var.setncattr("axis", "t")
+    ncfile.createDimension(TIME_DIMNAME, len(data[TIME_DIMNAME]))
+    time_var = ncfile.createVariable(TIME_DIMNAME, intdata_type, (TIME_DIMNAME,), fill_value=-9999)
+    time_var.setncattr(STANDARD_NAME_ATTR_KEY, TIME_DIMNAME)
+    time_var.setncattr(LONG_NAME_ATTR_KEY, TIME_DIMNAME)
+    time_var.setncattr(TIME_STANDARD_ATTR_KEY, "UTC+00:00")
+    time_var.setncattr(AXIS_ATTR_KEY, "t")
 
     #time_units_str = "days since {} 00:00:00".format(data.attrs["fcast_date"])
     fcast_date = data.attrs["fcast_date"]
     time_units_str = f"{timestep_str} since {fcast_date}"
-    time_var.setncattr("units", time_units_str)
-    time_var[:] = data["time"].values
+    time_var.setncattr(UNITS_ATTR_KEY, time_units_str)
+    time_var[:] = data[TIME_DIMNAME].values
 
     # Borrowing from create_empty_stfnc.m
     # Name Arrays
@@ -192,8 +226,14 @@ def write_nc_stf2(
     v_type_long = ["streamflow","potential evapotranspiration","rainfall","snow water equivalent","minimum temperature","maximum temperature","average temperature"]
     v_units = ["m3/s","mm","mm","mm","K","K","K"]
     v_ttype = [3,2,2,2,5,5,5]
-    v_ttype_name = ["averaged over the preceding interval","accumulated over the preceding interval","accumulated over the preceding interval",
-    "point value recorded in the preceding interval","point value recorded in the preceding interval","averaged over the preceding interval"]
+    v_ttype_name = [
+        "averaged over the preceding interval",
+        "accumulated over the preceding interval",
+        "accumulated over the preceding interval",
+        "point value recorded in the preceding interval",
+        "point value recorded in the preceding interval",
+        "averaged over the preceding interval",
+    ]
 
     d_type = [None] * 4
     d_type_long = [None] * 4
@@ -237,10 +277,10 @@ def write_nc_stf2(
             var_name_s = f"{v_type[var_type]}_sim"
             var_name_l = f"simulated {v_type_long[var_type]}"
 
-    qsim_var = ncfile.createVariable(var_name_s, "f", ("time", "ens_member", "station", "lead_time"), fill_value=-9999)
-    qsim_var.setncattr("standard_name", var_name_s)
-    qsim_var.setncattr("long_name", var_name_l)
-    qsim_var.setncattr("units", v_units[var_type])
+    qsim_var = ncfile.createVariable(var_name_s, "f", (TIME_DIMNAME, ENS_MEMBER_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME), fill_value=-9999)
+    qsim_var.setncattr(STANDARD_NAME_ATTR_KEY, var_name_s)
+    qsim_var.setncattr(LONG_NAME_ATTR_KEY, var_name_l)
+    qsim_var.setncattr(UNITS_ATTR_KEY, v_units[var_type])
 
     qsim_var.setncattr("type", v_ttype[var_type])
     qsim_var.setncattr("type_description", v_ttype_name[var_type])
@@ -251,6 +291,7 @@ def write_nc_stf2(
     else:
         qsim_var.setncattr("Location_type", "Point")
 
+    # WARNING: I do not like the look of the following; is it bug prone?
     qsim_var[:,:,:,:] = data.values[:]
 
 
@@ -259,22 +300,22 @@ def write_nc_stf2(
         qu_var_name_s = f"{var_name_s}_qual"
         if int(stf_nc_vers) == 1:
             if data_type ==2:  # noqa: PLR2004
-                qsim_qual_var = ncfile.createVariable(qu_var_name_s, "f", ("time", "station", "lead_time"), fill_value=-1)
+                qsim_qual_var = ncfile.createVariable(qu_var_name_s, "f", (TIME_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME), fill_value=-1)
                 qsim_qual_var[:,:,:] = data_qual.values[:]
             else:
-                qsim_qual_var = ncfile.createVariable(qu_var_name_s, "f", ("time", "station"), fill_value=-1)
+                qsim_qual_var = ncfile.createVariable(qu_var_name_s, "f", (TIME_DIMNAME, STATION_DIMNAME), fill_value=-1)
                 qsim_qual_var[:,:] = data_qual.values[:]
         else:
-            qsim_qual_var = ncfile.createVariable(qu_var_name_s, "f", ("time", "ens_member","station", "lead_time"), fill_value=-1)
+            qsim_qual_var = ncfile.createVariable(qu_var_name_s, "f", (TIME_DIMNAME, ENS_MEMBER_DIMNAME,STATION_DIMNAME, LEAD_TIME_DIMNAME), fill_value=-1)
             qsim_qual_var[:,:,:,:] = data_qual.values[:]
 
         qu_var_name_l = f"{var_name_l} data quality"
 
-        qsim_qual_var.setncattr("standard_name", qu_var_name_s)
-        qsim_qual_var.setncattr("long_name", qu_var_name_l)
+        qsim_qual_var.setncattr(STANDARD_NAME_ATTR_KEY, qu_var_name_s)
+        qsim_qual_var.setncattr(LONG_NAME_ATTR_KEY, qu_var_name_l)
         quality_code = data_qual.attrs.get("quality_code", "Quality codes")
 
-        qsim_qual_var.setncattr("units", quality_code)
+        qsim_qual_var.setncattr(UNITS_ATTR_KEY, quality_code)
         # Write data
 
     # close file
