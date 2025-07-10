@@ -9,6 +9,7 @@ from enum import Enum
 from typing import Any, Dict, Optional
 
 import numpy as np
+import pandas as pd
 import xarray as xr
 from netCDF4 import Dataset
 
@@ -26,6 +27,26 @@ class StfDataType(Enum):
     FORECAST = 2
     OBSERVED = 3
     SIMULATED = 4
+
+
+def _create_cf_time_axis(data:xr.DataArray, timestep_str:str)-> tuple[np.ndarray, str, str]:
+    from xarray.coding import times  # noqa: I001
+    from efts_io.conventions import TIME_DIMNAME
+    tt = data[TIME_DIMNAME].values
+    if len(tt) == 0:
+        raise ValueError("Cannot create CF time axis from empty data array.")
+    origin = tt[0]
+    # will be strict in the first instance, relax or expand later on as needed
+    if not isinstance(origin, pd.Timestamp):
+        raise TypeError(f"Expected data[TIME_DIMNAME] to be of type pd.Timestamp, got {type(origin)} instead.")
+    converted_timestamp = origin.tz_convert("UTC")
+    dtimes = [x.to_datetime64() for x in tt]
+    return times.encode_cf_datetime(
+        dates=dtimes, #: 'T_DuckArray',
+        units=f"{timestep_str} since {converted_timestamp}", #: 'str | None' = None,
+        calendar=None, #: 'str | None' = None,
+        dtype=None, #: 'np.dtype | None' = None,
+    ) #-> 'tuple[T_DuckArray, str, str]'
 
 def write_nc_stf2(
     out_nc_file: str,
@@ -215,10 +236,9 @@ def write_nc_stf2(
     time_var.setncattr(AXIS_ATTR_KEY, "t")
 
     #time_units_str = "days since {} 00:00:00".format(data.attrs["fcast_date"])
-    fcast_date = data.attrs["fcast_date"]
-    time_units_str = f"{timestep_str} since {fcast_date}"
+    axis_values, time_units_str, _ = _create_cf_time_axis(data, timestep_str)
     time_var.setncattr(UNITS_ATTR_KEY, time_units_str)
-    time_var[:] = data[TIME_DIMNAME].values
+    time_var[:] = axis_values
 
     # Borrowing from create_empty_stfnc.m
     # Name Arrays

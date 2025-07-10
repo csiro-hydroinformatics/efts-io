@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
+from efts_io._ncdf_stf2 import StfDataType, StfVariable
 from efts_io.conventions import (
     AREA_VARNAME,
     AXIS_ATTR_KEY,
@@ -137,21 +138,40 @@ class EftsDataSet:
         else:
             raise ValueError("Only version 2.0 is supported for now")
 
-    def save_to_stf2(self, path: str) -> None:
+    def save_to_stf2(
+        self,
+        path: str,
+        variable_name: Optional[str] = None,
+        var_type: StfVariable = StfVariable.STREAMFLOW,
+        data_type: StfDataType = StfDataType.OBSERVED,
+        ens: bool = False,  # noqa: FBT001, FBT002
+        timestep:str="days",
+        data_qual: Optional[xr.DataArray] = None,
+        loc_info: Optional[Dict[str, Any]] = None,
+        global_att: Optional[Dict[str, Any]] = None,
+    ) -> None:
         """Save to file."""
         from efts_io._ncdf_stf2 import write_nc_stf2
+        if isinstance(self.data, xr.Dataset):
+            if variable_name is None:
+                raise ValueError("Inner data is a DataSet, so an explicit variable name must be explicitely specified.")
+            d = self.data[variable_name]
+        elif isinstance(self.data, xr.DataArray):
+            d = self.data
+        else:
+            raise TypeError(f"Unsupported data type {type(self.data)}")
         write_nc_stf2(
             out_nc_file=path, # : str,
-            data=self.data, # : xr.DataArray,
-            var_type, # : int = 1,
-            data_type, # : int = 3,
-            stf_nc_vers, # : int = 2,
-            ens, # : bool = False,  # noqa: FBT001, FBT002
-            timestep, # :str="days",
-            data_qual, # : Optional[xr.DataArray] = None,
-            overwrite, # :bool=True, # noqa: FBT001, FBT002
-            loc_info, # : Optional[Dict[str, Any]] = None,
-            global_att, # : Optional[Dict[str, Any]] = None,
+            data=d, # : xr.DataArray,
+            var_type=var_type, # : int = 1,
+            data_type=data_type, # : int = 3,
+            stf_nc_vers = 2, # : int = 2,
+            ens=ens, # : bool = False,
+            timestep=timestep, # :str="days",
+            data_qual=data_qual, # : Optional[xr.DataArray] = None,
+            overwrite=True, # :bool=True,
+            loc_info=loc_info, # : Optional[Dict[str, Any]] = None,
+            global_att=global_att, # : Optional[Dict[str, Any]] = None,
         )
 
     def create_data_variables(self, data_var_def: Dict[str, Dict[str, Any]]) -> None:
