@@ -1,6 +1,7 @@
 """A thin wrapper around xarray for reading and writing Ensemble Forecast Time Series (EFTS) data sets."""
 
 import os
+from datetime import datetime
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 # import netCDF4
@@ -129,6 +130,101 @@ class EftsDataSet:
         else:
             self.data = data
 
+    @property
+    def title(self) -> str:
+        """Get or set the title attribute of the dataset."""
+        return self.data.attrs.get("title", "")
+
+    @title.setter
+    def title(self, value: str) -> None:
+        """Get or set the title attribute of the dataset."""
+        self.data.attrs["title"] = value
+
+    @property
+    def institution(self) -> str:
+        """Get or set the institution attribute of the dataset."""
+        return self.data.attrs.get("institution", "")
+
+    @institution.setter
+    def institution(self, value: str) -> None:
+        """Get or set the institution attribute of the dataset."""
+        self.data.attrs["institution"] = value
+
+    @property
+    def source(self) -> str:
+        """Get or set the source attribute of the dataset."""
+        return self.data.attrs.get("source", "")
+
+    @source.setter
+    def source(self, value: str) -> None:
+        """Get or set the source attribute of the dataset."""
+        self.data.attrs["source"] = value
+
+    @property
+    def catchment(self) -> str:
+        """Get or set the catchment attribute of the dataset."""
+        return self.data.attrs.get("catchment", "")
+
+    @catchment.setter
+    def catchment(self, value: str) -> None:
+        """Get or set the catchment attribute of the dataset."""
+        self.data.attrs["catchment"] = value
+
+    @property
+    def stf_convention_version(self) -> float:
+        """Get or set the STF_convention_version attribute of the dataset."""
+        return self.data.attrs.get("STF_convention_version", "")
+
+    @stf_convention_version.setter
+    def stf_convention_version(self, value: float) -> None:
+        """Get or set the STF_convention_version attribute of the dataset."""
+        self.data.attrs["STF_convention_version"] = value
+
+    @property
+    def stf_nc_spec(self) -> str:
+        """Get or set the STF_nc_spec attribute of the dataset."""
+        return self.data.attrs.get("STF_nc_spec", "")
+
+    @stf_nc_spec.setter
+    def stf_nc_spec(self, value: str) -> None:
+        """Get or set the STF_nc_spec attribute of the dataset."""
+        self.data.attrs["STF_nc_spec"] = value
+
+    @property
+    def comment(self) -> str:
+        """Get or set the comment attribute of the dataset."""
+        return self.data.attrs.get("comment", "")
+
+    @comment.setter
+    def comment(self, value: str) -> None:
+        """Get or set the comment attribute of the dataset."""
+        self.data.attrs["comment"] = value
+
+    @property
+    def history(self) -> str:
+        """Gets/sets the history attribute of the dataset."""
+        return self.data.attrs.get("history", "")
+
+    @history.setter
+    def history(self, value: str) -> None:
+        """Gets/sets the history attribute of the dataset."""
+        self.data.attrs["history"] = value
+
+    def append_history(self, message: str, timestamp: Optional[datetime] = None) -> None:
+        """Append a new entry to the `history` attribute with a timestamp.
+
+        message: The message to append.
+        timestamp: If not provided, the current UTC time is used.
+        """
+        if timestamp is None:
+            timestamp = datetime.now(datetime.timezone.utc).isoformat()
+
+        current_history = self.data.attrs.get("history", "")
+        if current_history:
+            self.data.attrs["history"] = f"{current_history}\n{timestamp} - {message}"
+        else:
+            self.data.attrs["history"] = f"{timestamp} - {message}"
+
     def to_netcdf(self, path: str, version: Optional[str] = "2.0") -> None:
         """Write the data set to a netCDF file."""
         if version is None:
@@ -137,6 +233,29 @@ class EftsDataSet:
             self.save_to_stf2(path)
         else:
             raise ValueError("Only version 2.0 is supported for now")
+
+    def set_mandatory_global_attributes(
+        self,
+        title: str = "not provided",
+        institution: str = "not provided",
+        catchment: str = "not provided",
+        source: str = "not provided",
+        comment: str = "not provided",
+        history: str = "not provided",
+        append_history: bool = False,  # noqa: FBT001, FBT002
+    ) -> None:
+        """Sets mandatory global attributes for an EFTS dataset."""
+        self.title = title
+        self.institution = institution
+        self.catchment = catchment
+        self.source = source
+        self.comment = comment
+        if append_history:
+            self.append_history(history)
+        else:
+            self.history = history
+        self.stf_convention_version = "2.0"
+        self.stf_nc_spec = STF_2_0_URL
 
     def save_to_stf2(
         self,
@@ -562,7 +681,7 @@ def xr_efts(
         LON_VARNAME: (STATION_DIMNAME, longitudes),
         AREA_VARNAME: (STATION_DIMNAME, areas),
     }
-    nc_attributes = nc_attributes or stf2_mandatory_global_attributes()
+    nc_attributes = nc_attributes or _stf2_mandatory_global_attributes()
     d = xr.Dataset(
         data_vars=data_vars,
         coords=coords,
@@ -601,7 +720,7 @@ def xr_efts(
     return d
 
 
-def stf2_mandatory_global_attributes(
+def _stf2_mandatory_global_attributes(
     title: str = "not provided",
     institution: str = "not provided",
     catchment: str = "not provided",

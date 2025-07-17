@@ -30,6 +30,16 @@ class StfDataType(Enum):
 
 
 def _create_cf_time_axis(data:xr.DataArray, timestep_str:str)-> tuple[np.ndarray, str, str]:
+    """Create a CF-compliant time axis for the given xarray DataArray.
+
+    Args:
+        data (xr.DataArray): The input data array.
+        timestep_str (str): The time step string (e.g., "days").
+
+    Returns:
+        tuple[np.ndarray, str, str]: A tuple containing the encoded time axis,
+        the units string, and the calendar string.
+    """
     from xarray.coding import times  # noqa: I001
     from efts_io.conventions import TIME_DIMNAME
     tt = data[TIME_DIMNAME].values
@@ -59,9 +69,8 @@ def write_nc_stf2(
     data_qual: Optional[xr.DataArray] = None,
     overwrite:bool=True, # noqa: FBT001, FBT002
     loc_info: Optional[Dict[str, Any]] = None,
-    global_att: Optional[Dict[str, Any]] = None,
 ) -> None:
-    from efts_io.conventions import (
+    from efts_io.conventions import (  # noqa: I001
         AXIS_ATTR_KEY,
         CATCHMENT_ATTR_KEY,
         COMMENT_ATTR_KEY,
@@ -84,7 +93,9 @@ def write_nc_stf2(
         TITLE_ATTR_KEY,
         UNITS_ATTR_KEY,
         has_required_xarray_dimensions,
+        has_required_global_attributes,
         mandatory_xarray_dimensions,
+        mandatory_global_attributes,
     )
 
     if not has_required_xarray_dimensions(data):
@@ -92,24 +103,18 @@ def write_nc_stf2(
             f"DataArray must have the following dimensions: {mandatory_xarray_dimensions}",
         )
 
+    if not has_required_global_attributes(data):
+        raise ValueError(
+            f"DataArray must have the following global attributes: {mandatory_global_attributes}",
+        )
+
+
     intdata_type = "i4"
 
     var_type = var_type.value
     data_type = data_type.value
 
     n_stations = len(data[STATION_DIMNAME])
-    if global_att is None:
-        nc_title = ""
-        catchment = ""
-        inst = ""  # was "CSIRO Environment" but problematic default
-        comment = ""
-        source = ""
-    else:
-        nc_title = global_att.get("nc_title", "")
-        catchment = global_att.get("catchment", "")
-        inst = global_att.get("inst", "")
-        comment = global_att.get("comment", "")
-        source = global_att.get("source", "")
 
     station = np.arange(1, n_stations+1)
     if loc_info is None:
@@ -151,14 +156,14 @@ def write_nc_stf2(
     ncfile = Dataset(out_nc_file, "w", format="NETCDF4")
     # Global Attributes
     #ncfile.description = "CCLIR forecasts"
-    ncfile.history = "Created " + datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-    ncfile.title = nc_title
-    ncfile.institution = inst
-    ncfile.source = source
-    ncfile.catchment = catchment
-    ncfile.STF_convention_version = stf_nc_vers
-    ncfile.STF_nc_spec = STF_2_0_URL
-    ncfile.comment = comment
+    ncfile.title = data.attr.get(TITLE_ATTR_KEY, "") #= nc_title
+    ncfile.institution = data.attr.get(INSTITUTION_ATTR_KEY, "") #= inst
+    ncfile.source = data.attr.get(SOURCE_ATTR_KEY, "") #= source
+    ncfile.catchment = data.attr.get(CATCHMENT_ATTR_KEY, "") #= catchment
+    ncfile.STF_convention_version = data.attr.get(STF_CONVENTION_VERSION_ATTR_KEY, "") #= stf_nc_vers
+    ncfile.STF_nc_spec = data.attr.get(STF_NC_SPEC_ATTR_KEY, "") #= STF_2_0_URL
+    ncfile.comment = data.attr.get(COMMENT_ATTR_KEY, "") #= comment
+    ncfile.history = data.attr.get(HISTORY_ATTR_KEY, "") #= "Created " + datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
     #  station
     # --------------------
