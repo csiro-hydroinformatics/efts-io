@@ -257,6 +257,21 @@ class EftsDataSet:
         self.stf_convention_version = "2.0"
         self.stf_nc_spec = STF_2_0_URL
 
+    def writeable_to_stf2(self) -> bool:
+        """Check if the dataset can be written to a netCDF file compliant with STF 2.0 specification.
+
+        This method checks if the underlying xarray dataset or dataarray has the required dimensions and global attributes as specified by the STF 2.0 convention.
+
+        Returns:
+            bool: True if the dataset can be written to a STF 2.0 compliant netCDF file, False otherwise.
+        """
+        from efts_io.conventions import has_required_stf2_dimensions, has_required_global_attributes, has_required_variables, mandatory_xarray_dimensions  # noqa: I001
+        required_stf2_dimensions = has_required_stf2_dimensions(self.data, mandatory_xarray_dimensions)
+        required_attributes = has_required_global_attributes(self.data)
+        required_variables = has_required_variables(self.data)
+
+        return required_stf2_dimensions and required_attributes and required_variables
+
     def save_to_stf2(
         self,
         path: str,
@@ -266,8 +281,8 @@ class EftsDataSet:
         ens: bool = False,  # noqa: FBT001, FBT002
         timestep:str="days",
         data_qual: Optional[xr.DataArray] = None,
-        loc_info: Optional[Dict[str, Any]] = None,
-        global_att: Optional[Dict[str, Any]] = None,
+        # loc_info: Optional[Dict[str, Any]] = None,
+        # global_att: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Save to file."""
         from efts_io._ncdf_stf2 import write_nc_stf2
@@ -289,8 +304,7 @@ class EftsDataSet:
             timestep=timestep, # :str="days",
             data_qual=data_qual, # : Optional[xr.DataArray] = None,
             overwrite=True, # :bool=True,
-            loc_info=loc_info, # : Optional[Dict[str, Any]] = None,
-            global_att=global_att, # : Optional[Dict[str, Any]] = None,
+            # loc_info=loc_info, # : Optional[Dict[str, Any]] = None,
         )
 
     def create_data_variables(self, data_var_def: Dict[str, Dict[str, Any]]) -> None:

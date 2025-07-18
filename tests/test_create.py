@@ -1,7 +1,7 @@
 # import netCDF4
 import numpy as np
 import pandas as pd
-
+from efts_io.wrapper import EftsDataSet
 
 def test_create_new_efts():
     import efts_io.wrapper as wrap
@@ -28,15 +28,8 @@ def test_create_new_efts():
         longitudes,
         areas,
     )
-    from efts_io.conventions import (
-        has_required_global_attributes,
-        has_required_variables,
-        has_required_xarray_dimensions,
-    )
-
-    assert has_required_xarray_dimensions(d)
-    assert has_required_global_attributes(d)
-    assert has_required_variables(d)
+    w = EftsDataSet(d)
+    assert w.writeable_to_stf2()
 
 
 if __name__ == "__main__":

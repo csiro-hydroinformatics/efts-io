@@ -1,14 +1,17 @@
 """Naming conventions for the EFTS netCDF file format."""
 
-from datetime import datetime
-from typing import Any, Iterable, List, Optional, Union
+from datetime import datetime  # noqa: I001
+from typing import Any, Dict, Iterable, List, Optional, Union
 
-# import netCDF4 as nc
 import numpy as np
 import pandas as pd
 import xarray as xr
 
+# It may be important to import this AFTER xarray...
+import netCDF4 as nc  # noqa: N813
+
 ConvertibleToTimestamp = Union[str, datetime, np.datetime64, pd.Timestamp]
+TYPES_CONVERTIBLE_TO_TIMESTAMP = [str, datetime, np.datetime64, pd.Timestamp]
 """Definition of a 'type' for type hints.
 """
 
@@ -36,7 +39,7 @@ AREA_VARNAME = "area"
 # float elevation[station]
 ELEVATION_VARNAME = "elevation"
 
-conventional_varnames = [
+conventional_varnames_mandatory = [
     STATION_DIMNAME,
     LEAD_TIME_DIMNAME,
     TIME_DIMNAME,
@@ -46,11 +49,31 @@ conventional_varnames = [
     STATION_NAME_VARNAME,
     LAT_VARNAME,
     LON_VARNAME,
+]
+
+conventional_varnames_optional = [
     X_VARNAME,
     Y_VARNAME,
     AREA_VARNAME,
     ELEVATION_VARNAME,
 ]
+
+conventional_varnames = conventional_varnames_mandatory + conventional_varnames_optional
+
+hydro_varnames = ("rain", "pet", "q", "swe", "tmin", "tmax")
+var_type = ("obs", "sim")
+obs_hydro_varnames = tuple(f"{var}_{var_type[0]}" for var in hydro_varnames)
+sim_hydro_varnames = tuple(f"{var}_{var_type[1]}" for var in hydro_varnames)
+obs_hydro_varnames_qul = tuple(f"{x}_qul" for x in obs_hydro_varnames)
+sim_hydro_varnames_qul = tuple(f"{x}_qul" for x in sim_hydro_varnames)
+known_hydro_varnames = (
+    obs_hydro_varnames
+    + sim_hydro_varnames
+    + obs_hydro_varnames_qul
+    + sim_hydro_varnames_qul
+)
+
+# TODO: perhaps deal with the state variable names. But, is it used in practice?
 
 TITLE_ATTR_KEY = "title"
 INSTITUTION_ATTR_KEY = "institution"
@@ -152,7 +175,7 @@ def _has_required_dimensions(
         return kk == set(mandatory_dimensions)
 
 
-def has_required_stf2_dimensions(d: MdDatasetsType) -> bool:
+def has_required_stf2_dimensions(d: MdDatasetsType, mandatory_dimensions: Optional[Iterable[str]] = None) -> bool:
     """Has the dataset the required dimensions for STF conventions.
 
     Args:
@@ -161,7 +184,8 @@ def has_required_stf2_dimensions(d: MdDatasetsType) -> bool:
     Returns:
         bool: Has it the minimum STF dimentions
     """
-    return _has_required_dimensions(d, mandatory_netcdf_dimensions)
+    mandatory_dimensions = mandatory_dimensions or mandatory_netcdf_dimensions 
+    return _has_required_dimensions(d, mandatory_dimensions)
 
 
 def has_required_xarray_dimensions(d: MdDatasetsType) -> bool:
@@ -194,3 +218,228 @@ def has_required_variables(d: MdDatasetsType) -> bool:
     # a = d.data_vars.keys()
     # tested = set(a)
     return _has_all_members(tested, mandatory_varnames)
+
+
+def check_stf_compliance(file_path: str) -> Dict[str, List[str]]:
+    """Checks the compliance of a netCDF file with the STF convention.
+
+    Args:
+        file_path (str): The path to the netCDF file.
+
+    Returns:
+        Dict[str, List[str]]: A dictionary with keys "INFO", "WARNING", "ERROR" and values as lists of strings describing compliance issues.
+    """
+    try:
+        dataset = nc.Dataset(file_path, mode="r")
+        results = {"INFO": [], "WARNING": [], "ERROR": []}
+
+        # Check for required dimensions
+        required_dims = [TIME_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME, ENS_MEMBER_DIMNAME, STR_LEN_DIMNAME]
+        available_dims = dataset.dimensions.keys()
+
+        for dim in required_dims:
+            if dim in available_dims:
+                results["INFO"].append(f"Dimension '{dim}' is present.")
+            else:
+                results["ERROR"].append(f"Missing required dimension '{dim}'.")
+
+        # Check global attributes
+        required_global_attributes = [
+            "title",
+            "institution",
+            "source",
+            "catchment",
+            "STF_convention_version",
+            "STF_nc_spec",
+            "comment",
+            "history",
+        ]
+        available_global_attributes = dataset.ncattrs()
+
+        for attr in required_global_attributes:
+            if attr in available_global_attributes:
+                results["INFO"].append(f"Global attribute '{attr}' is present.")
+            else:
+                results["WARNING"].append(f"Missing global attribute '{attr}'.")
+
+        # Check mandatory variables and their attributes
+        mandatory_variables = ["time", "station_id", "station_name", "ens_member", "lead_time", "lat", "lon"]
+        variable_attributes = {
+            "time": ["standard_name", "long_name", "units", "time_standard", "axis"],
+            "station_id": ["long_name"],
+            "station_name": ["long_name"],
+            "ens_member": ["standard_name", "long_name", "units", "axis"],
+            "lead_time": ["standard_name", "long_name", "units", "axis"],
+            "lat": ["long_name", "units", "axis"],
+            "lon": ["long_name", "units", "axis"],
+        }
+
+        for var in mandatory_variables:
+            if var in dataset.variables:
+                results["INFO"].append(f"Mandatory variable '{var}' is present.")
+                # Check attributes
+                for attr, required_attrs in variable_attributes.items():
+                    if var == attr:
+                        for req_attr in required_attrs:
+                            if req_attr in dataset.variables[var].ncattrs():
+                                results["INFO"].append(f"Attribute '{req_attr}' for variable '{var}' is present.")
+                            else:
+                                results["WARNING"].append(f"Missing required attribute '{req_attr}' for variable '{var}'.")
+            else:
+                results["ERROR"].append(f"Missing mandatory variable '{var}'.")
+
+        dataset.close()
+        return results  # noqa: TRY300
+
+    except Exception as e:  # noqa: BLE001
+        return {"ERROR": [f"Error opening file '{file_path}': {e!s}"]}
+
+def _is_structural_varname(name:str) -> bool:
+    return name in conventional_varnames
+
+def _is_known_hydro_varname(name: str) -> bool:
+    """Checks if the variable name is a known hydrologic variable."""
+    # TODO: perhaps deal with state variable conventional names.
+    return name in known_hydro_varnames
+
+
+def _is_observation_variable(name: str) -> bool:
+    return name in obs_hydro_varnames
+
+def _is_simulation_variable(name: str) -> bool:
+    return name in sim_hydro_varnames
+
+def _is_quality_variable(name: str) -> bool:
+    return name in obs_hydro_varnames_qul or name in sim_hydro_varnames_qul
+
+def _extract_var_type(variable: Any) -> str:
+    if _is_observation_variable(variable):
+        return "obs"
+    if _is_simulation_variable(variable):
+        return "sim"
+    if _is_quality_variable(variable):
+        return "qul"
+    return None
+
+def _check_variable_attributes_obs(variable: Any) -> List[str]:
+    """Checks if the attributes of the observed variable comply with the conventions."""
+    missing_attributes_messages = []
+    required_attributes = {
+        "long_name": str,
+        "units": str,
+        "_FillValue": float,
+        "type": int,
+        "type_description": str,
+        "dat_type": str,
+        "location_type": str,
+    }
+    return _check_attrs(variable, required_attributes, missing_attributes_messages)
+
+def _check_variable_attributes_sim(variable: Any) -> List[str]:
+    """Checks if the attributes of the simulated variable comply with the conventions."""
+    missing_attributes_messages = []
+    required_attributes = {
+        "long_name": str,
+        "units": str,
+        "_FillValue": float,
+        "type": int,
+        "type_description": str,
+        "dat_type": str,
+        "location_type": str,
+    }
+    return _check_attrs(variable, required_attributes, missing_attributes_messages)
+
+def _check_variable_attributes_qul(variable: Any) -> List[str]:
+    """Checks if the attributes of the data quality code variable comply with the conventions."""
+    missing_attributes_messages = []
+    required_attributes = {
+        "long_name": str,
+        "units": str,
+        "_FillValue": int,
+        "location_type": str,
+        "type_description": str,
+        "dat_type": str,
+    }
+    return _check_attrs(variable, required_attributes, missing_attributes_messages)
+
+def _check_attrs(variable: Any, required_attributes: Dict[str, type], missing_attributes_messages: List[str]) -> List[str]:
+    for attr, attr_type in required_attributes.items():
+        if attr not in variable.ncattrs():
+            missing_attributes_messages.append(f"Missing required attribute '{attr}' for variable '{variable.name}'.")
+        else:
+            actual_type = type(variable.getncattr(attr))
+            if actual_type != attr_type:
+                missing_attributes_messages.append(
+                    f"Attribute '{attr}' for variable '{variable.name}' has an unexpected type '{actual_type.__name__}'. Expected type: '{attr_type.__name__}'."
+                )
+    return missing_attributes_messages
+
+def _check_variable_attributes(variable: Any) -> List[str]:
+    """Checks if the attributes of a variable comply with the conventions depending on the type of variable.
+
+    Args:
+        variable (Any): The netCDF variable whose attributes are to be checked.
+
+    Returns:
+        List[str]: A list of messages describing any missing attributes.
+    """
+    var_type = _extract_var_type(variable.name)
+
+    if var_type == "obs":
+        return _check_variable_attributes_obs(variable)
+    if var_type == "sim":
+        return _check_variable_attributes_sim(variable)
+    if var_type == "qul":
+        return _check_variable_attributes_qul(variable)
+
+    return []
+
+def check_hydrologic_variables(file_path: str) -> Dict[str, List[str]]:
+    """Checks if the variable names and attributes in a netCDF file comply with the STF convention.
+
+    Args:
+        file_path (str): The path to the netCDF file.
+
+    Returns:
+        Dict[str, List[str]]: A dictionary with keys "INFO", "WARNING", "ERROR" and values as lists of strings describing compliance issues.
+    """
+    try:
+        dataset = nc.Dataset(file_path, mode="r")
+        results = {"INFO": [], "WARNING": [], "ERROR": []}
+
+        for var in dataset.variables:
+            if _is_structural_varname(var):
+                continue
+            if _is_known_hydro_varname(var):
+                results["INFO"].append(f"Hydrologic variable '{var}' follows the recommended naming convention.")
+
+                # Check attributes
+                for msg in _check_variable_attributes(dataset.variables[var]):
+                    results["WARNING"].append(msg)
+            else:
+                results["WARNING"].append(f"Hydrologic variable '{var}' does not follow the recommended naming convention.")
+
+        dataset.close()
+        return results
+
+    except Exception as e:  # noqa: BLE001
+        return {"ERROR": [f"Error opening file '{file_path}': {e!s}"]}
+
+
+def convert_to_datetime64_utc(x: ConvertibleToTimestamp) -> np.datetime64:
+    """Converts a known timestamp representation an np.datetime64."""
+    if isinstance(x, pd.Timestamp):
+        if x.tz is None:
+            x = x.tz_localize("UTC")
+        x = x.tz_convert("UTC")
+    elif isinstance(x, datetime):
+        x = pd.Timestamp(x, tz="UTC") if x.tzinfo is None else pd.Timestamp(x).tz_convert("UTC")
+    elif isinstance(x, str):
+        x_dt = pd.to_datetime(x)
+        x = pd.Timestamp(x_dt, tz="UTC") if x_dt.tzinfo is None else pd.Timestamp(x_dt).tz_convert("UTC")
+    elif isinstance(x, np.datetime64):
+        x = pd.Timestamp(x).tz_localize("UTC")
+    else:
+        raise TypeError(f"Cannot convert {type(x)} to np.datetime64 with UTC timezone.")
+
+    return x.to_datetime64()

@@ -13,6 +13,8 @@ import pandas as pd
 import xarray as xr
 from netCDF4 import Dataset
 
+from efts_io.conventions import TYPES_CONVERTIBLE_TO_TIMESTAMP, ConvertibleToTimestamp, convert_to_datetime64_utc
+
 
 class StfVariable(Enum):
     STREAMFLOW = 1
@@ -47,16 +49,29 @@ def _create_cf_time_axis(data:xr.DataArray, timestep_str:str)-> tuple[np.ndarray
         raise ValueError("Cannot create CF time axis from empty data array.")
     origin = tt[0]
     # will be strict in the first instance, relax or expand later on as needed
-    if not isinstance(origin, pd.Timestamp):
-        raise TypeError(f"Expected data[TIME_DIMNAME] to be of type pd.Timestamp, got {type(origin)} instead.")
-    converted_timestamp = origin.tz_convert("UTC")
-    dtimes = [x.to_datetime64() for x in tt]
-    return times.encode_cf_datetime(
+    if not any(isinstance(origin, t) for t in TYPES_CONVERTIBLE_TO_TIMESTAMP):
+        raise TypeError(f"Expected data[TIME_DIMNAME] to be of a type convertible to pd.Timestamp, got {type(origin)} instead.")
+    origin = convert_to_datetime64_utc(origin)
+    dtimes = [convert_to_datetime64_utc(x) for x in tt]
+    # NOTE: this is not quite what is suggested by the STF convention in the example string. 
+    # The below is closer to the the 8601 specifications, however we use space not 'T' for date/time separator
+    # https://docs.digi.com/resources/documentation/digidocs/90001488-13/reference/r_iso_8601_date_format.htm
+    iso_8601_origin = pd.Timestamp(origin).tz_localize("UTC")
+    formatted_string = iso_8601_origin.strftime("%Y-%m-%d %H:%M:%S")
+    timezone_offset = iso_8601_origin.strftime("%z")
+    formatted_timezone_offset = f"{timezone_offset[:3]}:{timezone_offset[3:]}"
+    formatted_string_with_tz = f"{formatted_string}{formatted_timezone_offset}"
+
+    axis, units, calendar = times.encode_cf_datetime(
         dates=dtimes, #: 'T_DuckArray',
-        units=f"{timestep_str} since {converted_timestamp}", #: 'str | None' = None,
+        units=f"{timestep_str} since {formatted_string_with_tz}", #: 'str | None' = None,
         calendar=None, #: 'str | None' = None,
         dtype=None, #: 'np.dtype | None' = None,
     ) #-> 'tuple[T_DuckArray, str, str]'
+    # override times.encode_cf_datetime, which is varying
+    # depending on the imput unit string and may not have the time zone, or a T separator.
+    units = f"{timestep_str} since {formatted_string_with_tz}"
+    return axis, units, calendar
 
 def write_nc_stf2(
     out_nc_file: str,
@@ -68,7 +83,7 @@ def write_nc_stf2(
     timestep:str="days",
     data_qual: Optional[xr.DataArray] = None,
     overwrite:bool=True, # noqa: FBT001, FBT002
-    loc_info: Optional[Dict[str, Any]] = None,
+    # loc_info: Optional[Dict[str, Any]] = None,
 ) -> None:
     from efts_io.conventions import (  # noqa: I001
         AXIS_ATTR_KEY,
