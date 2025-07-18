@@ -133,82 +133,82 @@ class EftsDataSet:
     @property
     def title(self) -> str:
         """Get or set the title attribute of the dataset."""
-        return self.data.attrs.get("title", "")
+        return self.data.attrs.get(TITLE_ATTR_KEY, "")
 
     @title.setter
     def title(self, value: str) -> None:
         """Get or set the title attribute of the dataset."""
-        self.data.attrs["title"] = value
+        self.data.attrs[TITLE_ATTR_KEY] = value
 
     @property
     def institution(self) -> str:
         """Get or set the institution attribute of the dataset."""
-        return self.data.attrs.get("institution", "")
+        return self.data.attrs.get(INSTITUTION_ATTR_KEY, "")
 
     @institution.setter
     def institution(self, value: str) -> None:
         """Get or set the institution attribute of the dataset."""
-        self.data.attrs["institution"] = value
+        self.data.attrs[INSTITUTION_ATTR_KEY] = value
 
     @property
     def source(self) -> str:
         """Get or set the source attribute of the dataset."""
-        return self.data.attrs.get("source", "")
+        return self.data.attrs.get(SOURCE_ATTR_KEY, "")
 
     @source.setter
     def source(self, value: str) -> None:
         """Get or set the source attribute of the dataset."""
-        self.data.attrs["source"] = value
+        self.data.attrs[SOURCE_ATTR_KEY] = value
 
     @property
     def catchment(self) -> str:
         """Get or set the catchment attribute of the dataset."""
-        return self.data.attrs.get("catchment", "")
+        return self.data.attrs.get(CATCHMENT_ATTR_KEY, "")
 
     @catchment.setter
     def catchment(self, value: str) -> None:
         """Get or set the catchment attribute of the dataset."""
-        self.data.attrs["catchment"] = value
+        self.data.attrs[CATCHMENT_ATTR_KEY] = value
 
     @property
     def stf_convention_version(self) -> float:
         """Get or set the STF_convention_version attribute of the dataset."""
-        return self.data.attrs.get("STF_convention_version", "")
+        return self.data.attrs.get(STF_CONVENTION_VERSION_ATTR_KEY, "")
 
     @stf_convention_version.setter
     def stf_convention_version(self, value: float) -> None:
         """Get or set the STF_convention_version attribute of the dataset."""
-        self.data.attrs["STF_convention_version"] = value
+        self.data.attrs[STF_CONVENTION_VERSION_ATTR_KEY] = value
 
     @property
     def stf_nc_spec(self) -> str:
         """Get or set the STF_nc_spec attribute of the dataset."""
-        return self.data.attrs.get("STF_nc_spec", "")
+        return self.data.attrs.get(STF_NC_SPEC_ATTR_KEY, "")
 
     @stf_nc_spec.setter
     def stf_nc_spec(self, value: str) -> None:
         """Get or set the STF_nc_spec attribute of the dataset."""
-        self.data.attrs["STF_nc_spec"] = value
+        self.data.attrs[STF_NC_SPEC_ATTR_KEY] = value
 
     @property
     def comment(self) -> str:
         """Get or set the comment attribute of the dataset."""
-        return self.data.attrs.get("comment", "")
+        return self.data.attrs.get(COMMENT_ATTR_KEY, "")
 
     @comment.setter
     def comment(self, value: str) -> None:
         """Get or set the comment attribute of the dataset."""
-        self.data.attrs["comment"] = value
+        self.data.attrs[COMMENT_ATTR_KEY] = value
 
     @property
     def history(self) -> str:
         """Gets/sets the history attribute of the dataset."""
-        return self.data.attrs.get("history", "")
+        return self.data.attrs.get(HISTORY_ATTR_KEY, "")
 
     @history.setter
     def history(self, value: str) -> None:
         """Gets/sets the history attribute of the dataset."""
-        self.data.attrs["history"] = value
+        self.data.attrs[HISTORY_ATTR_KEY] = value
 
     def append_history(self, message: str, timestamp: Optional[datetime] = None) -> None:
         """Append a new entry to the `history` attribute with a timestamp.
@@ -219,11 +219,11 @@ class EftsDataSet:
         if timestamp is None:
             timestamp = datetime.now(datetime.timezone.utc).isoformat()
 
-        current_history = self.data.attrs.get("history", "")
+        current_history = self.data.attrs.get(HISTORY_ATTR_KEY, "")
         if current_history:
-            self.data.attrs["history"] = f"{current_history}\n{timestamp} - {message}"
+            self.data.attrs[HISTORY_ATTR_KEY] = f"{current_history}\n{timestamp} - {message}"
         else:
-            self.data.attrs["history"] = f"{timestamp} - {message}"
+            self.data.attrs[HISTORY_ATTR_KEY] = f"{timestamp} - {message}"
 
     def to_netcdf(self, path: str, version: Optional[str] = "2.0") -> None:
         """Write the data set to a netCDF file."""
@@ -1039,7 +1039,7 @@ def create_efts(
 
 #   ## Add global attributes
 #   ncdf4::ncatt_put(nc, 0, STF_CONVENTION_VERSION_ATTR_KEY, 2)
-#   ncdf4::ncatt_put(nc, 0, "STF_nc_spec", "https://github.com/jmp75/efts/blob/107c553045a37e6ef36b2eababf6a299e7883d50/docs/netcdf_for_water_forecasting.md")
+#   ncdf4::ncatt_put(nc, 0, STF_NC_SPEC_ATTR_KEY, "https://github.com/jmp75/efts/blob/107c553045a37e6ef36b2eababf6a299e7883d50/docs/netcdf_for_water_forecasting.md")
 #   ncdf4::ncatt_put(nc, 0, HISTORY_ATTR_KEY,
 #     paste(
 #       as.character(lubridate::now(tzone="UTC")),

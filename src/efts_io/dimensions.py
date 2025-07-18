@@ -10,6 +10,7 @@ from cftime import DatetimeGregorian
 
 from efts_io.conventions import (
     ENS_MEMBER_DIMNAME,
+    FILLVALUE_ATTR_KEY,
     LEAD_TIME_DIMNAME,
     STATION_DIMNAME,
     STR_LEN_DIMNAME,
@@ -318,7 +319,7 @@ def create_timestamps(
     var = xr.Variable(
         dims=[TIME_DIMNAME],
         data=axis_values,
-        encoding={"_FillValue": None},
+        encoding={FILLVALUE_ATTR_KEY: None},
         attrs={
             UNITS_ATTR_KEY: axis_units,
         },

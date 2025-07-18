@@ -43,7 +43,7 @@
 #   elevation_varname
 # )
 
-# mandatory_global_attributes = c("title", "institution", "source", "catchment", "comment")
+# mandatory_global_attributes = c("title", INSTITUTION_ATTR_KEY, SOURCE_ATTR_KEY, CATCHMENT_ATTR_KEY, COMMENT_ATTR_KEY)
 
 
 # get_default_dim_order() {
@@ -149,7 +149,7 @@ def create_data_variable(data_var_def: Dict[str, Any], dimensions: Tuple[str, Tu
     return xr.Variable(
         dims=dimnames,
         data=np.empty(shape, dtype=float),  # TODO: should this use precision?
-        encoding={"_FillValue": missval},
+        encoding={FILLVALUE_ATTR_KEY: missval},
         attrs={
             "longname": longname,
             UNITS_ATTR_KEY: a[UNITS_ATTR_KEY],

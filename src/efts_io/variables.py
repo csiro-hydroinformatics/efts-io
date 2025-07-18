@@ -217,7 +217,7 @@ def create_mandatory_vardefs(
     station_id_variable = xr.Variable(
         dims=[STATION_DIMNAME],
         data=station_dim[1],
-        encoding={"_FillValue": None},
+        encoding={FILLVALUE_ATTR_KEY: None},
         attrs={
             "longname": station_dim[2]["longname"],
             UNITS_ATTR_KEY: "",
@@ -233,7 +233,7 @@ def create_mandatory_vardefs(
             shape=(len(str_dim[1]), len(station_dim[1])),
             dtype=np.bytes_,
         ),
-        encoding={"_FillValue": None},
+        encoding={FILLVALUE_ATTR_KEY: None},
         attrs={
             "longname": "station or node name",
             UNITS_ATTR_KEY: "",
@@ -244,7 +244,7 @@ def create_mandatory_vardefs(
     ensemble_member_id_variable = xr.Variable(
         dims=[ENS_MEMBER_DIMNAME],
         data=ensemble_dim[1],
-        encoding={"_FillValue": None},
+        encoding={FILLVALUE_ATTR_KEY: None},
         attrs={
             "longname": ensemble_dim[2]["longname"],
             UNITS_ATTR_KEY: "",
@@ -255,7 +255,7 @@ def create_mandatory_vardefs(
     lead_time_dim_variable = xr.Variable(
         dims=[LEAD_TIME_DIMNAME],
         data=lead_time_dim[1],
-        encoding={"_FillValue": None},
+        encoding={FILLVALUE_ATTR_KEY: None},
         attrs={
             "longname": lead_time_dim[2]["longname"],
             UNITS_ATTR_KEY: lead_time_tstep + " since time",
@@ -266,7 +266,7 @@ def create_mandatory_vardefs(
     latitude_dim_variable = xr.Variable(
         dims=[STATION_DIMNAME],
         data=np.empty_like(station_dim[1], dtype=float),
-        encoding={"_FillValue": -9999.0},
+        encoding={FILLVALUE_ATTR_KEY: -9999.0},
         attrs={
             "longname": "latitude",
             UNITS_ATTR_KEY: "degrees north",
@@ -277,7 +277,7 @@ def create_mandatory_vardefs(
     longitude_dim_variable = xr.Variable(
         dims=[STATION_DIMNAME],
         data=np.empty_like(station_dim[1], dtype=float),
-        encoding={"_FillValue": -9999.0},
+        encoding={FILLVALUE_ATTR_KEY: -9999.0},
         attrs={
             "longname": "longitude",
             UNITS_ATTR_KEY: "degrees east",

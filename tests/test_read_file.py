@@ -163,13 +163,13 @@ def doTests(
         {
             "name": variable_names,
             "longname": ["long name for " + name for name in variable_names],
-            "units": np.repeat("mm", n),
+            UNITS_ATTR_KEY: np.repeat("mm", n),
             "missval": np.repeat(-999, n),
             "precision": np.repeat("double", n),
-            "type": np.repeat(2, n),
+            TYPE_ATTR_KEY: np.repeat(2, n),
             "dimensions": np.repeat("4", n),
-            "type_description": np.repeat("accumulated over the previous time step", n),
-            "location_type": np.repeat("Point", n),
+            TYPE_DESCRIPTION_ATTR_KEY: np.repeat("accumulated over the previous time step", n),
+            LOCATION_TYPE_ATTR_KEY: np.repeat("Point", n),
         },
     )
     from efts_io.attributes import create_global_attributes

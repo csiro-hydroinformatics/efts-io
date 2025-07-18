@@ -90,6 +90,14 @@ LONG_NAME_ATTR_KEY = "long_name"
 AXIS_ATTR_KEY = "axis"
 UNITS_ATTR_KEY = "units"
 
+FILLVALUE_ATTR_KEY = "_FillValue"
+TYPE_ATTR_KEY = "type"
+TYPE_DESCRIPTION_ATTR_KEY = "type_description"
+DAT_TYPE_DESCRIPTION_ATTR_KEY = "dat_type_description"
+DAT_TYPE_ATTR_KEY = "dat_type"
+LOCATION_TYPE_ATTR_KEY = "location_type"
+
+
 STF_2_0_URL = "https://github.com/csiro-hydroinformatics/efts/blob/d7d43a995fb5e459bcb894e09b7bb89de03e285c/docs/netcdf_for_water_forecasting.md"
 
 
@@ -245,14 +253,14 @@ def check_stf_compliance(file_path: str) -> Dict[str, List[str]]:
 
         # Check global attributes
         required_global_attributes = [
-            "title",
-            "institution",
-            "source",
-            "catchment",
-            "STF_convention_version",
-            "STF_nc_spec",
-            "comment",
-            "history",
+            TITLE_ATTR_KEY,
+            INSTITUTION_ATTR_KEY,
+            SOURCE_ATTR_KEY,
+            CATCHMENT_ATTR_KEY,
+            STF_CONVENTION_VERSION_ATTR_KEY,
+            STF_NC_SPEC_ATTR_KEY,
+            COMMENT_ATTR_KEY,
+            HISTORY_ATTR_KEY,
         ]
         available_global_attributes = dataset.ncattrs()
 
@@ -263,15 +271,15 @@ def check_stf_compliance(file_path: str) -> Dict[str, List[str]]:
                 results["WARNING"].append(f"Missing global attribute '{attr}'.")
 
         # Check mandatory variables and their attributes
-        mandatory_variables = ["time", "station_id", "station_name", "ens_member", "lead_time", "lat", "lon"]
+        mandatory_variables = [TIME_DIMNAME, STATION_ID_VARNAME, STATION_NAME_VARNAME, ENS_MEMBER_DIMNAME, LEAD_TIME_DIMNAME, LAT_VARNAME, LON_VARNAME]
         variable_attributes = {
-            "time": ["standard_name", "long_name", "units", "time_standard", "axis"],
-            "station_id": ["long_name"],
-            "station_name": ["long_name"],
-            "ens_member": ["standard_name", "long_name", "units", "axis"],
-            "lead_time": ["standard_name", "long_name", "units", "axis"],
-            "lat": ["long_name", "units", "axis"],
-            "lon": ["long_name", "units", "axis"],
+            TIME_DIMNAME: [STANDARD_NAME_ATTR_KEY, LONG_NAME_ATTR_KEY, UNITS_ATTR_KEY, TIME_STANDARD_ATTR_KEY, AXIS_ATTR_KEY],
+            STATION_ID_VARNAME: [LONG_NAME_ATTR_KEY],
+            STATION_NAME_VARNAME: [LONG_NAME_ATTR_KEY],
+            ENS_MEMBER_DIMNAME: [STANDARD_NAME_ATTR_KEY, LONG_NAME_ATTR_KEY, UNITS_ATTR_KEY, AXIS_ATTR_KEY],
+            LEAD_TIME_DIMNAME: [STANDARD_NAME_ATTR_KEY, LONG_NAME_ATTR_KEY, UNITS_ATTR_KEY, AXIS_ATTR_KEY],
+            LAT_VARNAME: [LONG_NAME_ATTR_KEY, UNITS_ATTR_KEY, AXIS_ATTR_KEY],
+            LON_VARNAME: [LONG_NAME_ATTR_KEY, UNITS_ATTR_KEY, AXIS_ATTR_KEY],
         }
 
         for var in mandatory_variables:
@@ -325,13 +333,13 @@ def _check_variable_attributes_obs(variable: Any) -> List[str]:
     """Checks if the attributes of the observed variable comply with the conventions."""
     missing_attributes_messages = []
     required_attributes = {
-        "long_name": str,
-        "units": str,
-        "_FillValue": float,
-        "type": int,
-        "type_description": str,
-        "dat_type": str,
-        "location_type": str,
+        LONG_NAME_ATTR_KEY: str,
+        UNITS_ATTR_KEY: str,
+        FILLVALUE_ATTR_KEY: float,
+        TYPE_ATTR_KEY: int,
+        TYPE_DESCRIPTION_ATTR_KEY: str,
+        DAT_TYPE_ATTR_KEY: str,
+        LOCATION_TYPE_ATTR_KEY: str,
     }
     return _check_attrs(variable, required_attributes, missing_attributes_messages)
 
@@ -339,13 +347,13 @@ def _check_variable_attributes_sim(variable: Any) -> List[str]:
     """Checks if the attributes of the simulated variable comply with the conventions."""
     missing_attributes_messages = []
     required_attributes = {
-        "long_name": str,
-        "units": str,
-        "_FillValue": float,
-        "type": int,
-        "type_description": str,
-        "dat_type": str,
-        "location_type": str,
+        LONG_NAME_ATTR_KEY: str,
+        UNITS_ATTR_KEY: str,
+        FILLVALUE_ATTR_KEY: float,
+        TYPE_ATTR_KEY: int,
+        TYPE_DESCRIPTION_ATTR_KEY: str,
+        DAT_TYPE_ATTR_KEY: str,
+        LOCATION_TYPE_ATTR_KEY: str,
     }
     return _check_attrs(variable, required_attributes, missing_attributes_messages)
 
@@ -353,12 +361,12 @@ def _check_variable_attributes_qul(variable: Any) -> List[str]:
     """Checks if the attributes of the data quality code variable comply with the conventions."""
     missing_attributes_messages = []
     required_attributes = {
-        "long_name": str,
-        "units": str,
-        "_FillValue": int,
-        "location_type": str,
-        "type_description": str,
-        "dat_type": str,
+        LONG_NAME_ATTR_KEY: str,
+        UNITS_ATTR_KEY: str,
+        FILLVALUE_ATTR_KEY: int,
+        LOCATION_TYPE_ATTR_KEY: str,
+        TYPE_DESCRIPTION_ATTR_KEY: str,
+        DAT_TYPE_ATTR_KEY: str,
     }
     return _check_attrs(variable, required_attributes, missing_attributes_messages)
 

@@ -22,9 +22,14 @@
 from efts_io.conventions import (
     CATCHMENT_ATTR_KEY,
     COMMENT_ATTR_KEY,
+    DAT_TYPE_ATTR_KEY,
+    DAT_TYPE_DESCRIPTION_ATTR_KEY,
     INSTITUTION_ATTR_KEY,
+    LOCATION_TYPE_ATTR_KEY,
     SOURCE_ATTR_KEY,
     TITLE_ATTR_KEY,
+    TYPE_ATTR_KEY,
+    TYPE_DESCRIPTION_ATTR_KEY,
 )
 
 
@@ -37,11 +42,11 @@ def create_var_attribute_definition(
 ) -> dict[str, str]:
     """Create variable attribute definition."""
     return {
-        "type": str(data_type_code),
-        "type_description": type_description,
-        "dat_type": dat_type,
-        "dat_type_description": dat_type_description,
-        "location_type": location_type,
+        TYPE_ATTR_KEY: str(data_type_code),
+        TYPE_DESCRIPTION_ATTR_KEY: type_description,
+        DAT_TYPE_ATTR_KEY: dat_type,
+        DAT_TYPE_DESCRIPTION_ATTR_KEY: dat_type_description,
+        LOCATION_TYPE_ATTR_KEY: location_type,
     }
 
 
