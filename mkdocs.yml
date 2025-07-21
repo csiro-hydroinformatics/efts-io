@@ -19,6 +19,7 @@ nav:
   - Changelog: changelog.md
   - Credits: credits.md
   - License: license.md
+  - STF 2.0 specifications: netcdf_for_water_forecasting.md
 - Examples:
   - Basic use: nb/basic_usage.ipynb
   - Design rationale: nb/design_rationale.ipynb
