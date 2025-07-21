@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- insertion marker -->
+## [0.3.0](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.3.0) - 2025-07-21
+
+<small>Bump version to supersede deprecated package version</small>
+
+### Features
+
+- No new feature, version change to supersede a [deprecated package version 0.2](https://pypi.org/project/efts-io/0.2/)
+
 ## [0.1.0](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.1.0) - 2025-07-21
 
 <small>[Compare with first commit](https://github.com/csiro-hydroinformatics/efts-io/compare/4481803cae41eb7f0315c97a864f1d0c7751d4d8...0.1.0)</small>
