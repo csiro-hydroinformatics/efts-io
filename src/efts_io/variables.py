@@ -12,6 +12,7 @@ from efts_io.attributes import create_var_attribute_definition
 from efts_io.conventions import (
     AREA_VARNAME,
     ENS_MEMBER_DIMNAME,
+    FILLVALUE_ATTR_KEY,
     LEAD_TIME_DIMNAME,
     STANDARD_NAME_ATTR_KEY,
     STATION_DIMNAME,

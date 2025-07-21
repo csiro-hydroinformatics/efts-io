@@ -4,9 +4,8 @@ These are functions ported from a collection of utilities initially in https://b
 """
 
 import os  # noqa: I001
-from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -21,7 +20,8 @@ from efts_io.conventions import (
     TYPE_ATTR_KEY,
     TYPE_DESCRIPTION_ATTR_KEY,
     TYPES_CONVERTIBLE_TO_TIMESTAMP,
-    ConvertibleToTimestamp,
+    AttributesErrorLevel,
+    check_optional_variable_attributes,
     convert_to_datetime64_utc,
 )
 
@@ -64,7 +64,7 @@ def _create_cf_time_axis(data: xr.DataArray, timestep_str: str) -> tuple[np.ndar
     # will be strict in the first instance, relax or expand later on as needed
     if not any(isinstance(origin, t) for t in TYPES_CONVERTIBLE_TO_TIMESTAMP):
         raise TypeError(
-            f"Expected data[TIME_DIMNAME] to be of a type convertible to pd.Timestamp, got {type(origin)} instead."
+            f"Expected data[TIME_DIMNAME] to be of a type convertible to pd.Timestamp, got {type(origin)} instead.",
         )
     origin = convert_to_datetime64_utc(origin)
     dtimes = [convert_to_datetime64_utc(x) for x in tt]
@@ -102,6 +102,10 @@ def write_nc_stf2(
     # loc_info: Optional[Dict[str, Any]] = None,
 ) -> None:
     from efts_io.conventions import (  # noqa: I001
+        X_VARNAME,
+        Y_VARNAME,
+        AREA_VARNAME,
+        ELEVATION_VARNAME,
         AXIS_ATTR_KEY,
         CATCHMENT_ATTR_KEY,
         COMMENT_ATTR_KEY,
@@ -115,7 +119,6 @@ def write_nc_stf2(
         STATION_DIMNAME,
         STATION_ID_VARNAME,
         STATION_NAME_VARNAME,
-        STF_2_0_URL,
         STF_CONVENTION_VERSION_ATTR_KEY,
         STF_NC_SPEC_ATTR_KEY,
         STR_LEN_DIMNAME,
@@ -127,6 +130,9 @@ def write_nc_stf2(
         has_required_global_attributes,
         mandatory_xarray_dimensions,
         mandatory_global_attributes,
+        has_required_variables,
+        mandatory_varnames,
+        has_variable,
     )
 
     if not has_required_xarray_dimensions(data):
@@ -139,6 +145,20 @@ def write_nc_stf2(
             f"DataArray must have the following global attributes: {mandatory_global_attributes}",
         )
 
+    if not has_required_variables(data):
+        raise ValueError(
+            f"DataArray must have the following variables: {mandatory_varnames}",
+        )
+
+    # Check that optional variables, if present, have the minimum attributes present.
+    def _check_optional_var_attr(data:xr.DataArray, var_id:str) -> None:
+        if has_variable(data, var_id):
+            xrvar = data[var_id]
+            check_optional_variable_attributes(xrvar, AttributesErrorLevel.ERROR)
+
+    for var_id in (AREA_VARNAME, X_VARNAME, Y_VARNAME, ELEVATION_VARNAME):
+        _check_optional_var_attr(data, var_id)
+
     intdata_type = "i4"
 
     var_type = var_type.value
@@ -147,28 +167,17 @@ def write_nc_stf2(
     n_stations = len(data[STATION_DIMNAME])
 
     station = np.arange(1, n_stations + 1)
-    if loc_info is None:
-        station_id = np.arange(1, n_stations + 1)
-        station_name = [str(num) for num in station_id]
-        sub_x_centroid = np.nan
-        sub_y_centroid = np.nan
-        sub_area = np.nan
-        other_station_id = ""
-    else:
-        station_id = loc_info[STATION_ID_VARNAME]
-        station_name = loc_info[STATION_NAME_VARNAME]
-        sub_x_centroid = loc_info["subXCentroid"]
-        sub_y_centroid = loc_info["subYCentroid"]
-        sub_area = loc_info["subArea"]
-        other_station_id = loc_info["other_station_id"]
 
     # Retrieve arrays from expected variables in the input xarray dataarray `data`
     station_id = data[STATION_ID_VARNAME].values
-    station_name = data["station_name"].values
-    sub_x_centroid = data["subXCentroid"].values
-    sub_y_centroid = data["subYCentroid"].values
-    sub_area = data["subArea"].values
-    other_station_id = data["other_station_id"].values
+    station_name = data[STATION_NAME_VARNAME].values
+    sub_x_centroid = data[LON_VARNAME].values
+    sub_y_centroid = data[LAT_VARNAME].values
+
+    # NOTE: the original code had an "other_station_id" option, apparently storing some
+    # identifiers from the Bureau of meteorology. For the time being, disable,
+    # but initiate a discussion. See issue #9.
+    # other_station_id = data["other_station_id"].values
 
     if timestep in ["weeks", "w", "wk", "week"]:
         timestep_str = "weeks"
@@ -187,7 +196,7 @@ def write_nc_stf2(
     if os.path.exists(out_nc_file):
         if not overwrite:
             raise FileExistsError(
-                f"Warning: The file '{out_nc_file}' exists, so either set overwrite=True to overwrite or give new filename."
+                f"Warning: The file '{out_nc_file}' exists, so either set overwrite=True to overwrite or give new filename.",
             )
         os.remove(out_nc_file)
         # print(f"Warning: The file '{out_nc_file}' has been overwritten.")
@@ -203,9 +212,8 @@ def write_nc_stf2(
     ncfile.STF_convention_version = data.attr.get(STF_CONVENTION_VERSION_ATTR_KEY, "")  # = stf_nc_vers
     ncfile.STF_nc_spec = data.attr.get(STF_NC_SPEC_ATTR_KEY, "")  # = STF_2_0_URL
     ncfile.comment = data.attr.get(COMMENT_ATTR_KEY, "")  # = comment
-    ncfile.history = data.attr.get(
-        HISTORY_ATTR_KEY, ""
-    )  # = "Created " + datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    ncfile.history = data.attr.get(HISTORY_ATTR_KEY, "")
+    # = "Created " + datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
     #  station
     # --------------------
@@ -229,13 +237,13 @@ def write_nc_stf2(
         station_name_var[s_i, :] = char_stn_name
 
     # additional station id e.g. BoM
-    other_station_id_var = ncfile.createVariable("other_station_id", "c", (STATION_DIMNAME, STR_LEN_DIMNAME))
-    other_station_id_var.setncattr(LONG_NAME_ATTR_KEY, "other station id e.g. BoM")
-    for s_i, stn_name in enumerate(other_station_id):
-        char_stn_name = [" "] * 30  # 30 char length
-        stn_name_30 = stn_name[:30]
-        char_stn_name[: len(stn_name_30)] = stn_name_30
-        other_station_id_var[s_i, :] = char_stn_name
+    # other_station_id_var = ncfile.createVariable("other_station_id", "c", (STATION_DIMNAME, STR_LEN_DIMNAME))
+    # other_station_id_var.setncattr(LONG_NAME_ATTR_KEY, "other station id e.g. BoM")
+    # for s_i, stn_name in enumerate(other_station_id):
+    #     char_stn_name = [" "] * 30  # 30 char length
+    #     stn_name_30 = stn_name[:30]
+    #     char_stn_name[: len(stn_name_30)] = stn_name_30
+    #     other_station_id_var[s_i, :] = char_stn_name
     # coordinates, area
     # --------------------
     lat_var = ncfile.createVariable(LAT_VARNAME, "f", (STATION_DIMNAME,), fill_value=-9999)
@@ -250,8 +258,17 @@ def write_nc_stf2(
     lon_var.setncattr(AXIS_ATTR_KEY, "x")
     lon_var[:] = sub_x_centroid
 
-    area_var = ncfile.createVariable("area", "f", (STATION_DIMNAME,), fill_value=-9999)
-    area_var[:] = sub_area
+    def add_optional_variables(data:xr.DataArray, ncfile:Dataset, var_id:str) -> None:
+        if has_variable(data, var_id):
+            ncvar_type = "f"
+            xrvar = data[var_id]
+            opt_nc_var = ncfile.createVariable(var_id, ncvar_type, (STATION_DIMNAME,), fill_value=-9999)
+            opt_nc_var[:] = xrvar.values
+            for x in (STANDARD_NAME_ATTR_KEY, LONG_NAME_ATTR_KEY, UNITS_ATTR_KEY):
+                opt_nc_var.setncattr(x, xrvar.attrs[x])
+
+    for var_id in (AREA_VARNAME, X_VARNAME, Y_VARNAME, ELEVATION_VARNAME):
+        add_optional_variables(data, ncfile, var_id)
 
     # lead time
     # ------------
@@ -353,7 +370,10 @@ def write_nc_stf2(
             var_name_l = f"simulated {v_type_long[var_type]}"
 
     qsim_var = ncfile.createVariable(
-        var_name_s, "f", (TIME_DIMNAME, ENS_MEMBER_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME), fill_value=-9999
+        var_name_s,
+        "f",
+        (TIME_DIMNAME, ENS_MEMBER_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME),
+        fill_value=-9999,
     )
     qsim_var.setncattr(STANDARD_NAME_ATTR_KEY, var_name_s)
     qsim_var.setncattr(LONG_NAME_ATTR_KEY, var_name_l)
@@ -377,12 +397,12 @@ def write_nc_stf2(
         if int(stf_nc_vers) == 1:
             if data_type == 2:  # noqa: PLR2004
                 qsim_qual_var = ncfile.createVariable(
-                    qu_var_name_s, "f", (TIME_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME), fill_value=-1
+                    qu_var_name_s, "f", (TIME_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME), fill_value=-1,
                 )
                 qsim_qual_var[:, :, :] = data_qual.values[:]
             else:
                 qsim_qual_var = ncfile.createVariable(
-                    qu_var_name_s, "f", (TIME_DIMNAME, STATION_DIMNAME), fill_value=-1
+                    qu_var_name_s, "f", (TIME_DIMNAME, STATION_DIMNAME), fill_value=-1,
                 )
                 qsim_qual_var[:, :] = data_qual.values[:]
         else:
@@ -405,3 +425,4 @@ def write_nc_stf2(
 
     # close file
     ncfile.close()
+

@@ -6,6 +6,7 @@ from typing import Any, Dict, Iterable, List, Optional, Union
 import numpy as np
 import pandas as pd
 import xarray as xr
+from enum import Enum
 
 # It may be important to import this AFTER xarray...
 import netCDF4 as nc  # noqa: N813
@@ -66,12 +67,7 @@ obs_hydro_varnames = tuple(f"{var}_{var_type[0]}" for var in hydro_varnames)
 sim_hydro_varnames = tuple(f"{var}_{var_type[1]}" for var in hydro_varnames)
 obs_hydro_varnames_qul = tuple(f"{x}_qul" for x in obs_hydro_varnames)
 sim_hydro_varnames_qul = tuple(f"{x}_qul" for x in sim_hydro_varnames)
-known_hydro_varnames = (
-    obs_hydro_varnames
-    + sim_hydro_varnames
-    + obs_hydro_varnames_qul
-    + sim_hydro_varnames_qul
-)
+known_hydro_varnames = obs_hydro_varnames + sim_hydro_varnames + obs_hydro_varnames_qul + sim_hydro_varnames_qul
 
 # TODO: perhaps deal with the state variable names. But, is it used in practice?
 
@@ -125,6 +121,14 @@ mandatory_varnames = [
     LAT_VARNAME,
     LON_VARNAME,
 ]
+
+
+class AttributesErrorLevel(Enum):
+    """Controls the behavior of variable attribute checking functions."""
+
+    NONE = 1
+    ERROR = 2
+    # WARNING = 3
 
 
 def get_default_dim_order() -> List[str]:
@@ -192,7 +196,7 @@ def has_required_stf2_dimensions(d: MdDatasetsType, mandatory_dimensions: Option
     Returns:
         bool: Has it the minimum STF dimentions
     """
-    mandatory_dimensions = mandatory_dimensions or mandatory_netcdf_dimensions 
+    mandatory_dimensions = mandatory_dimensions or mandatory_netcdf_dimensions
     return _has_required_dimensions(d, mandatory_dimensions)
 
 
@@ -226,6 +230,13 @@ def has_required_variables(d: MdDatasetsType) -> bool:
     # a = d.data_vars.keys()
     # tested = set(a)
     return _has_all_members(tested, mandatory_varnames)
+
+
+def has_variable(d: MdDatasetsType, varname: str) -> bool:
+    """has_variable."""
+    a = d.variables.keys()
+    tested = set(a)
+    return varname in tested
 
 
 def check_stf_compliance(file_path: str) -> Dict[str, List[str]]:
@@ -271,9 +282,23 @@ def check_stf_compliance(file_path: str) -> Dict[str, List[str]]:
                 results["WARNING"].append(f"Missing global attribute '{attr}'.")
 
         # Check mandatory variables and their attributes
-        mandatory_variables = [TIME_DIMNAME, STATION_ID_VARNAME, STATION_NAME_VARNAME, ENS_MEMBER_DIMNAME, LEAD_TIME_DIMNAME, LAT_VARNAME, LON_VARNAME]
+        mandatory_variables = [
+            TIME_DIMNAME,
+            STATION_ID_VARNAME,
+            STATION_NAME_VARNAME,
+            ENS_MEMBER_DIMNAME,
+            LEAD_TIME_DIMNAME,
+            LAT_VARNAME,
+            LON_VARNAME,
+        ]
         variable_attributes = {
-            TIME_DIMNAME: [STANDARD_NAME_ATTR_KEY, LONG_NAME_ATTR_KEY, UNITS_ATTR_KEY, TIME_STANDARD_ATTR_KEY, AXIS_ATTR_KEY],
+            TIME_DIMNAME: [
+                STANDARD_NAME_ATTR_KEY,
+                LONG_NAME_ATTR_KEY,
+                UNITS_ATTR_KEY,
+                TIME_STANDARD_ATTR_KEY,
+                AXIS_ATTR_KEY,
+            ],
             STATION_ID_VARNAME: [LONG_NAME_ATTR_KEY],
             STATION_NAME_VARNAME: [LONG_NAME_ATTR_KEY],
             ENS_MEMBER_DIMNAME: [STANDARD_NAME_ATTR_KEY, LONG_NAME_ATTR_KEY, UNITS_ATTR_KEY, AXIS_ATTR_KEY],
@@ -292,7 +317,9 @@ def check_stf_compliance(file_path: str) -> Dict[str, List[str]]:
                             if req_attr in dataset.variables[var].ncattrs():
                                 results["INFO"].append(f"Attribute '{req_attr}' for variable '{var}' is present.")
                             else:
-                                results["WARNING"].append(f"Missing required attribute '{req_attr}' for variable '{var}'.")
+                                results["WARNING"].append(
+                                    f"Missing required attribute '{req_attr}' for variable '{var}'.",
+                                )
             else:
                 results["ERROR"].append(f"Missing mandatory variable '{var}'.")
 
@@ -302,8 +329,10 @@ def check_stf_compliance(file_path: str) -> Dict[str, List[str]]:
     except Exception as e:  # noqa: BLE001
         return {"ERROR": [f"Error opening file '{file_path}': {e!s}"]}
 
-def _is_structural_varname(name:str) -> bool:
+
+def _is_structural_varname(name: str) -> bool:
     return name in conventional_varnames
+
 
 def _is_known_hydro_varname(name: str) -> bool:
     """Checks if the variable name is a known hydrologic variable."""
@@ -314,11 +343,14 @@ def _is_known_hydro_varname(name: str) -> bool:
 def _is_observation_variable(name: str) -> bool:
     return name in obs_hydro_varnames
 
+
 def _is_simulation_variable(name: str) -> bool:
     return name in sim_hydro_varnames
 
+
 def _is_quality_variable(name: str) -> bool:
     return name in obs_hydro_varnames_qul or name in sim_hydro_varnames_qul
+
 
 def _extract_var_type(variable: Any) -> str:
     if _is_observation_variable(variable):
@@ -329,7 +361,11 @@ def _extract_var_type(variable: Any) -> str:
         return "qul"
     return None
 
-def _check_variable_attributes_obs(variable: Any) -> List[str]:
+
+def _check_variable_attributes_obs(
+    variable: Any,
+    error_threshold: AttributesErrorLevel = AttributesErrorLevel.NONE,
+) -> List[str]:
     """Checks if the attributes of the observed variable comply with the conventions."""
     missing_attributes_messages = []
     required_attributes = {
@@ -341,9 +377,13 @@ def _check_variable_attributes_obs(variable: Any) -> List[str]:
         DAT_TYPE_ATTR_KEY: str,
         LOCATION_TYPE_ATTR_KEY: str,
     }
-    return _check_attrs(variable, required_attributes, missing_attributes_messages)
+    return _check_attrs(variable, required_attributes, missing_attributes_messages, error_threshold=error_threshold)
 
-def _check_variable_attributes_sim(variable: Any) -> List[str]:
+
+def _check_variable_attributes_sim(
+    variable: Any,
+    error_threshold: AttributesErrorLevel = AttributesErrorLevel.NONE,
+) -> List[str]:
     """Checks if the attributes of the simulated variable comply with the conventions."""
     missing_attributes_messages = []
     required_attributes = {
@@ -355,9 +395,13 @@ def _check_variable_attributes_sim(variable: Any) -> List[str]:
         DAT_TYPE_ATTR_KEY: str,
         LOCATION_TYPE_ATTR_KEY: str,
     }
-    return _check_attrs(variable, required_attributes, missing_attributes_messages)
+    return _check_attrs(variable, required_attributes, missing_attributes_messages, error_threshold=error_threshold)
 
-def _check_variable_attributes_qul(variable: Any) -> List[str]:
+
+def _check_variable_attributes_qul(
+    variable: Any,
+    error_threshold: AttributesErrorLevel = AttributesErrorLevel.NONE,
+) -> List[str]:
     """Checks if the attributes of the data quality code variable comply with the conventions."""
     missing_attributes_messages = []
     required_attributes = {
@@ -368,9 +412,15 @@ def _check_variable_attributes_qul(variable: Any) -> List[str]:
         TYPE_DESCRIPTION_ATTR_KEY: str,
         DAT_TYPE_ATTR_KEY: str,
     }
-    return _check_attrs(variable, required_attributes, missing_attributes_messages)
+    return _check_attrs(variable, required_attributes, missing_attributes_messages, error_threshold=error_threshold)
 
-def _check_attrs(variable: Any, required_attributes: Dict[str, type], missing_attributes_messages: List[str]) -> List[str]:
+
+def _check_attrs(
+    variable: Any,
+    required_attributes: Dict[str, type],
+    missing_attributes_messages: List[str],
+    error_threshold: AttributesErrorLevel = AttributesErrorLevel.NONE,
+) -> List[str]:
     for attr, attr_type in required_attributes.items():
         if attr not in variable.ncattrs():
             missing_attributes_messages.append(f"Missing required attribute '{attr}' for variable '{variable.name}'.")
@@ -378,9 +428,14 @@ def _check_attrs(variable: Any, required_attributes: Dict[str, type], missing_at
             actual_type = type(variable.getncattr(attr))
             if actual_type != attr_type:
                 missing_attributes_messages.append(
-                    f"Attribute '{attr}' for variable '{variable.name}' has an unexpected type '{actual_type.__name__}'. Expected type: '{attr_type.__name__}'."
+                    f"Attribute '{attr}' for variable '{variable.name}' has an unexpected type '{actual_type.__name__}'. Expected type: '{attr_type.__name__}'.",
                 )
+    if error_threshold == AttributesErrorLevel.ERROR and missing_attributes_messages:
+        raise ValueError(
+            f"Variable '{variable.name}' has missing or incorrect attributes: {missing_attributes_messages}",
+        )
     return missing_attributes_messages
+
 
 def _check_variable_attributes(variable: Any) -> List[str]:
     """Checks if the attributes of a variable comply with the conventions depending on the type of variable.
@@ -402,6 +457,7 @@ def _check_variable_attributes(variable: Any) -> List[str]:
 
     return []
 
+
 def check_hydrologic_variables(file_path: str) -> Dict[str, List[str]]:
     """Checks if the variable names and attributes in a netCDF file comply with the STF convention.
 
@@ -412,6 +468,7 @@ def check_hydrologic_variables(file_path: str) -> Dict[str, List[str]]:
         Dict[str, List[str]]: A dictionary with keys "INFO", "WARNING", "ERROR" and values as lists of strings describing compliance issues.
     """
     try:
+        dataset = None
         dataset = nc.Dataset(file_path, mode="r")
         results = {"INFO": [], "WARNING": [], "ERROR": []}
 
@@ -425,13 +482,32 @@ def check_hydrologic_variables(file_path: str) -> Dict[str, List[str]]:
                 for msg in _check_variable_attributes(dataset.variables[var]):
                     results["WARNING"].append(msg)
             else:
-                results["WARNING"].append(f"Hydrologic variable '{var}' does not follow the recommended naming convention.")
+                results["WARNING"].append(
+                    f"Hydrologic variable '{var}' does not follow the recommended naming convention.",
+                )
 
-        dataset.close()
-        return results
+        return results  # noqa: TRY300
 
     except Exception as e:  # noqa: BLE001
-        return {"ERROR": [f"Error opening file '{file_path}': {e!s}"]}
+        return {"ERROR": [f"Error opening or reading file '{file_path}': {e!s}"]}
+
+    finally:
+        if dataset:
+            dataset.close()
+
+
+def check_optional_variable_attributes(
+    variable: Any,
+    error_threshold: AttributesErrorLevel = AttributesErrorLevel.NONE,
+) -> List[str]:
+    """Checks if the attributes of the observed variable comply with the conventions."""
+    missing_attributes_messages = []
+    required_attributes = {
+        STANDARD_NAME_ATTR_KEY: str,
+        LONG_NAME_ATTR_KEY: str,
+        UNITS_ATTR_KEY: str,
+    }
+    return _check_attrs(variable, required_attributes, missing_attributes_messages, error_threshold=error_threshold)
 
 
 def convert_to_datetime64_utc(x: ConvertibleToTimestamp) -> np.datetime64:

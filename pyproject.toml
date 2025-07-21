@@ -45,8 +45,8 @@ Changelog = "https://csiro-hydroinformatics.github.io/efts-io/changelog"
 Repository = "https://github.com/csiro-hydroinformatics/efts-io"
 Issues = "https://github.com/csiro-hydroinformatics/efts-io/issues"
 Discussions = "https://github.com/csiro-hydroinformatics/efts-io/discussions"
-Gitter = "https://gitter.im/csiro-hydroinformatics/efts-io"
-Funding = "https://github.com/sponsors/jmp75"
+# Gitter = "https://gitter.im/csiro-hydroinformatics/efts-io"
+# Funding = "https://github.com/sponsors/jmp75"
 
 [project.scripts]
 efts = "efts_io.cli:main"

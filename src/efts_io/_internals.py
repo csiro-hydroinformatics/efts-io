@@ -128,7 +128,7 @@ from typing import Any, Dict, Tuple
 
 import xarray as xr
 
-from efts_io.conventions import UNITS_ATTR_KEY
+from efts_io.conventions import FILLVALUE_ATTR_KEY, UNITS_ATTR_KEY
 
 
 def create_data_variable(data_var_def: Dict[str, Any], dimensions: Tuple[str, Tuple]) -> xr.Variable:
