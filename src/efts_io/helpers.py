@@ -1,7 +1,8 @@
 """Helper functions for netcdf file."""
 
 
-# Intent: port https://bitbucket.csiro.au/projects/SF/repos/matlab_functions/browse/Import_export/create_empty_stfnc.m
+# Initial Intent: port https://bitbucket.csiro.au/projects/SF/repos/matlab_functions/browse/Import_export/create_empty_stfnc.m
+# may be an superseded feature as of July 2025
 
 # from typing import Optional, Union
 
@@ -25,3 +26,23 @@
 #     owr: bool = True,  # Bolean. Indicates whether you wish to overwrite the
 # ):
 #     d = EftsDataSet()
+
+import importlib.resources
+
+
+def get_sample_data_path(file_name: str) -> str:
+    """Retrieve the path to a sample data file included in the package.
+
+    Args:
+        file_name (str): The name of the sample data file.
+
+    Returns:
+        str: The path to the sample data file.
+    """
+    with importlib.resources.path("efts_io.data", file_name) as data_path:
+        return str(data_path)
+
+def derived_rainfall_tas() -> str:
+    """Sample rainfall from Tasmania."""
+    sample_data_file = "derived_rainfall_tas.nc"
+    return get_sample_data_path(sample_data_file)

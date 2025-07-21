@@ -281,8 +281,6 @@ class EftsDataSet:
         ens: bool = False,  # noqa: FBT001, FBT002
         timestep:str="days",
         data_qual: Optional[xr.DataArray] = None,
-        # loc_info: Optional[Dict[str, Any]] = None,
-        # global_att: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Save to file."""
         from efts_io._ncdf_stf2 import write_nc_stf2
