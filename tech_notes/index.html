@@ -13,6 +13,8 @@
         <link rel="canonical" href="https://csiro-hydroinformatics.github.io/efts-io/tech_notes/">
       
       
+        <link rel="prev" href="../coverage/">
+      
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -20,7 +22,7 @@
     
     
       
-        <title>tech notes - efts-io</title>
+        <title>Tech notes - efts-io</title>
       
     
     
@@ -118,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              tech notes
+              Tech notes
             
           </span>
         </div>
@@ -307,10 +309,12 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../contributing/" class="md-tabs__link">
           
   
@@ -386,6 +390,8 @@
       
         
           
+        
+      
         
       
         
@@ -491,6 +497,27 @@
   
   <span class="md-ellipsis">
     License
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../netcdf_for_water_forecasting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    STF 2.0 specifications
   </span>
   
 
@@ -957,8 +984,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -968,22 +997,27 @@
       
         
       
+        
+      
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -994,7 +1028,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             Development
@@ -1064,6 +1098,37 @@
 
               
             
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Tech notes
+  </span>
+  
+
+      </a>
+      
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1090,50 +1155,6 @@
   
     
   
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#release-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      Release steps
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#code" class="md-nav__link">
-    <span class="md-ellipsis">
-      Code
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#documentation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Documentation
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Troubleshooting
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
   
 </nav>
                   </div>
@@ -1165,60 +1186,8 @@
 
 
 <h1 id="tech-notes">tech notes<a class="headerlink" href="#tech-notes" title="Permanent link">&para;</a></h1>
-<p><a href="https://pawamoy.github.io/copier-uv/work/">https://pawamoy.github.io/copier-uv/work/</a></p>
-<p>echo $PYTHON_VERSIONS 3.12</p>
 <p><strong>These are notes for the package maintainer(s)</strong>. Most users can ignore them.</p>
-<p>Note to self: as of Jan 2019 also using github_jm\didactique\doc\know_how.md to log the exploratory and release processes around <code>refcount</code></p>
-<h2 id="release-steps">Release steps<a class="headerlink" href="#release-steps" title="Permanent link">&para;</a></h2>
-<ul>
-<li>all UT pass</li>
-<li>Merge new features/fixes to devel branch.</li>
-<li>version.py updated</li>
-<li>check readme is up to date</li>
-</ul>
-<h2 id="code">Code<a class="headerlink" href="#code" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span>/src/efts-python/efts-io
-</code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="nb">source</span><span class="w"> </span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span>/anaconda3/bin/activate
-<span class="c1">#my_env_name=efts</span>
-<span class="nv">my_env_name</span><span class="o">=</span>pt
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>conda<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span><span class="si">${</span><span class="nv">my_env_name</span><span class="si">}</span><span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.9
-conda<span class="w"> </span>activate<span class="w"> </span><span class="si">${</span><span class="nv">my_env_name</span><span class="si">}</span>
-conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>wheel<span class="w"> </span>twine<span class="w"> </span>six<span class="w"> </span>pytest<span class="w"> </span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>conda<span class="w"> </span>activate<span class="w"> </span><span class="si">${</span><span class="nv">my_env_name</span><span class="si">}</span>
-<span class="nb">cd</span><span class="w"> </span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span>/src/efts-python/efts-io
-mkdir<span class="w"> </span>-p<span class="w"> </span>dist
-rm<span class="w"> </span>dist/*
-python3<span class="w"> </span>setup.py<span class="w"> </span>sdist<span class="w"> </span>bdist_wheel
-rm<span class="w"> </span>dist/*.tar
-</code></pre></div>
-<p>Importantly to not end up with incorrect display of the readme:</p>
-<div class="highlight"><pre><span></span><code>twine<span class="w"> </span>check<span class="w"> </span>dist/*
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>twine<span class="w"> </span>upload<span class="w"> </span>--repository-url<span class="w"> </span>https://test.pypi.org/legacy/<span class="w"> </span>dist/*
-</code></pre></div>
-<p>Then and only then:</p>
-<div class="highlight"><pre><span></span><code>twine<span class="w"> </span>upload<span class="w"> </span>dist/*
-</code></pre></div>
-<h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
-<p>2021-01 Exploring options for putting this on readthedoc. I used in the past sphinx with napoleon extensions to document <a href="https://pyela.readthedocs.io/en/latest">ela</a>. This was a trial run. Did something more substantial for an internal project (WAA).</p>
-<p>Starting afresh with this, reading the RTD guides. Introduces mkdocs. Notice <a href="https://chrieke.medium.com/documenting-a-python-package-with-code-reference-via-mkdocs-material-b4a45197f95b">this blog on mkdocs-material</a> which seems like the new cool kid on the block.</p>
-<p>Unclear from RTD where to create a new mkdocs project (supposed to be in the root of the python package?) not sure. for now:</p>
-<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>doc
-mkdir<span class="w"> </span>mkd
-<span class="nb">cd</span><span class="w"> </span>mkd/
-mkdocs<span class="w"> </span>new<span class="w"> </span>.
-</code></pre></div>
-<p><code>mamba install -c conda-forge mkdocs-material mkdocstrings</code>
-<code>mamba install -c conda-forge mkdocs-material-extensions</code></p>
-<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>pandoc<span class="w"> </span>-f<span class="w"> </span>markdown<span class="w"> </span>-t<span class="w"> </span>rst<span class="w"> </span>README.md<span class="w">  </span>&gt;<span class="w"> </span>README.rst
-</code></pre></div>
-<p>Can view with the <code>retext</code> program (did not find VScode RST extensions working, or giving out blank output if not, perhaps)</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>setup.py<span class="w"> </span>check<span class="w"> </span>--restructuredtext
-</code></pre></div>
+<p>August 2024 trialing package development using <a href="https://pawamoy.github.io/copier-uv/work/">this <code>copier-uv</code>template</a>. Note also the <a href="https://til.simonwillison.net/python/uv-cli-apps">blog post from Simon Wilson on uv</a></p>
 
 
 
@@ -1347,6 +1316,28 @@ mkdocs<span class="w"> </span>new<span class="w"> </span>.
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../coverage/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Coverage report">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Coverage report
+              </div>
+            </div>
+          </a>
+        
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">

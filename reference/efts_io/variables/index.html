@@ -404,6 +404,8 @@
       
         
       
+        
+      
     
     
       
@@ -501,6 +503,27 @@
   
   <span class="md-ellipsis">
     License
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../netcdf_for_water_forecasting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    STF 2.0 specifications
   </span>
   
 
@@ -1016,6 +1039,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#efts_io.variables.empty_data_variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;empty_data_variables
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1077,6 +1109,8 @@
   
     
     
+      
+        
       
         
       
@@ -1180,6 +1214,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tech_notes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tech notes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1267,6 +1322,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#efts_io.variables.empty_data_variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;empty_data_variables
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1349,13 +1413,7 @@
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/variables.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">332</span>
-<span class="normal">333</span>
-<span class="normal">334</span>
-<span class="normal">335</span>
-<span class="normal">336</span>
-<span class="normal">337</span>
-<span class="normal">338</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">338</span>
 <span class="normal">339</span>
 <span class="normal">340</span>
 <span class="normal">341</span>
@@ -1403,7 +1461,11 @@
 <span class="normal">383</span>
 <span class="normal">384</span>
 <span class="normal">385</span>
-<span class="normal">386</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_efts_variables</span><span class="p">(</span>
+<span class="normal">386</span>
+<span class="normal">387</span>
+<span class="normal">388</span>
+<span class="normal">389</span>
+<span class="normal">390</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_efts_variables</span><span class="p">(</span>
     <span class="n">data_var_def</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
     <span class="n">time_dim_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
     <span class="n">num_stations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -1441,14 +1503,12 @@
         <span class="p">)</span>
         <span class="c1"># TODO if not native to ncdf4: check name clashes</span>
         <span class="c1"># already_defs = names(variables)</span>
-        <span class="n">variables_metadata</span> <span class="o">=</span> <span class="n">variables_metadata</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">optional_var_ncdefs</span><span class="p">)</span>
+        <span class="n">variables_metadata</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">optional_var_ncdefs</span><span class="p">)</span>
 
     <span class="n">unknown_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data_var_def</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;dim_type&quot;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;4&quot;</span><span class="p">]]</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unknown_dims</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;Invalid dimension specifications for &quot;</span>
-            <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">unknown_dims</span><span class="p">)</span>
-            <span class="o">+</span> <span class="s2">&quot; variables. Only supported are characters 2, 3, 4&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;Invalid dimension specifications for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">unknown_dims</span><span class="p">)</span><span class="si">}</span><span class="s2"> variables. Only supported are characters 2, 3, 4&quot;</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="n">variables</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1473,12 +1533,12 @@
 
 <a href="#efts_io.variables.create_mandatory_vardefs" class="headerlink" title="Permanent link">&para;</a></h2>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">create_mandatory_vardefs</span><span class="p">(</span>
-    <span class="n">station_dim</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
-    <span class="n">str_dim</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
-    <span class="n">ensemble_dim</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
-    <span class="n">lead_time_dim</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
+    <span class="n">station_dim</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Tuple" href="https://docs.python.org/3/library/typing.html#typing.Tuple">Tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><span title="numpy.ndarray">ndarray</span></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Dict" href="https://docs.python.org/3/library/typing.html#typing.Dict">Dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]],</span>
+    <span class="n">str_dim</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Tuple" href="https://docs.python.org/3/library/typing.html#typing.Tuple">Tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><span title="numpy.ndarray">ndarray</span></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Dict" href="https://docs.python.org/3/library/typing.html#typing.Dict">Dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]],</span>
+    <span class="n">ensemble_dim</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Tuple" href="https://docs.python.org/3/library/typing.html#typing.Tuple">Tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><span title="numpy.ndarray">ndarray</span></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Dict" href="https://docs.python.org/3/library/typing.html#typing.Dict">Dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]],</span>
+    <span class="n">lead_time_dim</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Tuple" href="https://docs.python.org/3/library/typing.html#typing.Tuple">Tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><span title="numpy.ndarray">ndarray</span></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Dict" href="https://docs.python.org/3/library/typing.html#typing.Dict">Dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]],</span>
     <span class="n">lead_time_tstep</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;hours&quot;</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Dict" href="https://docs.python.org/3/library/typing.html#typing.Dict">Dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Dict" href="https://docs.python.org/3/library/typing.html#typing.Dict">Dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Dict" href="https://docs.python.org/3/library/typing.html#typing.Dict">Dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><span title="xarray.Variable">Variable</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1487,14 +1547,7 @@
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/variables.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">188</span>
-<span class="normal">189</span>
-<span class="normal">190</span>
-<span class="normal">191</span>
-<span class="normal">192</span>
-<span class="normal">193</span>
-<span class="normal">194</span>
-<span class="normal">195</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">195</span>
 <span class="normal">196</span>
 <span class="normal">197</span>
 <span class="normal">198</span>
@@ -1590,13 +1643,19 @@
 <span class="normal">288</span>
 <span class="normal">289</span>
 <span class="normal">290</span>
-<span class="normal">291</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_mandatory_vardefs</span><span class="p">(</span>
-    <span class="n">station_dim</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">str_dim</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">ensemble_dim</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">lead_time_dim</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_mandatory_vardefs</span><span class="p">(</span>
+    <span class="n">station_dim</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>
+    <span class="n">str_dim</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>
+    <span class="n">ensemble_dim</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>
+    <span class="n">lead_time_dim</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>
     <span class="n">lead_time_tstep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;hours&quot;</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">Variable</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create mandatory variable definitions.&quot;&quot;&quot;</span>
     <span class="c1"># https://github.com/jmp75/efts/blob/107c553045a37e6ef36b2eababf6a299e7883d50/docs/netcdf_for_water_forecasting.md#mandatory-variables</span>
     <span class="c1"># float time(time)</span>
@@ -1606,7 +1665,6 @@
     <span class="c1"># float lead_time(lead_time)</span>
     <span class="c1"># float lat (station)</span>
     <span class="c1"># float lon (station)</span>
-    <span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
 
     <span class="c1"># STATION_DIMNAME,</span>
     <span class="c1"># LEAD_TIME_DIMNAME,</span>
@@ -1617,7 +1675,7 @@
     <span class="n">station_id_variable</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span>
         <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="n">STATION_DIMNAME</span><span class="p">],</span>
         <span class="n">data</span><span class="o">=</span><span class="n">station_dim</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-        <span class="n">encoding</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;_FillValue&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+        <span class="n">encoding</span><span class="o">=</span><span class="p">{</span><span class="n">FILLVALUE_ATTR_KEY</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
         <span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
             <span class="s2">&quot;longname&quot;</span><span class="p">:</span> <span class="n">station_dim</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;longname&quot;</span><span class="p">],</span>
             <span class="n">UNITS_ATTR_KEY</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
@@ -1633,7 +1691,7 @@
             <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">str_dim</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">len</span><span class="p">(</span><span class="n">station_dim</span><span class="p">[</span><span class="mi">1</span><span class="p">])),</span>
             <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bytes_</span><span class="p">,</span>
         <span class="p">),</span>
-        <span class="n">encoding</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;_FillValue&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+        <span class="n">encoding</span><span class="o">=</span><span class="p">{</span><span class="n">FILLVALUE_ATTR_KEY</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
         <span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
             <span class="s2">&quot;longname&quot;</span><span class="p">:</span> <span class="s2">&quot;station or node name&quot;</span><span class="p">,</span>
             <span class="n">UNITS_ATTR_KEY</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
@@ -1644,7 +1702,7 @@
     <span class="n">ensemble_member_id_variable</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span>
         <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="n">ENS_MEMBER_DIMNAME</span><span class="p">],</span>
         <span class="n">data</span><span class="o">=</span><span class="n">ensemble_dim</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-        <span class="n">encoding</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;_FillValue&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+        <span class="n">encoding</span><span class="o">=</span><span class="p">{</span><span class="n">FILLVALUE_ATTR_KEY</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
         <span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
             <span class="s2">&quot;longname&quot;</span><span class="p">:</span> <span class="n">ensemble_dim</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;longname&quot;</span><span class="p">],</span>
             <span class="n">UNITS_ATTR_KEY</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
@@ -1655,7 +1713,7 @@
     <span class="n">lead_time_dim_variable</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span>
         <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="n">LEAD_TIME_DIMNAME</span><span class="p">],</span>
         <span class="n">data</span><span class="o">=</span><span class="n">lead_time_dim</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-        <span class="n">encoding</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;_FillValue&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+        <span class="n">encoding</span><span class="o">=</span><span class="p">{</span><span class="n">FILLVALUE_ATTR_KEY</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
         <span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
             <span class="s2">&quot;longname&quot;</span><span class="p">:</span> <span class="n">lead_time_dim</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;longname&quot;</span><span class="p">],</span>
             <span class="n">UNITS_ATTR_KEY</span><span class="p">:</span> <span class="n">lead_time_tstep</span> <span class="o">+</span> <span class="s2">&quot; since time&quot;</span><span class="p">,</span>
@@ -1666,7 +1724,7 @@
     <span class="n">latitude_dim_variable</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span>
         <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="n">STATION_DIMNAME</span><span class="p">],</span>
         <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">station_dim</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
-        <span class="n">encoding</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;_FillValue&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">9999.0</span><span class="p">},</span>
+        <span class="n">encoding</span><span class="o">=</span><span class="p">{</span><span class="n">FILLVALUE_ATTR_KEY</span><span class="p">:</span> <span class="o">-</span><span class="mf">9999.0</span><span class="p">},</span>
         <span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
             <span class="s2">&quot;longname&quot;</span><span class="p">:</span> <span class="s2">&quot;latitude&quot;</span><span class="p">,</span>
             <span class="n">UNITS_ATTR_KEY</span><span class="p">:</span> <span class="s2">&quot;degrees north&quot;</span><span class="p">,</span>
@@ -1677,7 +1735,7 @@
     <span class="n">longitude_dim_variable</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span>
         <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="n">STATION_DIMNAME</span><span class="p">],</span>
         <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">station_dim</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
-        <span class="n">encoding</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;_FillValue&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">9999.0</span><span class="p">},</span>
+        <span class="n">encoding</span><span class="o">=</span><span class="p">{</span><span class="n">FILLVALUE_ATTR_KEY</span><span class="p">:</span> <span class="o">-</span><span class="mf">9999.0</span><span class="p">},</span>
         <span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
             <span class="s2">&quot;longname&quot;</span><span class="p">:</span> <span class="s2">&quot;longitude&quot;</span><span class="p">,</span>
             <span class="n">UNITS_ATTR_KEY</span><span class="p">:</span> <span class="s2">&quot;degrees east&quot;</span><span class="p">,</span>
@@ -1709,7 +1767,8 @@
 
 <a href="#efts_io.variables.create_optional_vardefs" class="headerlink" title="Permanent link">&para;</a></h2>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">create_optional_vardefs</span><span class="p">(</span>
-    <span class="n">station_dim</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n">vars_def</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3/library/typing.html#typing.Optional">Optional</a></span><span class="p">[</span><span class="n"><span title="pandas.DataFrame">DataFrame</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">station_dim</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Tuple" href="https://docs.python.org/3/library/typing.html#typing.Tuple">Tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><span title="numpy.ndarray">ndarray</span></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Dict" href="https://docs.python.org/3/library/typing.html#typing.Dict">Dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]],</span>
+    <span class="n">vars_def</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3/library/typing.html#typing.Optional">Optional</a></span><span class="p">[</span><span class="n"><span title="pandas.DataFrame">DataFrame</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="pandas.Series">Series</span></span>
 </code></pre></div>
 
@@ -1719,13 +1778,7 @@
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/variables.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">294</span>
-<span class="normal">295</span>
-<span class="normal">296</span>
-<span class="normal">297</span>
-<span class="normal">298</span>
-<span class="normal">299</span>
-<span class="normal">300</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">300</span>
 <span class="normal">301</span>
 <span class="normal">302</span>
 <span class="normal">303</span>
@@ -1739,8 +1792,14 @@
 <span class="normal">311</span>
 <span class="normal">312</span>
 <span class="normal">313</span>
-<span class="normal">314</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_optional_vardefs</span><span class="p">(</span>
-    <span class="n">station_dim</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_optional_vardefs</span><span class="p">(</span>
+    <span class="n">station_dim</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>
     <span class="n">vars_def</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create optional variable definitions.&quot;&quot;&quot;</span>
@@ -1753,7 +1812,7 @@
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">vd</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
             <span class="n">UNITS_ATTR_KEY</span><span class="p">:</span> <span class="n">vd</span><span class="p">[</span><span class="n">UNITS_ATTR_KEY</span><span class="p">],</span>
-            <span class="s2">&quot;dim&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">station_dim</span><span class="p">),</span>
+            <span class="s2">&quot;dim&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">station_dim</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="c1"># TOCHECK or not a list but the str?</span>
             <span class="s2">&quot;missval&quot;</span><span class="p">:</span> <span class="n">vd</span><span class="p">[</span><span class="s2">&quot;missval&quot;</span><span class="p">],</span>
             <span class="s2">&quot;longname&quot;</span><span class="p">:</span> <span class="n">vd</span><span class="p">[</span><span class="s2">&quot;longname&quot;</span><span class="p">],</span>
             <span class="s2">&quot;prec&quot;</span><span class="p">:</span> <span class="n">vd</span><span class="p">[</span><span class="s2">&quot;precision&quot;</span><span class="p">],</span>
@@ -1781,7 +1840,7 @@
     <span class="n">missval</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">=</span> <span class="o">-</span><span class="mf">9999.0</span><span class="p">,</span>
     <span class="n">precision</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;double&quot;</span><span class="p">,</span>
     <span class="n">dim_type</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span>
-    <span class="n">var_attribute</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3/library/typing.html#typing.Optional">Optional</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">var_attribute</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3/library/typing.html#typing.Optional">Optional</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span>
 </code></pre></div>
 
@@ -1791,9 +1850,7 @@
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/variables.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">42</span>
-<span class="normal">43</span>
-<span class="normal">44</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">44</span>
 <span class="normal">45</span>
 <span class="normal">46</span>
 <span class="normal">47</span>
@@ -1811,14 +1868,16 @@
 <span class="normal">59</span>
 <span class="normal">60</span>
 <span class="normal">61</span>
-<span class="normal">62</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_variable_definition</span><span class="p">(</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_variable_definition</span><span class="p">(</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">longname</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
     <span class="n">units</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mm&quot;</span><span class="p">,</span>
     <span class="n">missval</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mf">9999.0</span><span class="p">,</span>
     <span class="n">precision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;double&quot;</span><span class="p">,</span>
     <span class="n">dim_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span>
-    <span class="n">var_attribute</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">var_attribute</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a variable definition.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">var_attribute</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1848,7 +1907,7 @@
 <a href="#efts_io.variables.create_variable_definitions" class="headerlink" title="Permanent link">&para;</a></h2>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">create_variable_definitions</span><span class="p">(</span>
     <span class="n">dframe</span><span class="p">:</span> <span class="n"><span title="pandas.DataFrame">DataFrame</span></span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="typing.List" href="https://docs.python.org/3/library/typing.html#typing.List">List</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="typing.Dict" href="https://docs.python.org/3/library/typing.html#typing.Dict">Dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Dict" href="https://docs.python.org/3/library/typing.html#typing.Dict">Dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1857,9 +1916,7 @@
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/variables.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">166</span>
 <span class="normal">167</span>
 <span class="normal">168</span>
 <span class="normal">169</span>
@@ -1878,11 +1935,24 @@
 <span class="normal">182</span>
 <span class="normal">183</span>
 <span class="normal">184</span>
-<span class="normal">185</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_variable_definitions</span><span class="p">(</span><span class="n">dframe</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_variable_definitions</span><span class="p">(</span><span class="n">dframe</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create variable definitions from a data frame.&quot;&quot;&quot;</span>
     <span class="n">in_names</span> <span class="o">=</span> <span class="n">dframe</span><span class="o">.</span><span class="n">columns</span>
     <span class="n">non_opt_attr</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;longname&quot;</span><span class="p">,</span> <span class="n">UNITS_ATTR_KEY</span><span class="p">,</span> <span class="s2">&quot;missval&quot;</span><span class="p">,</span> <span class="s2">&quot;precision&quot;</span><span class="p">,</span> <span class="s2">&quot;dimensions&quot;</span><span class="p">]</span>
     <span class="n">varargs_attr</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">in_names</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">non_opt_attr</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">dataframe_to_dict</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a single-row DataFrame to a dictionary for specified columns.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;single row of a data frame: expected a pandas series&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">col</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">var_def</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>  <span class="c1"># noqa: ANN202</span>
         <span class="k">return</span> <span class="n">create_variable_definition</span><span class="p">(</span>
@@ -1892,14 +1962,13 @@
             <span class="n">missval</span><span class="o">=</span><span class="n">var_def</span><span class="p">[</span><span class="s2">&quot;missval&quot;</span><span class="p">],</span>
             <span class="n">precision</span><span class="o">=</span><span class="n">var_def</span><span class="p">[</span><span class="s2">&quot;precision&quot;</span><span class="p">],</span>
             <span class="n">dim_type</span><span class="o">=</span><span class="n">var_def</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">],</span>
-            <span class="n">var_attribute</span><span class="o">=</span><span class="n">var_def</span><span class="p">[</span><span class="n">varargs_attr</span><span class="p">],</span>
+            <span class="n">var_attribute</span><span class="o">=</span><span class="n">dataframe_to_dict</span><span class="p">(</span><span class="n">var_def</span><span class="p">,</span> <span class="n">varargs_attr</span><span class="p">),</span>
         <span class="p">)</span>
 
     <span class="c1"># dframe[[&#39;rownum&#39;]] = 1:nrow(dframe)</span>
     <span class="c1"># r = plyr::dlply(.data = dframe, .variables = &quot;rownum&quot;, .fun = f)</span>
-    <span class="n">variables_defs</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="n">dframe</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variables_defs</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-    <span class="k">return</span> <span class="n">res</span>
+    <span class="n">variables_defs</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="n">dframe</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">v</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variables_defs</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -1923,9 +1992,7 @@
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/variables.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">115</span>
-<span class="normal">116</span>
-<span class="normal">117</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">117</span>
 <span class="normal">118</span>
 <span class="normal">119</span>
 <span class="normal">120</span>
@@ -1944,7 +2011,9 @@
 <span class="normal">133</span>
 <span class="normal">134</span>
 <span class="normal">135</span>
-<span class="normal">136</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">default_optional_variable_definitions_v2_0</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">default_optional_variable_definitions_v2_0</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Provide a template definition of optional geolocation variables.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
         <span class="p">{</span>
@@ -1966,6 +2035,110 @@
             <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
         <span class="p">},</span>
     <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="efts_io.variables.empty_data_variables" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <span class="doc doc-object-name doc-function-name">empty_data_variables</span>
+
+
+<a href="#efts_io.variables.empty_data_variables" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">empty_data_variables</span><span class="p">(</span>
+    <span class="n">data_var_def</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">,</span>
+    <span class="n">time_dim_tmp</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Tuple" href="https://docs.python.org/3/library/typing.html#typing.Tuple">Tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><span title="numpy.ndarray">ndarray</span></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Dict" href="https://docs.python.org/3/library/typing.html#typing.Dict">Dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]],</span>
+    <span class="n">lead_time_dim_tmp</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Tuple" href="https://docs.python.org/3/library/typing.html#typing.Tuple">Tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><span title="numpy.ndarray">ndarray</span></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Dict" href="https://docs.python.org/3/library/typing.html#typing.Dict">Dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]],</span>
+    <span class="n">station_dim_tmp</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Tuple" href="https://docs.python.org/3/library/typing.html#typing.Tuple">Tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><span title="numpy.ndarray">ndarray</span></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Dict" href="https://docs.python.org/3/library/typing.html#typing.Dict">Dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]],</span>
+    <span class="n">ensemble_dim_tmp</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Tuple" href="https://docs.python.org/3/library/typing.html#typing.Tuple">Tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><span title="numpy.ndarray">ndarray</span></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Dict" href="https://docs.python.org/3/library/typing.html#typing.Dict">Dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Create data variables as defined in the definition.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>src/efts_io/variables.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">393</span>
+<span class="normal">394</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span>
+<span class="normal">409</span>
+<span class="normal">410</span>
+<span class="normal">411</span>
+<span class="normal">412</span>
+<span class="normal">413</span>
+<span class="normal">414</span>
+<span class="normal">415</span>
+<span class="normal">416</span>
+<span class="normal">417</span>
+<span class="normal">418</span>
+<span class="normal">419</span>
+<span class="normal">420</span>
+<span class="normal">421</span>
+<span class="normal">422</span>
+<span class="normal">423</span>
+<span class="normal">424</span>
+<span class="normal">425</span>
+<span class="normal">426</span>
+<span class="normal">427</span>
+<span class="normal">428</span>
+<span class="normal">429</span>
+<span class="normal">430</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">empty_data_variables</span><span class="p">(</span>
+    <span class="n">data_var_def</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">time_dim_tmp</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>  <span class="c1"># noqa: ARG001</span>
+    <span class="n">lead_time_dim_tmp</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>  <span class="c1"># noqa: ARG001</span>
+    <span class="n">station_dim_tmp</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>  <span class="c1"># noqa: ARG001</span>
+    <span class="n">ensemble_dim_tmp</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>  <span class="c1"># noqa: ARG001</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create data variables as defined in the definition.&quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Not implemented yet&quot;</span><span class="p">)</span>
+
+    <span class="n">data_variables</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">ens_fcast_data_var_def</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data_var_def</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;dim_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">]</span>
+    <span class="n">ens_data_var_def</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data_var_def</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;dim_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">]</span>
+    <span class="n">point_data_var_def</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data_var_def</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;dim_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;2&quot;</span><span class="p">]</span>
+
+    <span class="n">time_dim</span> <span class="o">=</span> <span class="s2">&quot;not implemented&quot;</span>
+    <span class="n">lead_time_dim</span> <span class="o">=</span> <span class="s2">&quot;not implemented&quot;</span>
+    <span class="n">station_dim</span> <span class="o">=</span> <span class="s2">&quot;not implemented&quot;</span>
+    <span class="n">ensemble_dim</span> <span class="o">=</span> <span class="s2">&quot;not implemented&quot;</span>
+
+    <span class="n">data_variables</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="n">x</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]:</span> <span class="n">create_data_variable</span><span class="p">(</span>
+                <span class="n">x</span><span class="p">,</span>
+                <span class="p">[</span><span class="n">lead_time_dim</span><span class="p">,</span> <span class="n">station_dim</span><span class="p">,</span> <span class="n">ensemble_dim</span><span class="p">,</span> <span class="n">time_dim</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ens_fcast_data_var_def</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">data_variables</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]:</span> <span class="n">create_data_variable</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">station_dim</span><span class="p">,</span> <span class="n">ensemble_dim</span><span class="p">,</span> <span class="n">time_dim</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ens_data_var_def</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">data_variables</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]:</span> <span class="n">create_data_variable</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">station_dim</span><span class="p">,</span> <span class="n">time_dim</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">point_data_var_def</span><span class="p">},</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data_variables</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>

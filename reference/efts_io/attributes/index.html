@@ -404,6 +404,8 @@
       
         
       
+        
+      
     
     
       
@@ -501,6 +503,27 @@
   
   <span class="md-ellipsis">
     License
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../netcdf_for_water_forecasting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    STF 2.0 specifications
   </span>
   
 
@@ -837,6 +860,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#efts_io.attributes.create_global_attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;create_global_attributes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#efts_io.attributes.create_var_attribute_definition" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;create_var_attribute_definition
@@ -1039,6 +1071,8 @@
       
         
       
+        
+      
     
     
       
@@ -1135,6 +1169,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tech_notes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tech notes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1167,6 +1222,15 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#efts_io.attributes.create_global_attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;create_global_attributes
+    </span>
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#efts_io.attributes.create_var_attribute_definition" class="md-nav__link">
@@ -1220,6 +1284,8 @@
 
     <div class="doc doc-contents first">
 
+        <p>Management of netCDF attributes.</p>
+
 
 
   <div class="doc doc-children">
@@ -1235,6 +1301,175 @@
 <div class="doc doc-object doc-function">
 
 
+<h2 id="efts_io.attributes.create_global_attributes" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <span class="doc doc-object-name doc-function-name">create_global_attributes</span>
+
+
+<a href="#efts_io.attributes.create_global_attributes" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">create_global_attributes</span><span class="p">(</span>
+    <span class="n">title</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
+    <span class="n">institution</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
+    <span class="n">source</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
+    <span class="n">catchment</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
+    <span class="n">comment</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Creates STF global attributes.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code>title</code></b>
+              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>)
+          –
+          <div class="doc-md-description">
+            <p>title</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code>institution</code></b>
+              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>)
+          –
+          <div class="doc-md-description">
+            <p>institution</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code>source</code></b>
+              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>)
+          –
+          <div class="doc-md-description">
+            <p>source</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code>catchment</code></b>
+              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>)
+          –
+          <div class="doc-md-description">
+            <p>catchment</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code>comment</code></b>
+              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>)
+          –
+          <div class="doc-md-description">
+            <p>comment</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#ValueError">ValueError</a></code>
+            –
+          <div class="doc-md-description">
+            <p>Unexpected or insufficient information</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>]</code>
+          –
+          <div class="doc-md-description">
+            <p>dict[str, str]: <em>description</em></p>
+          </div>
+        </li>
+    </ul>
+
+            <details class="quote">
+              <summary>Source code in <code>src/efts_io/attributes.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_global_attributes</span><span class="p">(</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">institution</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">catchment</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">comment</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates STF global attributes.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        title (str): title</span>
+<span class="sd">        institution (str): institution</span>
+<span class="sd">        source (str): source</span>
+<span class="sd">        catchment (str): catchment</span>
+<span class="sd">        comment (str): comment</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: Unexpected or insufficient information</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict[str, str]: _description_</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># catchment info should not have white spaces (and why was that???)</span>
+    <span class="c1"># catchment = &#39;Upper  Murray River &#39;</span>
+    <span class="c1"># catchment = stringr::str_replace_all(catchment, pattern=&#39;\\s+&#39;, &#39;_&#39;)</span>
+
+    <span class="k">if</span> <span class="n">title</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Empty title is not accepted as a valid attribute&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">TITLE_ATTR_KEY</span><span class="p">:</span> <span class="n">title</span><span class="p">,</span>
+        <span class="n">INSTITUTION_ATTR_KEY</span><span class="p">:</span> <span class="n">institution</span><span class="p">,</span>
+        <span class="n">SOURCE_ATTR_KEY</span><span class="p">:</span> <span class="n">source</span><span class="p">,</span>
+        <span class="n">CATCHMENT_ATTR_KEY</span><span class="p">:</span> <span class="n">catchment</span><span class="p">,</span>
+        <span class="n">COMMENT_ATTR_KEY</span><span class="p">:</span> <span class="n">comment</span><span class="p">,</span>
+    <span class="p">}</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
 <h2 id="efts_io.attributes.create_var_attribute_definition" class="doc doc-heading">
 <code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <span class="doc doc-object-name doc-function-name">create_var_attribute_definition</span>
 
@@ -1246,7 +1481,7 @@
     <span class="n">dat_type</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;der&quot;</span><span class="p">,</span>
     <span class="n">dat_type_description</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;AWAP data interpolated from observations&quot;</span><span class="p">,</span>
     <span class="n">location_type</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;Point&quot;</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1255,34 +1490,34 @@
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/attributes.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">29</span>
-<span class="normal">30</span>
-<span class="normal">31</span>
-<span class="normal">32</span>
-<span class="normal">33</span>
-<span class="normal">34</span>
-<span class="normal">35</span>
-<span class="normal">36</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">36</span>
 <span class="normal">37</span>
 <span class="normal">38</span>
 <span class="normal">39</span>
 <span class="normal">40</span>
 <span class="normal">41</span>
 <span class="normal">42</span>
-<span class="normal">43</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_var_attribute_definition</span><span class="p">(</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_var_attribute_definition</span><span class="p">(</span>
     <span class="n">data_type_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
     <span class="n">type_description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;accumulated over the preceding interval&quot;</span><span class="p">,</span>
     <span class="n">dat_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;der&quot;</span><span class="p">,</span>
     <span class="n">dat_type_description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;AWAP data interpolated from observations&quot;</span><span class="p">,</span>
     <span class="n">location_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Point&quot;</span><span class="p">,</span>
-<span class="p">):</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create variable attribute definition.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">data_type_code</span><span class="p">,</span>
-        <span class="s2">&quot;type_description&quot;</span><span class="p">:</span> <span class="n">type_description</span><span class="p">,</span>
-        <span class="s2">&quot;dat_type&quot;</span><span class="p">:</span> <span class="n">dat_type</span><span class="p">,</span>
-        <span class="s2">&quot;dat_type_description&quot;</span><span class="p">:</span> <span class="n">dat_type_description</span><span class="p">,</span>
-        <span class="s2">&quot;location_type&quot;</span><span class="p">:</span> <span class="n">location_type</span><span class="p">,</span>
+        <span class="n">TYPE_ATTR_KEY</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">data_type_code</span><span class="p">),</span>
+        <span class="n">TYPE_DESCRIPTION_ATTR_KEY</span><span class="p">:</span> <span class="n">type_description</span><span class="p">,</span>
+        <span class="n">DAT_TYPE_ATTR_KEY</span><span class="p">:</span> <span class="n">dat_type</span><span class="p">,</span>
+        <span class="n">DAT_TYPE_DESCRIPTION_ATTR_KEY</span><span class="p">:</span> <span class="n">dat_type_description</span><span class="p">,</span>
+        <span class="n">LOCATION_TYPE_ATTR_KEY</span><span class="p">:</span> <span class="n">location_type</span><span class="p">,</span>
     <span class="p">}</span>
 </code></pre></div></td></tr></table></div>
             </details>

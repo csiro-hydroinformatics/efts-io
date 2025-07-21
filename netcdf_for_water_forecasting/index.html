@@ -1,0 +1,3557 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Ensemble forecast time series">
+      
+      
+      
+        <link rel="canonical" href="https://csiro-hydroinformatics.github.io/efts-io/netcdf_for_water_forecasting/">
+      
+      
+        <link rel="prev" href="../license/">
+      
+      
+        <link rel="next" href="../nb/basic_usage/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.34">
+    
+    
+      
+        <title>STF 2.0 specifications - efts-io</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.35f28582.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_markdown_exec_pyodide.css">
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../css/material.css">
+    
+      <link rel="stylesheet" href="../css/mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#netcdf-for-water-forecasting-conventions-v20" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="efts-io" class="md-header__button md-logo" aria-label="efts-io" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            efts-io
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              STF 2.0 specifications
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="lime"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/csiro-hydroinformatics/efts-io" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    csiro-hydroinformatics/efts-io
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href=".." class="md-tabs__link">
+          
+  
+    
+  
+  Home
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../nb/basic_usage/" class="md-tabs__link">
+          
+  
+    
+  
+  Examples
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      
+  
+  
+  
+    
+    
+      
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../reference/efts_io/" class="md-tabs__link">
+          
+  
+    
+  
+  API reference
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../contributing/" class="md-tabs__link">
+          
+  
+    
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="efts-io" class="md-nav__button md-logo" aria-label="efts-io" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    efts-io
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/csiro-hydroinformatics/efts-io" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    csiro-hydroinformatics/efts-io
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href=".." class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Home
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Changelog
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../credits/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Credits
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../license/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    License
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    STF 2.0 specifications
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    STF 2.0 specifications
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#foreword" class="md-nav__link">
+    <span class="md-ellipsis">
+      Foreword
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      Purpose
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#netcdf-introduction-and-terms" class="md-nav__link">
+    <span class="md-ellipsis">
+      NetCDF Introduction and Terms
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Version
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schematic" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schematic
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schematic">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global Attributes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list-of-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      List of Variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mandatory-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mandatory Variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Optional Variables
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description-of-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description of Variables
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Description of Variables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#time" class="md-nav__link">
+    <span class="md-ellipsis">
+      time
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="time">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#station_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      station_id
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="station_id">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#station_name" class="md-nav__link">
+    <span class="md-ellipsis">
+      station_name
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="station_name">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ens_member" class="md-nav__link">
+    <span class="md-ellipsis">
+      ens_member
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ens_member">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lead_time" class="md-nav__link">
+    <span class="md-ellipsis">
+      lead_time
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="lead_time">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lat" class="md-nav__link">
+    <span class="md-ellipsis">
+      lat
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="lat">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lon" class="md-nav__link">
+    <span class="md-ellipsis">
+      lon
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="lon">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#y" class="md-nav__link">
+    <span class="md-ellipsis">
+      y
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="y">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#x" class="md-nav__link">
+    <span class="md-ellipsis">
+      x
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="x">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#area" class="md-nav__link">
+    <span class="md-ellipsis">
+      area
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="area">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#elevation" class="md-nav__link">
+    <span class="md-ellipsis">
+      elevation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="elevation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pet_obsrain_obsq_obsswe_obstmin_obstmax_obstave_obs" class="md-nav__link">
+    <span class="md-ellipsis">
+      pet_obs/rain_obs/q_obs/swe_obs/tmin_obs/tmax_obs/tave_obs
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="pet_obs/rain_obs/q_obs/swe_obs/tmin_obs/tmax_obs/tave_obs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pet_simrain_simq_simswe_simtmin_simtmax_simtave_sim" class="md-nav__link">
+    <span class="md-ellipsis">
+      pet_sim/rain_sim/q_sim/swe_sim/tmin_sim/tmax_sim/tave_sim
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="pet_sim/rain_sim/q_sim/swe_sim/tmin_sim/tmax_sim/tave_sim">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#variable_obs_qulvariable_sim_qul" class="md-nav__link">
+    <span class="md-ellipsis">
+      [variable]_obs_qul/[variable]_sim_qul
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[variable]_obs_qul/[variable]_sim_qul">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sv1sv2sv" class="md-nav__link">
+    <span class="md-ellipsis">
+      sv1/sv2/sv[#]
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="sv1/sv2/sv[#]">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description-of-time-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description of time types
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description-of-data-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description of data types
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Examples
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nb/basic_usage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Basic use
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nb/design_rationale/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Design rationale
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    API reference
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            API reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    efts-io
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            efts-io
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_1" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../reference/efts_io/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code> efts_io
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_1_1" id="__nav_3_1_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code> efts_io
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/efts_io/attributes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code> attributes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/efts_io/cli/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code> cli
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/efts_io/conventions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code> conventions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/efts_io/debug/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code> debug
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/efts_io/dimensions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code> dimensions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/efts_io/helpers/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code> helpers
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/efts_io/variables/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code> variables
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/efts_io/wrapper/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code> wrapper
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Development
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Development
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contributing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_of_conduct/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Code of Conduct
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../coverage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Coverage report
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tech_notes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tech notes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#foreword" class="md-nav__link">
+    <span class="md-ellipsis">
+      Foreword
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      Purpose
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#netcdf-introduction-and-terms" class="md-nav__link">
+    <span class="md-ellipsis">
+      NetCDF Introduction and Terms
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Version
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schematic" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schematic
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schematic">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global Attributes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list-of-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      List of Variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mandatory-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mandatory Variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Optional Variables
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description-of-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description of Variables
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Description of Variables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#time" class="md-nav__link">
+    <span class="md-ellipsis">
+      time
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="time">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#station_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      station_id
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="station_id">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#station_name" class="md-nav__link">
+    <span class="md-ellipsis">
+      station_name
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="station_name">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ens_member" class="md-nav__link">
+    <span class="md-ellipsis">
+      ens_member
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ens_member">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lead_time" class="md-nav__link">
+    <span class="md-ellipsis">
+      lead_time
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="lead_time">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lat" class="md-nav__link">
+    <span class="md-ellipsis">
+      lat
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="lat">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lon" class="md-nav__link">
+    <span class="md-ellipsis">
+      lon
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="lon">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#y" class="md-nav__link">
+    <span class="md-ellipsis">
+      y
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="y">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#x" class="md-nav__link">
+    <span class="md-ellipsis">
+      x
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="x">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#area" class="md-nav__link">
+    <span class="md-ellipsis">
+      area
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="area">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#elevation" class="md-nav__link">
+    <span class="md-ellipsis">
+      elevation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="elevation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pet_obsrain_obsq_obsswe_obstmin_obstmax_obstave_obs" class="md-nav__link">
+    <span class="md-ellipsis">
+      pet_obs/rain_obs/q_obs/swe_obs/tmin_obs/tmax_obs/tave_obs
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="pet_obs/rain_obs/q_obs/swe_obs/tmin_obs/tmax_obs/tave_obs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pet_simrain_simq_simswe_simtmin_simtmax_simtave_sim" class="md-nav__link">
+    <span class="md-ellipsis">
+      pet_sim/rain_sim/q_sim/swe_sim/tmin_sim/tmax_sim/tave_sim
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="pet_sim/rain_sim/q_sim/swe_sim/tmin_sim/tmax_sim/tave_sim">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#variable_obs_qulvariable_sim_qul" class="md-nav__link">
+    <span class="md-ellipsis">
+      [variable]_obs_qul/[variable]_sim_qul
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[variable]_obs_qul/[variable]_sim_qul">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sv1sv2sv" class="md-nav__link">
+    <span class="md-ellipsis">
+      sv1/sv2/sv[#]
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="sv1/sv2/sv[#]">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dimensions_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dimensions:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attributes_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description-of-time-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description of time types
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description-of-data-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description of data types
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+    <a href="https://github.com/csiro-hydroinformatics/efts-io/edit/main/docs/netcdf_for_water_forecasting.md" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/csiro-hydroinformatics/efts-io/raw/main/docs/netcdf_for_water_forecasting.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
+    </a>
+  
+
+
+<h1 id="netcdf-for-water-forecasting-conventions-v20">NetCDF for Water Forecasting Conventions v2.0<a class="headerlink" href="#netcdf-for-water-forecasting-conventions-v20" title="Permanent link">&para;</a></h1>
+<h2 id="foreword">Foreword<a class="headerlink" href="#foreword" title="Permanent link">&para;</a></h2>
+<p>The <a href="https://github.com/jmp75/efts/blob/master/docs/netcdf_for_water_forecasting.md">present document at the efts repository</a> is a possibly temporary copy for convenient reference. The point of truth is at <a href="https://confluence.csiro.au/display/wirada/netCDF+for+Water+Forecasting+Specification+v2.0">this location</a> which is not yet public as of March 2018. </p>
+<p>Credits for the original document go to <a href="https://people-my.csiro.au/B/J/james-bennett">James Bennett (CSIRO)</a> </p>
+<h2 id="purpose">Purpose<a class="headerlink" href="#purpose" title="Permanent link">&para;</a></h2>
+<p>Plain text files are not well suited to storing the large volumes of data generated for and by ensemble streamflow forecasts with numerical weather prediction models. netCDF is a binary file format developed primarily for climate, ocean and meteorological data. Detailed, formalised descriptions of the data (metadata) can be included inside the netCDF file, and netCDF can store highly compressed data, making the format suitable for the STF project. However, netCDF has traditionally been used to store time slices of gridded data, rather than complete time series of point data. This document describes the conventions we have developed for storing complete time series data used in ensemble streamflow forecasting in netCDF.</p>
+<h2 id="netcdf-introduction-and-terms">NetCDF Introduction and Terms<a class="headerlink" href="#netcdf-introduction-and-terms" title="Permanent link">&para;</a></h2>
+<p>NetCDF is a binary format, which renders it unintelligible to text editors. It also results in a significant decrease in data size, dis-ambiguity in format, platform independence and implementation independence. The implementation independence arises from the usage of standard libraries for reading and writing in NetCDF format. All tools in this project which use netCDF format, including SWIFT, use these libraries.</p>
+<p>The netCDF format uses dimensions, and variables, to store data. Data is stored in variables, each variable can be considered as an array, and is independent of each other variable. The data space of these variables is defined by the dimensions. For example, for a gridded rainfall data set, the dimensions may be latitude and longitude, and the variable may be millimetres per day.</p>
+<p>Metadata is stored in netCDF format as attributes. Attributes can be defined as global, applying to the whole data set, or defined as specific to a variable. For instance, the origin of a variable (e.g. Rain gauge) may be stored specifically for that variable, whereas the agency responsible for the data set may be stored as a global attribute.</p>
+<h2 id="version">Version<a class="headerlink" href="#version" title="Permanent link">&para;</a></h2>
+<p>This is the second version of this specification. </p>
+<h2 id="schematic">Schematic<a class="headerlink" href="#schematic" title="Permanent link">&para;</a></h2>
+<p>The netCDF specification has been inspired by the Deltares NETCDF-CF_TIMESERIES structure for compatibilities purposes.</p>
+<h3 id="dimensions">Dimensions<a class="headerlink" href="#dimensions" title="Permanent link">&para;</a></h3>
+<p>The netCDF files have five required dimensions:</p>
+<ul>
+<li>"time" (NF90_FLOAT) - a floating point of unlimited length</li>
+<li>"station" (NF90_INT) - an integer of fixed length</li>
+<li>"lead_time" (NF90_FLOAT) - a floating point of fixed length. "lead_time" is implicitly linked to the "time" dimension. lead_time zero is the same date and time as the time dimension and therefore not expected as a legitimate value in the variable "lead_time" for data types described in this specification (see Description of time types).</li>
+<li>"ens_member" (NF90_INT)  - an integer of fixed length</li>
+<li>"strLen" (NF90_INT) - an integer of fixed length = 30. (Strings are implemented as character arrays of length 30.)</li>
+</ul>
+<h3 id="global-attributes">Global Attributes<a class="headerlink" href="#global-attributes" title="Permanent link">&para;</a></h3>
+<p>STF NetCDF files have the following global attributes:</p>
+<ul>
+<li>"title" - (string) A succinct description of what is in the dataset (no format or text is specified for this description). E.g. Title = 'Rainfall forecasts generated by ACCESS'</li>
+<li>"institution" - (string) Specifies where the original data was produced. e.g. 'CSIRO Land &amp; Water'</li>
+<li>"source" -  (string) Published or web-based references that describe the data or methods used to produce it.</li>
+<li>"catchment" - (string) specifies the catchment for which the data is created. If any of the data in the file are area-averaged over subareas delineated for a particular catchment model, this attribute must be included. The "Catchment" should be reflected in any folder structures used to run the catchment model. The "Catchment" attribute may not contain spaces. Underscores are permitted. E.g. Catchment = 'South_Esk'</li>
+<li>"STF_convention_version" - (float) gives the version of STF convention that the data is. The current version of the STF convention is 2.0. This version is required to ensure project tools can correctly read the data file.</li>
+<li>"STF_nc_spec" -  (string) gives the location of the convention file. At present, this is this website; i.e.: STF_nc_spec   = '<a href="https://wiki.csiro.au/display/wirada/NetCDF+for+Short-Term+Forecasting/">https://wiki.csiro.au/display/wirada/NetCDF+for+Short-Term+Forecasting/</a>'</li>
+<li>"comment" -  (string) miscellaneous information about the data or methods used to produce it.</li>
+<li>"history" -  (string) Provides an audit trail for modifications to the original data. Well-behaved generic netCDF filters will automatically append their name and the parameters with which they were invoked to the global history attribute of an input netCDF file. Each line begins with a timestamp (e.g. 1970-01-01 00:00:00) indicating the date and time of day that the program was executed.</li>
+</ul>
+<h3 id="list-of-variables">List of Variables<a class="headerlink" href="#list-of-variables" title="Permanent link">&para;</a></h3>
+<p>The following abbreviations are used to construct variable names:  </p>
+<ul>
+<li>q - streamflow</li>
+<li>pet - potential evapotranspiration </li>
+<li>rain - rainfall</li>
+<li>sv - state variable</li>
+<li>qul - data quality</li>
+<li>obs - observed</li>
+<li>sim - simulated</li>
+</ul>
+<h3 id="mandatory-variables">Mandatory Variables<a class="headerlink" href="#mandatory-variables" title="Permanent link">&para;</a></h3>
+<p>The data set requires the following variables (dimensions are in brackets):</p>
+<ul>
+<li>float time(time)</li>
+<li>int station_id(station)</li>
+<li>char station_name(strLen, station)</li>
+<li>int ens_member(ens_member)  </li>
+<li>float lead_time(lead_time) </li>
+<li>float lat (station)</li>
+<li>float lon (station)</li>
+</ul>
+<h3 id="optional-variables">Optional Variables<a class="headerlink" href="#optional-variables" title="Permanent link">&para;</a></h3>
+<p>Optional variables (dimensions given in brackets):</p>
+<p>Geolocation:</p>
+<ul>
+<li>float y (station)</li>
+<li>float x (station)</li>
+<li>float area (station)</li>
+<li>float elevation (station) </li>
+</ul>
+<p>Observations and simulations:</p>
+<ul>
+<li>float rain_obs (lead_time, station, ens_member, time)</li>
+<li>float q_obs (lead_time, station, ens_member, time)</li>
+<li>float pet_obs (lead_time, station, ens_member, time) </li>
+<li>float q_sim (lead_time, station, ens_member, time)</li>
+<li>float rain_sim (lead_time, station, ens_member, time)</li>
+<li>float pet_sim (lead_time, station, ens_member, time)</li>
+<li>float sv[#] (lead_time, station, ens_member, time)</li>
+</ul>
+<p>Quality codes:</p>
+<ul>
+<li>float rain_obs_qul (lead_time, station, ens_member, time)</li>
+<li>float q_obs_qul (lead_time, station, ens_member, time)</li>
+<li>float pet_obs_qul (lead_time, station, ens_member, time)</li>
+<li>float rain_sim_qul (lead_time, station, ens_member, time)</li>
+<li>float q_sim_qul (lead_time, station, ens_member, time)</li>
+<li>float pet_sim_qul (lead_time, station, ens_member, time)</li>
+</ul>
+<h2 id="description-of-variables">Description of Variables<a class="headerlink" href="#description-of-variables" title="Permanent link">&para;</a></h2>
+<p>Dimensions and attributes of mandatory and optional variables are described below. </p>
+<h3 id="time">time<a class="headerlink" href="#time" title="Permanent link">&para;</a></h3>
+<p>Description: Time vector (int32)</p>
+<h4 id="dimensions_1">Dimensions:<a class="headerlink" href="#dimensions_1" title="Permanent link">&para;</a></h4>
+<ol>
+<li>time </li>
+</ol>
+<h4 id="attributes">Attributes<a class="headerlink" href="#attributes" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The short name for the variable</td>
+<td>standard_name</td>
+<td>String</td>
+<td>time</td>
+</tr>
+<tr>
+<td>The long name for the variable</td>
+<td>long_name</td>
+<td>String</td>
+<td>time</td>
+</tr>
+<tr>
+<td>Time units</td>
+<td>units</td>
+<td>String</td>
+<td>hours since 1970-01-01 00:00:00.0 +0000</td>
+</tr>
+<tr>
+<td>Time standard from which times are offset</td>
+<td>time_standard</td>
+<td>String</td>
+<td>UTC</td>
+</tr>
+<tr>
+<td>Axis label</td>
+<td>axis</td>
+<td>String</td>
+<td>t</td>
+</tr>
+</tbody>
+</table>
+<p>The units can also be days or months since 1970-01-01. They are in UTC by default.</p>
+<p><strong>NB#1: Using units of months requires special treatment. When adding months to a given time, the addition method depends on the day of the month of the time units, as follows:</strong></p>
+<ol>
+<li>If the day of the month specified in the time units is less than 24, simply add months. E.g. time units are 'months since 1970-02-15 00:00:00.0 +0000'. Adding one month yields a time stamp of 1970-03-15 00:00:00.0 +0000</li>
+<li>If the day of month is greater than or equal to 24, the time stamp is calculated by counting back from the end of a given month. E.g. time units are 'months since 1970-02-26 00:00:00.0 +0000'. Adding one month yields a time stamp of 1970-03-29 00:00:00.0 +0000</li>
+</ol>
+<p><strong>NB#2: When data are not forecasts, the first value should indicate over which period the variables are aggregated - i.e., do use values of zero (see Description of time types).</strong></p>
+<h3 id="station_id">station_id<a class="headerlink" href="#station_id" title="Permanent link">&para;</a></h3>
+<p>Description: Station identification number (int32)</p>
+<h4 id="dimensions_2">Dimensions:<a class="headerlink" href="#dimensions_2" title="Permanent link">&para;</a></h4>
+<ol>
+<li>station</li>
+</ol>
+<h4 id="attributes_1">Attributes<a class="headerlink" href="#attributes_1" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The long name for the variable</td>
+<td>long_name</td>
+<td>String</td>
+<td>station or node identification code</td>
+</tr>
+</tbody>
+</table>
+<h3 id="station_name">station_name<a class="headerlink" href="#station_name" title="Permanent link">&para;</a></h3>
+<p>Description: Station name (string)</p>
+<h4 id="dimensions_3">Dimensions:<a class="headerlink" href="#dimensions_3" title="Permanent link">&para;</a></h4>
+<ol>
+<li>strLen</li>
+<li>station</li>
+</ol>
+<h4 id="attributes_2">Attributes<a class="headerlink" href="#attributes_2" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The long name for the variable</td>
+<td>long_name</td>
+<td>String</td>
+<td>station or node name</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ens_member">ens_member<a class="headerlink" href="#ens_member" title="Permanent link">&para;</a></h3>
+<p>Description: Vector of length equal to 1:no. of ensemble members. Vector has a minimum length of 1. (int32)</p>
+<h4 id="dimensions_4">Dimensions:<a class="headerlink" href="#dimensions_4" title="Permanent link">&para;</a></h4>
+<ol>
+<li>ens_member</li>
+</ol>
+<h4 id="attributes_3">Attributes<a class="headerlink" href="#attributes_3" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The short name for the variable</td>
+<td>standard_name</td>
+<td>String</td>
+<td>ens_member</td>
+</tr>
+<tr>
+<td>The long name for the variable</td>
+<td>long_name</td>
+<td>String</td>
+<td>ensemble member</td>
+</tr>
+<tr>
+<td>Units</td>
+<td>units</td>
+<td>String</td>
+<td>member id</td>
+</tr>
+<tr>
+<td>Axis label</td>
+<td>axis</td>
+<td>String</td>
+<td>u</td>
+</tr>
+</tbody>
+</table>
+<h3 id="lead_time">lead_time<a class="headerlink" href="#lead_time" title="Permanent link">&para;</a></h3>
+<p>Description: Vector giving time since a forecast was issued. If the variable is not a forecast, this vector can have length of zero (int32)</p>
+<h4 id="dimensions_5">Dimensions:<a class="headerlink" href="#dimensions_5" title="Permanent link">&para;</a></h4>
+<ol>
+<li>lead_time</li>
+</ol>
+<h4 id="attributes_4">Attributes<a class="headerlink" href="#attributes_4" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The short name for the variable</td>
+<td>standard_name</td>
+<td>String</td>
+<td>lead time</td>
+</tr>
+<tr>
+<td>The long name for the variable</td>
+<td>long_name</td>
+<td>String</td>
+<td>forecast lead time</td>
+</tr>
+<tr>
+<td>Units</td>
+<td>units</td>
+<td>String</td>
+<td>hours since time</td>
+</tr>
+<tr>
+<td>Axis label</td>
+<td>axis</td>
+<td>String</td>
+<td>u</td>
+</tr>
+</tbody>
+</table>
+<p>The units can also be days or months since time of forecast.</p>
+<ul>
+<li><strong>NB#1: Unit of lead_time does not have equal the unit of time (e.g. time might be "hours since..." and lead_time can be "months since time")</strong></li>
+<li><strong>NB#2: Using units of months requires special treatment. See time variable, above</strong></li>
+<li><strong>NB#3: As the time is relative no time zone is required.</strong></li>
+<li><strong>NB#4: A value of zero is not expected in this variable for all data types described in this specification (see Description of time types).</strong></li>
+</ul>
+<h3 id="lat">lat<a class="headerlink" href="#lat" title="Permanent link">&para;</a></h3>
+<p>Description: Vector of latitudes of stations in decimal degrees (single)</p>
+<h4 id="dimensions_6">Dimensions:<a class="headerlink" href="#dimensions_6" title="Permanent link">&para;</a></h4>
+<ol>
+<li>station</li>
+</ol>
+<h4 id="attributes_5">Attributes<a class="headerlink" href="#attributes_5" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The long name for the variable</td>
+<td>long_name</td>
+<td>String</td>
+<td>latitude</td>
+</tr>
+<tr>
+<td>Units</td>
+<td>units</td>
+<td>String</td>
+<td>degrees_north</td>
+</tr>
+<tr>
+<td>Axis label</td>
+<td>axis</td>
+<td>String</td>
+<td>y</td>
+</tr>
+</tbody>
+</table>
+<h3 id="lon">lon<a class="headerlink" href="#lon" title="Permanent link">&para;</a></h3>
+<p>Description: Vector of longitudes of stations in decimal degrees (single)</p>
+<h4 id="dimensions_7">Dimensions:<a class="headerlink" href="#dimensions_7" title="Permanent link">&para;</a></h4>
+<ol>
+<li>station</li>
+</ol>
+<h4 id="attributes_6">Attributes<a class="headerlink" href="#attributes_6" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The long name for the variable</td>
+<td>long_name</td>
+<td>String</td>
+<td>longitude</td>
+</tr>
+<tr>
+<td>Units</td>
+<td>units</td>
+<td>String</td>
+<td>degrees_east</td>
+</tr>
+<tr>
+<td>Axis label</td>
+<td>axis</td>
+<td>String</td>
+<td>x</td>
+</tr>
+</tbody>
+</table>
+<h3 id="y">y<a class="headerlink" href="#y" title="Permanent link">&para;</a></h3>
+<p>Description: Position vector in projected coordinates (single)</p>
+<h4 id="dimensions_8">Dimensions:<a class="headerlink" href="#dimensions_8" title="Permanent link">&para;</a></h4>
+<ol>
+<li>station</li>
+</ol>
+<h4 id="attributes_7">Attributes<a class="headerlink" href="#attributes_7" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The short name for the variable</td>
+<td>standard_name</td>
+<td>String</td>
+<td>northing_GDA94_zone55</td>
+</tr>
+<tr>
+<td>The long name for the variable</td>
+<td>long_name</td>
+<td>String</td>
+<td>northing from the GDA94 datum in MGA Zone 55</td>
+</tr>
+<tr>
+<td>Axis label</td>
+<td>axis</td>
+<td>String</td>
+<td>y</td>
+</tr>
+</tbody>
+</table>
+<h3 id="x">x<a class="headerlink" href="#x" title="Permanent link">&para;</a></h3>
+<p>Description: Position vector in projected coordinates (single)</p>
+<h4 id="dimensions_9">Dimensions:<a class="headerlink" href="#dimensions_9" title="Permanent link">&para;</a></h4>
+<ol>
+<li>station</li>
+</ol>
+<h4 id="attributes_8">Attributes<a class="headerlink" href="#attributes_8" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The short name for the variable</td>
+<td>standard_name</td>
+<td>String</td>
+<td>easting_GDA94_zone55</td>
+</tr>
+<tr>
+<td>The long name for the variable</td>
+<td>long_name</td>
+<td>String</td>
+<td>easting from the GDA94 datum in MGA Zone 55</td>
+</tr>
+<tr>
+<td>Axis label</td>
+<td>axis</td>
+<td>String</td>
+<td>x</td>
+</tr>
+</tbody>
+</table>
+<h3 id="area">area<a class="headerlink" href="#area" title="Permanent link">&para;</a></h3>
+<p>Description: Area over which non-point data apply (e.g. subcatchment area) (single)</p>
+<h4 id="dimensions_10">Dimensions:<a class="headerlink" href="#dimensions_10" title="Permanent link">&para;</a></h4>
+<ol>
+<li>station</li>
+</ol>
+<h4 id="attributes_9">Attributes<a class="headerlink" href="#attributes_9" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The short name for the variable</td>
+<td>standard_name</td>
+<td>String</td>
+<td>area</td>
+</tr>
+<tr>
+<td>The long name for the variable</td>
+<td>long_name</td>
+<td>String</td>
+<td>station area</td>
+</tr>
+<tr>
+<td>Units</td>
+<td>units</td>
+<td>String</td>
+<td>sqm</td>
+</tr>
+</tbody>
+</table>
+<h3 id="elevation">elevation<a class="headerlink" href="#elevation" title="Permanent link">&para;</a></h3>
+<p>Description: Elevation of station (single)</p>
+<h4 id="dimensions_11">Dimensions:<a class="headerlink" href="#dimensions_11" title="Permanent link">&para;</a></h4>
+<ol>
+<li>station</li>
+</ol>
+<h4 id="attributes_10">Attributes<a class="headerlink" href="#attributes_10" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The short name for the variable</td>
+<td>standard_name</td>
+<td>String</td>
+<td>elevation</td>
+</tr>
+<tr>
+<td>The long name for the variable</td>
+<td>long_name</td>
+<td>String</td>
+<td>station elevation above sea level</td>
+</tr>
+<tr>
+<td>Units</td>
+<td>units</td>
+<td>String</td>
+<td>m</td>
+</tr>
+</tbody>
+</table>
+<h3 id="pet_obsrain_obsq_obsswe_obstmin_obstmax_obstave_obs">pet_obs/rain_obs/q_obs/swe_obs/tmin_obs/tmax_obs/tave_obs<a class="headerlink" href="#pet_obsrain_obsq_obsswe_obstmin_obstmax_obstave_obs" title="Permanent link">&para;</a></h3>
+<p>Description: Observed data (double)</p>
+<p>pet = potential evapotranspiration ; rain = precipitation; q = streamflow; swe = snow water equivalent, tmin = minimum surface air temperature; tmax = maximum surface air temperature</p>
+<p>Example: q_obs</p>
+<h4 id="dimensions_12">Dimensions:<a class="headerlink" href="#dimensions_12" title="Permanent link">&para;</a></h4>
+<ol>
+<li>lead_time</li>
+<li>station</li>
+<li>ens_member</li>
+<li>time</li>
+</ol>
+<h4 id="attributes_11">Attributes<a class="headerlink" href="#attributes_11" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The long name for the variable</td>
+<td>long_name</td>
+<td>String</td>
+<td>observed rainfall</td>
+</tr>
+<tr>
+<td>Units</td>
+<td>units</td>
+<td>String</td>
+<td>mm</td>
+</tr>
+<tr>
+<td>Missing data value</td>
+<td>_FillValue</td>
+<td>float</td>
+<td>-9999f</td>
+</tr>
+<tr>
+<td>Type of aggregation</td>
+<td>type</td>
+<td>int</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Description of type of aggregation.</td>
+<td>type_description</td>
+<td>String</td>
+<td>accumulated over the preceding interval</td>
+</tr>
+<tr>
+<td>Type of data. Code as follows: "obs" - observed directly; "der" - derived from observations</td>
+<td>dat_type</td>
+<td>string</td>
+<td>der</td>
+</tr>
+<tr>
+<td>Description of type of data</td>
+<td>dat_type_description</td>
+<td>string</td>
+<td>AWAP data interpolated from observations</td>
+</tr>
+<tr>
+<td>Location type of data. Takes value of "Point" (e.g. for a rain gauge) or "Area" (e.g. for a subarea). Default value is "Point".</td>
+<td>location_type</td>
+<td>String</td>
+<td>Point</td>
+</tr>
+</tbody>
+</table>
+<h3 id="pet_simrain_simq_simswe_simtmin_simtmax_simtave_sim">pet_sim/rain_sim/q_sim/swe_sim/tmin_sim/tmax_sim/tave_sim<a class="headerlink" href="#pet_simrain_simq_simswe_simtmin_simtmax_simtave_sim" title="Permanent link">&para;</a></h3>
+<p>Description: Simulated data (double)</p>
+<p>pet = potential evapotranspiration ; rain = precipitation; q = streamflow; swe = snow water equivalent, Tmin = minimum surface air temperature; Tmax = maximum surface air temperature</p>
+<h4 id="dimensions_13">Dimensions:<a class="headerlink" href="#dimensions_13" title="Permanent link">&para;</a></h4>
+<ol>
+<li>lead_time</li>
+<li>station</li>
+<li>ens_member</li>
+<li>time</li>
+</ol>
+<h4 id="attributes_12">Attributes<a class="headerlink" href="#attributes_12" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The long name for the variable</td>
+<td>long_name</td>
+<td>String</td>
+<td>simulated rainfall</td>
+</tr>
+<tr>
+<td>Units</td>
+<td>units</td>
+<td>String</td>
+<td>m3/s</td>
+</tr>
+<tr>
+<td>Missing data value</td>
+<td>_FillValue</td>
+<td>float</td>
+<td>-9999f</td>
+</tr>
+<tr>
+<td>Type of aggregation</td>
+<td>type</td>
+<td>int</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Description of type of aggregation.</td>
+<td>type_description</td>
+<td>String</td>
+<td>averaged over the preceding interval</td>
+</tr>
+<tr>
+<td>Type of data. Code as follows: "sim" - simulated from historical forcings; "fct" - forecast</td>
+<td>dat_type</td>
+<td>string</td>
+<td>fct</td>
+</tr>
+<tr>
+<td>Description of type of data</td>
+<td>dat_type_description</td>
+<td>string</td>
+<td>forecast data</td>
+</tr>
+<tr>
+<td>Location type of data. Takes value of "Point" (e.g. for a rain gauge) or "Area" (e.g. for a subarea). Default value is "Point".</td>
+<td>location_type</td>
+<td>String</td>
+<td>Point</td>
+</tr>
+</tbody>
+</table>
+<h3 id="variable_obs_qulvariable_sim_qul"><code>[variable]_obs_qul/[variable]_sim_qul</code><a class="headerlink" href="#variable_obs_qulvariable_sim_qul" title="Permanent link">&para;</a></h3>
+<p>Description: Data quality</p>
+<h4 id="dimensions_14">Dimensions:<a class="headerlink" href="#dimensions_14" title="Permanent link">&para;</a></h4>
+<ol>
+<li>lead_time</li>
+<li>station</li>
+<li>ens_member</li>
+<li>time</li>
+</ol>
+<h4 id="attributes_13">Attributes<a class="headerlink" href="#attributes_13" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The long name for the variable</td>
+<td>long_name</td>
+<td>String</td>
+<td>Quality of observed rainfall</td>
+</tr>
+<tr>
+<td>Quality code standard</td>
+<td>units</td>
+<td>String</td>
+<td>ABC Quality coding</td>
+</tr>
+<tr>
+<td>Missing data value</td>
+<td>_FillValue</td>
+<td>int</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sv1sv2sv">sv1/sv2/sv[#]<a class="headerlink" href="#sv1sv2sv" title="Permanent link">&para;</a></h3>
+<p>Description: State variables (double)</p>
+<h4 id="dimensions_15">Dimensions:<a class="headerlink" href="#dimensions_15" title="Permanent link">&para;</a></h4>
+<ol>
+<li>lead_time</li>
+<li>station</li>
+<li>ens_member</li>
+<li>time</li>
+</ol>
+<h4 id="attributes_14">Attributes<a class="headerlink" href="#attributes_14" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Name</th>
+<th>Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The long name for the variable</td>
+<td>long_name</td>
+<td>String</td>
+<td>state var 1</td>
+</tr>
+<tr>
+<td>Name of model</td>
+<td>model_name</td>
+<td>String</td>
+<td>GR4H_RR</td>
+</tr>
+<tr>
+<td>Name of state variable in model</td>
+<td>sv_name</td>
+<td>String</td>
+<td>UH_Inflow</td>
+</tr>
+<tr>
+<td>Description of state variable</td>
+<td>sv_description</td>
+<td>String</td>
+<td>Total inflow to Unit Hydrographs in GR4H</td>
+</tr>
+<tr>
+<td>Missing data value</td>
+<td>_FillValue</td>
+<td>float</td>
+<td>-9999f</td>
+</tr>
+</tbody>
+</table>
+<h2 id="description-of-time-types">Description of time types<a class="headerlink" href="#description-of-time-types" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type ID</th>
+<th>Description</th>
+<th>Example variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>instantaneous data</td>
+<td>stage height</td>
+</tr>
+<tr>
+<td>2</td>
+<td>accumulated over the preceding interval</td>
+<td>rainfall</td>
+</tr>
+<tr>
+<td>3</td>
+<td>averaged over the preceding interval</td>
+<td>flow, average temp</td>
+</tr>
+<tr>
+<td>4</td>
+<td>accumulated since start of forecast</td>
+<td>flow</td>
+</tr>
+<tr>
+<td>5</td>
+<td>point value recorded in the preceding interval</td>
+<td>max/min temperature</td>
+</tr>
+<tr>
+<td>11*</td>
+<td>climatology data - instantaneous data</td>
+<td>climatology stage height</td>
+</tr>
+<tr>
+<td>12*</td>
+<td>climatology data - accumulated over the preceding interval</td>
+<td>climatology rainfall</td>
+</tr>
+<tr>
+<td>13*</td>
+<td>climatology data - averaged over the preceding interval</td>
+<td>climatology flow</td>
+</tr>
+<tr>
+<td>14*</td>
+<td>climatology data - accumulated since start of forecast</td>
+<td>climatology flow</td>
+</tr>
+<tr>
+<td>15*</td>
+<td>climatology data - point value recorded in the preceding interval</td>
+<td>climatology max temp</td>
+</tr>
+</tbody>
+</table>
+<p><strong>*NB - please specify the period over which climatology data is calculated and how it is calculated in the global "comment" attribute, as well as any applicable references in the "source" global attribute.</strong></p>
+<h2 id="description-of-data-types">Description of data types<a class="headerlink" href="#description-of-data-types" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type ID</th>
+<th>Description</th>
+<th>Example variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>obs</td>
+<td>observed directly</td>
+<td>gauged rainfall</td>
+</tr>
+<tr>
+<td>der</td>
+<td>derived from observations</td>
+<td>awap rainfall</td>
+</tr>
+<tr>
+<td>sim</td>
+<td>simulated from observations</td>
+<td>flow simulated by GR4H forced by observations</td>
+</tr>
+<tr>
+<td>fct</td>
+<td>simulated from forecasts</td>
+<td>flow forecast by GR4H forced by NWP forecasts</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  <form class="md-feedback" name="feedback" hidden>
+    <fieldset>
+      <legend class="md-feedback__title">
+        Was this page helpful?
+      </legend>
+      <div class="md-feedback__inner">
+        <div class="md-feedback__list">
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m7 0c0 .8-.7 1.5-1.5 1.5S14 10.3 14 9.5 14.7 8 15.5 8s1.5.7 1.5 1.5m-5 7.73c-1.75 0-3.29-.73-4.19-1.81L9.23 14c.45.72 1.52 1.23 2.77 1.23s2.32-.51 2.77-1.23l1.42 1.42c-.9 1.08-2.44 1.81-4.19 1.81"/></svg>
+            </button>
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10m-6.5-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5-1.5-.7-1.5-1.5.7-1.5 1.5-1.5M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m2 4.5c1.75 0 3.29.72 4.19 1.81l-1.42 1.42C14.32 16.5 13.25 16 12 16s-2.32.5-2.77 1.23l-1.42-1.42C8.71 14.72 10.25 14 12 14"/></svg>
+            </button>
+          
+        </div>
+        <div class="md-feedback__note">
+          
+            <div data-md-value="1" hidden>
+              
+              
+                
+              
+              Thanks for your feedback!
+            </div>
+          
+            <div data-md-value="0" hidden>
+              
+              
+                
+              
+              Let us know how we can improve this page.
+            </div>
+          
+        </div>
+      </div>
+    </fieldset>
+  </form>
+
+<!-- Giscus -->
+<!-- https://squidfunk.github.io/mkdocs-material/setup/adding-a-comment-system/#giscus-integration -->
+<div id="feedback" style="display: none;">
+    <h2 id="__comments">Feedback</h2>
+    <script src="https://giscus.app/client.js"
+        data-repo="csiro-hydroinformatics/efts-io"
+        data-repo-id="/bin/sh: 1: gh: not found"
+        data-category="Documentation"
+        data-category-id="/bin/sh: 1: gh: not found"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="0"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+    </script>
+
+    <!-- Synchronize Giscus theme with palette -->
+    <script>
+        var giscus = document.querySelector("script[src*=giscus]")
+
+        // Set palette on initial load
+        var palette = __md_get("__palette")
+        if (palette && typeof palette.color === "object") {
+            var theme = palette.color.scheme === "slate"
+                ? "transparent_dark"
+                : "light"
+
+            // Instruct Giscus to set theme
+            giscus.setAttribute("data-theme", theme) 
+        }
+
+        // Register event handlers after documented loaded
+        document.addEventListener("DOMContentLoaded", function() {
+            var ref = document.querySelector("[data-md-component=palette]")
+            ref.addEventListener("change", function() {
+                var palette = __md_get("__palette")
+                if (palette && typeof palette.color === "object") {
+                    var theme = palette.color.scheme === "slate"
+                        ? "transparent_dark"
+                        : "light"
+
+                    // Instruct Giscus to change theme
+                    var frame = document.querySelector(".giscus-frame")
+                    frame.contentWindow.postMessage(
+                        { giscus: { setConfig: { theme } } },
+                        "https://giscus.app"
+                    )
+                }
+            })
+        })
+    </script>
+</div>
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../license/" class="md-footer__link md-footer__link--prev" aria-label="Previous: License">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                License
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../nb/basic_usage/" class="md-footer__link md-footer__link--next" aria-label="Next: Basic use">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Basic use
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2024 CSIRO
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/jmp75" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://gitter.im/efts-io/community" target="_blank" rel="noopener" title="gitter.im" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M66.4 322.5H16V0h50.4zM166.9 76.1h-50.4V512h50.4zm100.6 0h-50.4V512h50.4zM368 76h-50.4v247H368z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/efts-io/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["announce.dismiss", "content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.tooltips", "navigation.footer", "navigation.indexes", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.07f07601.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.56dfad97.min.js"></script>
+      
+        <script src="../assets/_markdown_exec_pyodide.js"></script>
+      
+        <script src="../js/feedback.js"></script>
+      
+    
+  </body>
+</html>
