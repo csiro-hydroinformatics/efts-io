@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Features
 
-- initial implementation of the `save_to_stf2` method to save data in STF2 format
+- initial implementation of the `save_to_stf2` method to save data in STF2 format. Thanks to Durga Lal Sheshtra and the Streamflow Forecasting team for providing the starting point of the implementation.
 - include sample data in the package ([9c3fcbd](https://github.com/csiro-hydroinformatics/efts-io/commit/9c3fcbdac3f336634700463f70c4985de2f9a940) by J-M).
 
 ### Bug Fixes
