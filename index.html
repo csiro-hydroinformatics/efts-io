@@ -1157,6 +1157,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#installation" class="md-nav__link">
     <span class="md-ellipsis">
       Installation
@@ -1208,18 +1217,17 @@
 <h1 id="efts-io">efts-io<a class="headerlink" href="#efts-io" title="Permanent link">&para;</a></h1>
 <p><a href="https://github.com/csiro-hydroinformatics/efts-io/actions?query=workflow%3Aci"><img alt="ci" src="https://github.com/csiro-hydroinformatics/efts-io/workflows/ci/badge.svg" /></a>
 <a href="https://csiro-hydroinformatics.github.io/efts-io/"><img alt="documentation" src="https://img.shields.io/badge/docs-mkdocs-708FCC.svg?style=flat" /></a>
-<a href="https://pypi.org/project/efts-io/"><img alt="pypi version" src="https://img.shields.io/pypi/v/efts-io.svg" /></a>
-<a href="https://gitpod.io/#https://github.com/csiro-hydroinformatics/efts-io"><img alt="gitpod" src="https://img.shields.io/badge/gitpod-workspace-708FCC.svg?style=flat" /></a>
-<a href="https://app.gitter.im/#/room/#efts-io:gitter.im"><img alt="gitter" src="https://badges.gitter.im/join%20chat.svg" /></a></p>
-<p>Ensemble forecast time series</p>
-<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
-<p><strong>Placeholder</strong>, the package is under development. See <a href="contributing/">contributing.md</a> for contributing or installing as a developer.</p>
-<!-- With `pip`:
+<a href="https://pypi.org/project/efts-io/"><img alt="pypi version" src="https://img.shields.io/pypi/v/efts-io.svg" /></a></p>
+<!-- [![gitpod](https://img.shields.io/badge/gitpod-workspace-708FCC.svg?style=flat)](https://gitpod.io/#https://github.com/csiro-hydroinformatics/efts-io)
+[![gitter](https://badges.gitter.im/join%20chat.svg)](https://app.gitter.im/#/room/#efts-io:gitter.im) -->
 
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Plain text files are not well suited to storing the large volumes of data generated for and by ensemble streamflow forecasts with numerical weather prediction models. netCDF is a binary file format developed primarily for climate, ocean and meteorological data. netCDF has traditionally been used to store time slices of gridded data, rather than complete time series of point data. <strong>efts-io</strong> is for handling the latter. It reads and writes netCDF data following the <a href="https://csiro-hydroinformatics.github.io/efts-io/netcdf_for_water_forecasting">NetCDF for Water Forecasting Conventions v2.0</a>.</p>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<p>With <code>pip</code>:</p>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>efts-io
 </code></pre></div>
-
-With [`pipx`](https://github.com/pipxproject/pipx):
+<!-- With [`pipx`](https://github.com/pipxproject/pipx):
 
 ```bash
 python -m pip install --user pipx
@@ -1227,7 +1235,7 @@ pipx install efts-io
 ``` -->
 
 <h2 id="development-workflow">Development workflow<a class="headerlink" href="#development-workflow" title="Permanent link">&para;</a></h2>
-<p>Quick link to <a href="https://pawamoy.github.io/copier-uv/work">copier-uv: Working on a project</a>, but see <a href="contributing/">contributing.md</a> for details.</p>
+<p>See <a href="contributing/">contributing.md</a> if you want to contribute. This project follows practices from a template and the page <a href="https://pawamoy.github.io/copier-uv/work">copier-uv: Working on a project</a>. Many thanks to <a href="https://pawamoy.github.io/">Timothée Mazzucotelli</a> for sharing this template.</p>
 <!-- Try to add a reference to autodoc: [get_single_series][efts_io.wrapper.EftsDataSet.get_single_series] -->
 
 
