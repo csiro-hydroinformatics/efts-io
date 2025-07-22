@@ -1,10 +1,14 @@
-# NetCDF for Water Forecasting Conventions v2.0
+# NetCDF for Water Forecasting Conventions
+
+## Version
+
+This document specifies conventions at version 2.0.
 
 ## Foreword
 
-The [present document at the efts repository](https://github.com/jmp75/efts/blob/master/docs/netcdf_for_water_forecasting.md) is a possibly temporary copy for convenient reference. The point of truth is at [this location](https://confluence.csiro.au/display/wirada/netCDF+for+Water+Forecasting+Specification+v2.0) which is not yet public as of March 2018. 
+As of July 2025 the latest version of these conventions should be available at [https://csiro-hydroinformatics.github.io/efts-io/netcdf_for_water_forecasting/](https://csiro-hydroinformatics.github.io/efts-io/netcdf_for_water_forecasting/).
 
-Credits for the original document go to [James Bennett (CSIRO)](https://people-my.csiro.au/B/J/james-bennett) 
+The initial point of truth in March 2018 is/was at [this location](https://confluence.csiro.au/display/wirada/netCDF+for+Water+Forecasting+Specification+v2.0) March 2018. Credits for the specifications go to [James Bennett (CSIRO)](https://people-my.csiro.au/B/J/james-bennett).
 
 ## Purpose
 
