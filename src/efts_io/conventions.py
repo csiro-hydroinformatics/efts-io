@@ -93,8 +93,10 @@ DAT_TYPE_DESCRIPTION_ATTR_KEY = "dat_type_description"
 DAT_TYPE_ATTR_KEY = "dat_type"
 LOCATION_TYPE_ATTR_KEY = "location_type"
 
-
-STF_2_0_URL = "https://github.com/csiro-hydroinformatics/efts/blob/d7d43a995fb5e459bcb894e09b7bb89de03e285c/docs/netcdf_for_water_forecasting.md"
+# We use a URL at a specific commit point, to be used as a file attribute.
+# STF_2_0_URL = "https://github.com/csiro-hydroinformatics/efts/blob/d7d43a995fb5e459bcb894e09b7bb89de03e285c/docs/netcdf_for_water_forecasting.md"
+# July 2025, set a new location/commit point:
+STF_2_0_URL = "https://github.com/csiro-hydroinformatics/efts-io/blob/2838c18344cb2505d202a1d9d3e9efec78a273c8/docs/netcdf_for_water_forecasting.md"
 
 
 mandatory_global_attributes = [

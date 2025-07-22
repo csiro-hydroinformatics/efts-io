@@ -22,10 +22,6 @@ The netCDF format uses dimensions, and variables, to store data. Data is stored 
 
 Metadata is stored in netCDF format as attributes. Attributes can be defined as global, applying to the whole data set, or defined as specific to a variable. For instance, the origin of a variable (e.g. Rain gauge) may be stored specifically for that variable, whereas the agency responsible for the data set may be stored as a global attribute.
 
-## Version
-
-This is the second version of this specification. 
-
 ## Schematic
 
 The netCDF specification has been inspired by the Deltares NETCDF-CF_TIMESERIES structure for compatibilities purposes.
