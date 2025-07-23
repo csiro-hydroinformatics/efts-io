@@ -23,6 +23,11 @@ ENS_MEMBER_DIMNAME = "ens_member"
 LEAD_TIME_DIMNAME = "lead_time"
 STR_LEN_DIMNAME = "strLen"
 
+# New names for in-memory representation in an xarray way
+# https://github.com/csiro-hydroinformatics/efts-io/issues/2
+STATION_ID_DIMNAME = "station_id"
+REALISATION_DIMNAME = "ens_member"
+
 # int station_id[station]
 STATION_ID_VARNAME = "station_id"
 # char station_name[str_len,station]

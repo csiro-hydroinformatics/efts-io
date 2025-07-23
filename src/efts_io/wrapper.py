@@ -22,9 +22,11 @@ from efts_io.conventions import (
     LEAD_TIME_DIMNAME,
     LON_VARNAME,
     LONG_NAME_ATTR_KEY,
+    REALISATION_DIMNAME,
     SOURCE_ATTR_KEY,
     STANDARD_NAME_ATTR_KEY,
     STATION_DIMNAME,
+    STATION_ID_DIMNAME,
     STATION_ID_VARNAME,
     STATION_NAME_VARNAME,
     STF_2_0_URL,
@@ -70,7 +72,56 @@ def _first_where(condition: np.ndarray) -> int:
         raise ValueError("first_where: Invalid condition, no element is true")
     return x[0]
 
+def load_from_stf2_file(file_path:str, time_zone_timestamps:bool):
+    from xarray.coding import times
+    # work around https://jira.csiro.au/browse/WIRADA-635
+    # lead_time can be a problem with xarray, so do not decode "times"
+    x = xr.open_dataset(file_path, decode_times=False)
 
+    # replace the time and station names coordinates values
+    # TODO This is probably not a long term solution for round-tripping a read/write or vice and versa
+    decod = times.CFDatetimeCoder(use_cftime=True)
+    var = xr.as_variable(x.coords[TIME_DIMNAME])
+    time_zone = var.attrs[TIME_STANDARD_ATTR_KEY]
+    time_coords = decod.decode(var, name=TIME_DIMNAME)
+    tz = time_zone if time_zone_timestamps else None
+    time_coords.values = cftimes_to_pdtstamps(
+        time_coords.values,
+        tz_str=tz,
+    )
+    # stat_coords = x.coords[self.STATION_DIMNAME]
+    station_names = byte_stations_to_str(x[STATION_NAME_VARNAME].values).astype(np.str_)
+    station_ids_strings = x[STATION_ID_VARNAME].values.astype(np.str_)
+    # x = x.assign_coords(
+    #     {TIME_DIMNAME: time_coords, self.STATION_DIMNAME: station_names},
+    # )
+
+    # Create a new dataset with the desired structure
+    new_dataset = xr.Dataset(
+        coords={
+            REALISATION_DIMNAME: (REALISATION_DIMNAME, x[ENS_MEMBER_DIMNAME].values),
+            LEAD_TIME_DIMNAME: (LEAD_TIME_DIMNAME, x[LEAD_TIME_DIMNAME].values),
+            STATION_ID_DIMNAME: (STATION_ID_DIMNAME, station_ids_strings),
+            TIME_DIMNAME: (TIME_DIMNAME, time_coords),
+        },
+        attrs=x.attrs,
+    )
+
+    # Copy data variables from the original dataset
+    for var_name in x.data_vars:
+        if var_name not in (STATION_ID_VARNAME, STATION_NAME_VARNAME):
+            new_dataset[var_name] = x[var_name].rename({
+                ENS_MEMBER_DIMNAME: REALISATION_DIMNAME,
+                STATION_DIMNAME: STATION_ID_DIMNAME,
+            })
+    # STATION_NAME_VARNAME
+    new_station_names_var = x[STATION_NAME_VARNAME].rename({
+        STATION_DIMNAME: STATION_ID_DIMNAME,
+    })
+    new_station_names_var.values = station_names
+    new_dataset[STATION_NAME_VARNAME] = new_station_names_var
+
+    return new_dataset
 class EftsDataSet:
     """Convenience class for access to a Ensemble Forecast Time Series in netCDF file."""
 
@@ -121,12 +172,38 @@ class EftsDataSet:
                 tz_str=tz,
             )
             # stat_coords = x.coords[self.STATION_DIMNAME]
-            station_names = byte_stations_to_str(x[STATION_NAME_VARNAME].values)
-            x = x.assign_coords(
-                {TIME_DIMNAME: time_coords, self.STATION_DIMNAME: station_names},
+            station_names = byte_stations_to_str(x[STATION_NAME_VARNAME].values).astype(np.str_)
+            station_ids_strings = x[STATION_ID_VARNAME].values.astype(np.str_)
+            # x = x.assign_coords(
+            #     {TIME_DIMNAME: time_coords, self.STATION_DIMNAME: station_names},
+            # )
+
+            # Create a new dataset with the desired structure
+            new_dataset = xr.Dataset(
+                coords={
+                    REALISATION_DIMNAME: (REALISATION_DIMNAME, x[ENS_MEMBER_DIMNAME].values),
+                    LEAD_TIME_DIMNAME: (LEAD_TIME_DIMNAME, x[LEAD_TIME_DIMNAME].values),
+                    STATION_ID_DIMNAME: (STATION_ID_DIMNAME, station_ids_strings),
+                    TIME_DIMNAME: (TIME_DIMNAME, time_coords),
+                },
+                attrs=x.attrs,
             )
 
-            self.data = x
+            # Copy data variables from the original dataset
+            for var_name in x.data_vars:
+                if var_name not in (STATION_ID_VARNAME, STATION_NAME_VARNAME):
+                    new_dataset[var_name] = x[var_name].rename({
+                        ENS_MEMBER_DIMNAME: REALISATION_DIMNAME,
+                        STATION_DIMNAME: STATION_ID_DIMNAME,
+                    })
+            # STATION_NAME_VARNAME
+            new_station_names_var = x[STATION_NAME_VARNAME].rename({
+                STATION_DIMNAME: STATION_ID_DIMNAME,
+            })
+            new_station_names_var.values = station_names
+            new_dataset[STATION_NAME_VARNAME] = new_station_names_var
+
+            self.data = new_dataset
         else:
             self.data = data
 
@@ -624,7 +701,7 @@ class EftsDataSet:
 #' stopifnot(file.exists(ens_fcast_file))
 #' snc = open_efts(ens_fcast_file)
 #' (variable_names = snc$get_variable_names())
-#' (stations_ids = snc$get_values('station_id'))
+#' (stations_ids = snc$get_values(STATION_ID_DIMNAME))
 #' nEns = snc$get_ensemble_size()
 #' nLead = snc$get_lead_time_count()
 #' td = snc$get_time_dim()
