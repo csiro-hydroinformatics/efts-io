@@ -72,7 +72,16 @@ def _first_where(condition: np.ndarray) -> int:
         raise ValueError("first_where: Invalid condition, no element is true")
     return x[0]
 
-def load_from_stf2_file(file_path:str, time_zone_timestamps:bool):
+def load_from_stf2_file(file_path:str, time_zone_timestamps:bool) -> xr.Dataset : # noqa: FBT001
+    """Load data from an STF 2.0 netcdf file to an xarray representation.
+
+    Args:
+        file_path (str): file path
+        time_zone_timestamps (bool): should we try to recognise the time zone and include it in each xarray time stamp?
+
+    Returns:
+        _type_: xarray Dataset
+    """
     from xarray.coding import times
     # work around https://jira.csiro.au/browse/WIRADA-635
     # lead_time can be a problem with xarray, so do not decode "times"
@@ -90,7 +99,8 @@ def load_from_stf2_file(file_path:str, time_zone_timestamps:bool):
         tz_str=tz,
     )
     # stat_coords = x.coords[self.STATION_DIMNAME]
-    station_names = byte_stations_to_str(x[STATION_NAME_VARNAME].values).astype(np.str_)
+    # see the use of astype later on in variable transfer, following line not needed. 
+    # station_names = byte_stations_to_str(x[STATION_NAME_VARNAME].values).astype(np.str_)
     station_ids_strings = x[STATION_ID_VARNAME].values.astype(np.str_)
     # x = x.assign_coords(
     #     {TIME_DIMNAME: time_coords, self.STATION_DIMNAME: station_names},
@@ -110,16 +120,19 @@ def load_from_stf2_file(file_path:str, time_zone_timestamps:bool):
     # Copy data variables from the original dataset
     for var_name in x.data_vars:
         if var_name not in (STATION_ID_VARNAME, STATION_NAME_VARNAME):
-            new_dataset[var_name] = x[var_name].rename({
-                ENS_MEMBER_DIMNAME: REALISATION_DIMNAME,
-                STATION_DIMNAME: STATION_ID_DIMNAME,
-            })
-    # STATION_NAME_VARNAME
+            rename_map = {}
+            v = x[var_name]
+            if ENS_MEMBER_DIMNAME in v.dims:
+                rename_map[ENS_MEMBER_DIMNAME] = REALISATION_DIMNAME
+            if STATION_DIMNAME in v.dims:
+                rename_map[STATION_DIMNAME] = STATION_ID_DIMNAME
+            v = v.rename(rename_map) if rename_map else v
+            new_dataset[var_name] = v
+    # STATION_NAME_VARNAME also has its values changed.
     new_station_names_var = x[STATION_NAME_VARNAME].rename({
         STATION_DIMNAME: STATION_ID_DIMNAME,
     })
-    new_station_names_var.values = station_names
-    new_dataset[STATION_NAME_VARNAME] = new_station_names_var
+    new_dataset[STATION_NAME_VARNAME] = new_station_names_var.astype(np.str_)
 
     return new_dataset
 class EftsDataSet:
@@ -144,8 +157,6 @@ class EftsDataSet:
 
     def __init__(self, data: Union[str, xr.Dataset]) -> None:
         """Create a new EftsDataSet object."""
-        from xarray.coding import times
-
         self.time_dim = None
         self.time_zone = "UTC"
         self.time_zone_timestamps = True  # Not sure about https://github.com/csiro-hydroinformatics/efts-io/issues/3
@@ -156,53 +167,7 @@ class EftsDataSet:
         # self.identifiers_dimensions: list = []
         self.data: xr.Dataset
         if isinstance(data, str):
-            # work around https://jira.csiro.au/browse/WIRADA-635
-            # lead_time can be a problem with xarray, so do not decode "times"
-            x = xr.open_dataset(data, decode_times=False)
-
-            # replace the time and station names coordinates values
-            # TODO This is probably not a long term solution for round-tripping a read/write or vice and versa
-            decod = times.CFDatetimeCoder(use_cftime=True)
-            var = xr.as_variable(x.coords[TIME_DIMNAME])
-            self.time_zone = var.attrs[TIME_STANDARD_ATTR_KEY]
-            time_coords = decod.decode(var, name=TIME_DIMNAME)
-            tz = self.time_zone if self.time_zone_timestamps else None
-            time_coords.values = cftimes_to_pdtstamps(
-                time_coords.values,
-                tz_str=tz,
-            )
-            # stat_coords = x.coords[self.STATION_DIMNAME]
-            station_names = byte_stations_to_str(x[STATION_NAME_VARNAME].values).astype(np.str_)
-            station_ids_strings = x[STATION_ID_VARNAME].values.astype(np.str_)
-            # x = x.assign_coords(
-            #     {TIME_DIMNAME: time_coords, self.STATION_DIMNAME: station_names},
-            # )
-
-            # Create a new dataset with the desired structure
-            new_dataset = xr.Dataset(
-                coords={
-                    REALISATION_DIMNAME: (REALISATION_DIMNAME, x[ENS_MEMBER_DIMNAME].values),
-                    LEAD_TIME_DIMNAME: (LEAD_TIME_DIMNAME, x[LEAD_TIME_DIMNAME].values),
-                    STATION_ID_DIMNAME: (STATION_ID_DIMNAME, station_ids_strings),
-                    TIME_DIMNAME: (TIME_DIMNAME, time_coords),
-                },
-                attrs=x.attrs,
-            )
-
-            # Copy data variables from the original dataset
-            for var_name in x.data_vars:
-                if var_name not in (STATION_ID_VARNAME, STATION_NAME_VARNAME):
-                    new_dataset[var_name] = x[var_name].rename({
-                        ENS_MEMBER_DIMNAME: REALISATION_DIMNAME,
-                        STATION_DIMNAME: STATION_ID_DIMNAME,
-                    })
-            # STATION_NAME_VARNAME
-            new_station_names_var = x[STATION_NAME_VARNAME].rename({
-                STATION_DIMNAME: STATION_ID_DIMNAME,
-            })
-            new_station_names_var.values = station_names
-            new_dataset[STATION_NAME_VARNAME] = new_station_names_var
-
+            new_dataset = load_from_stf2_file(data, self.time_zone_timestamps)
             self.data = new_dataset
         else:
             self.data = data
@@ -342,12 +307,8 @@ class EftsDataSet:
         Returns:
             bool: True if the dataset can be written to a STF 2.0 compliant netCDF file, False otherwise.
         """
-        from efts_io.conventions import has_required_stf2_dimensions, has_required_global_attributes, has_required_variables, mandatory_xarray_dimensions  # noqa: I001
-        required_stf2_dimensions = has_required_stf2_dimensions(self.data, mandatory_xarray_dimensions)
-        required_attributes = has_required_global_attributes(self.data)
-        required_variables = has_required_variables(self.data)
-
-        return required_stf2_dimensions and required_attributes and required_variables
+        from efts_io.conventions import exportable_to_stf2
+        return exportable_to_stf2(self.data)
 
     def save_to_stf2(
         self,
@@ -365,12 +326,13 @@ class EftsDataSet:
             if variable_name is None:
                 raise ValueError("Inner data is a DataSet, so an explicit variable name must be explicitely specified.")
             d = self.data[variable_name]
-        elif isinstance(self.data, xr.DataArray):
-            d = self.data
+        #elif isinstance(self.data, xr.DataArray):
+        #    d = self.data
         else:
             raise TypeError(f"Unsupported data type {type(self.data)}")
         write_nc_stf2(
             out_nc_file=path, # : str,
+            dataset=self.data,
             data=d, # : xr.DataArray,
             var_type=var_type, # : int = 1,
             data_type=data_type, # : int = 3,

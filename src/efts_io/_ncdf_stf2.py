@@ -17,6 +17,8 @@ from efts_io.conventions import (
     LAT_VARNAME,
     LOCATION_TYPE_ATTR_KEY,
     LON_VARNAME,
+    STATION_ID_DIMNAME,
+    STF_2_0_URL,
     TYPE_ATTR_KEY,
     TYPE_DESCRIPTION_ATTR_KEY,
     TYPES_CONVERTIBLE_TO_TIMESTAMP,
@@ -91,6 +93,7 @@ def _create_cf_time_axis(data: xr.DataArray, timestep_str: str) -> tuple[np.ndar
 
 def write_nc_stf2(
     out_nc_file: str,
+    dataset: xr.Dataset,
     data: xr.DataArray,
     var_type: StfVariable = StfVariable.STREAMFLOW,
     data_type: StfDataType = StfDataType.OBSERVED,
@@ -130,8 +133,8 @@ def write_nc_stf2(
         has_required_global_attributes,
         mandatory_xarray_dimensions,
         mandatory_global_attributes,
-        has_required_variables,
-        mandatory_varnames,
+        has_required_variables_xr,
+        mandatory_varnames_xr,
         has_variable,
     )
 
@@ -140,39 +143,39 @@ def write_nc_stf2(
             f"DataArray must have the following dimensions: {mandatory_xarray_dimensions}",
         )
 
-    if not has_required_global_attributes(data):
+    if not has_required_global_attributes(dataset):
         raise ValueError(
             f"DataArray must have the following global attributes: {mandatory_global_attributes}",
         )
 
-    if not has_required_variables(data):
+    if not has_required_variables_xr(dataset):
         raise ValueError(
-            f"DataArray must have the following variables: {mandatory_varnames}",
+            f"DataArray must have the following variables: {mandatory_varnames_xr}",
         )
 
     # Check that optional variables, if present, have the minimum attributes present.
-    def _check_optional_var_attr(data:xr.DataArray, var_id:str) -> None:
-        if has_variable(data, var_id):
-            xrvar = data[var_id]
+    def _check_optional_var_attr(dataset:xr.Dataset, var_id:str) -> None:
+        if has_variable(dataset, var_id):
+            xrvar = dataset[var_id]
             check_optional_variable_attributes(xrvar, AttributesErrorLevel.ERROR)
 
     for var_id in (AREA_VARNAME, X_VARNAME, Y_VARNAME, ELEVATION_VARNAME):
-        _check_optional_var_attr(data, var_id)
+        _check_optional_var_attr(dataset, var_id)
 
     intdata_type = "i4"
 
     var_type = var_type.value
     data_type = data_type.value
 
-    n_stations = len(data[STATION_DIMNAME])
+    n_stations = len(data[STATION_ID_DIMNAME])
 
     station = np.arange(1, n_stations + 1)
 
     # Retrieve arrays from expected variables in the input xarray dataarray `data`
-    station_id = data[STATION_ID_VARNAME].values
-    station_name = data[STATION_NAME_VARNAME].values
-    sub_x_centroid = data[LON_VARNAME].values
-    sub_y_centroid = data[LAT_VARNAME].values
+    station_id = dataset[STATION_ID_VARNAME].values
+    station_name = dataset[STATION_NAME_VARNAME].values
+    sub_x_centroid = dataset[LON_VARNAME].values
+    sub_y_centroid = dataset[LAT_VARNAME].values
 
     # NOTE: the original code had an "other_station_id" option, apparently storing some
     # identifiers from the Bureau of meteorology. For the time being, disable,
@@ -205,14 +208,14 @@ def write_nc_stf2(
     ncfile = Dataset(out_nc_file, "w", format="NETCDF4")
     # Global Attributes
     # ncfile.description = "CCLIR forecasts"
-    ncfile.title = data.attr.get(TITLE_ATTR_KEY, "")  # = nc_title
-    ncfile.institution = data.attr.get(INSTITUTION_ATTR_KEY, "")  # = inst
-    ncfile.source = data.attr.get(SOURCE_ATTR_KEY, "")  # = source
-    ncfile.catchment = data.attr.get(CATCHMENT_ATTR_KEY, "")  # = catchment
-    ncfile.STF_convention_version = data.attr.get(STF_CONVENTION_VERSION_ATTR_KEY, "")  # = stf_nc_vers
-    ncfile.STF_nc_spec = data.attr.get(STF_NC_SPEC_ATTR_KEY, "")  # = STF_2_0_URL
-    ncfile.comment = data.attr.get(COMMENT_ATTR_KEY, "")  # = comment
-    ncfile.history = data.attr.get(HISTORY_ATTR_KEY, "")
+    ncfile.title = dataset.attrs.get(TITLE_ATTR_KEY, "")  # = nc_title
+    ncfile.institution = dataset.attrs.get(INSTITUTION_ATTR_KEY, "")  # = inst
+    ncfile.source = dataset.attrs.get(SOURCE_ATTR_KEY, "")  # = source
+    ncfile.catchment = dataset.attrs.get(CATCHMENT_ATTR_KEY, "")  # = catchment
+    ncfile.STF_convention_version = dataset.attrs.get(STF_CONVENTION_VERSION_ATTR_KEY, "")  # = stf_nc_vers
+    ncfile.STF_nc_spec = STF_2_0_URL
+    ncfile.comment = dataset.attrs.get(COMMENT_ATTR_KEY, "")  # = comment
+    ncfile.history = dataset.attrs.get(HISTORY_ATTR_KEY, "")
     # = "Created " + datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
     #  station

@@ -26,7 +26,7 @@ STR_LEN_DIMNAME = "strLen"
 # New names for in-memory representation in an xarray way
 # https://github.com/csiro-hydroinformatics/efts-io/issues/2
 STATION_ID_DIMNAME = "station_id"
-REALISATION_DIMNAME = "ens_member"
+REALISATION_DIMNAME = "realisation"
 
 # int station_id[station]
 STATION_ID_VARNAME = "station_id"
@@ -116,15 +116,14 @@ mandatory_global_attributes = [
 ]
 
 mandatory_netcdf_dimensions = [TIME_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME, STR_LEN_DIMNAME, ENS_MEMBER_DIMNAME]
-mandatory_xarray_dimensions = [TIME_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME, ENS_MEMBER_DIMNAME]
+mandatory_xarray_dimensions = [TIME_DIMNAME, STATION_ID_DIMNAME, LEAD_TIME_DIMNAME, REALISATION_DIMNAME]
 
-mandatory_varnames = [
+mandatory_varnames_xr = [
     TIME_DIMNAME,
-    STATION_DIMNAME,
     LEAD_TIME_DIMNAME,
     STATION_ID_VARNAME,
     STATION_NAME_VARNAME,
-    ENS_MEMBER_DIMNAME,
+    REALISATION_DIMNAME,
     LAT_VARNAME,
     LON_VARNAME,
 ]
@@ -169,10 +168,14 @@ def check_index_found(
 MdDatasetsType = Union[xr.Dataset, xr.DataArray]
 
 
-def _is_nc_dataset(d: Any) -> bool:  # noqa: ARG001
-    # Have to disable using directly netCDF4 for now due to issue #4
-    return False
-    # return isinstance(d, nc.Dataset)
+def _is_nc_dataset(d: Any) -> bool:
+    return isinstance(d, nc.Dataset)
+
+def _is_nc_variable(d: Any) -> bool:
+    return isinstance(d, nc.Variable)
+
+def _is_ncdf4_withattrs(d: Any) -> bool:
+    return _is_nc_dataset(d) or _is_nc_variable(d)
 
 
 def _has_required_dimensions(
@@ -229,14 +232,14 @@ def has_required_global_attributes(d: MdDatasetsType) -> bool:
     return _has_all_members(tested, mandatory_global_attributes)
 
 
-def has_required_variables(d: MdDatasetsType) -> bool:
+def has_required_variables_xr(d: MdDatasetsType) -> bool:
     """has_required_variables."""
     a = d.variables.keys()
     tested = set(a)
     # Note: even if xarray, we do not need to check for the 'data_vars' attribute here.
     # a = d.data_vars.keys()
     # tested = set(a)
-    return _has_all_members(tested, mandatory_varnames)
+    return _has_all_members(tested, mandatory_varnames_xr)
 
 
 def has_variable(d: MdDatasetsType, varname: str) -> bool:
@@ -421,8 +424,7 @@ def _check_variable_attributes_qul(
     }
     return _check_attrs(variable, required_attributes, missing_attributes_messages, error_threshold=error_threshold)
 
-
-def _check_attrs(
+def _check_attrs_ncdataset(
     variable: Any,
     required_attributes: Dict[str, type],
     missing_attributes_messages: List[str],
@@ -442,6 +444,40 @@ def _check_attrs(
             f"Variable '{variable.name}' has missing or incorrect attributes: {missing_attributes_messages}",
         )
     return missing_attributes_messages
+
+
+def _check_attrs_xr(
+    variable: MdDatasetsType,
+    required_attributes: Dict[str, type],
+    missing_attributes_messages: List[str],
+    error_threshold: AttributesErrorLevel = AttributesErrorLevel.NONE,
+) -> List[str]:
+    for attr, attr_type in required_attributes.items():
+        if attr not in variable.attrs:
+            missing_attributes_messages.append(f"Missing required attribute '{attr}' for variable '{variable.name}'.")
+        else:
+            actual_type = type(variable.attrs[attr])
+            if actual_type != attr_type:
+                missing_attributes_messages.append(
+                    f"Attribute '{attr}' for variable '{variable.name}' has an unexpected type '{actual_type.__name__}'. Expected type: '{attr_type.__name__}'.",
+                )
+    if error_threshold == AttributesErrorLevel.ERROR and missing_attributes_messages:
+        raise ValueError(
+            f"Variable '{variable.name}' has missing or incorrect attributes: {missing_attributes_messages}",
+        )
+    return missing_attributes_messages
+
+
+def _check_attrs(
+    variable: Any,
+    required_attributes: Dict[str, type],
+    missing_attributes_messages: List[str],
+    error_threshold: AttributesErrorLevel = AttributesErrorLevel.NONE,
+) -> List[str]:
+    if _is_ncdf4_withattrs(variable):
+        return _check_attrs_ncdataset(variable, required_attributes, missing_attributes_messages, error_threshold)
+    else:  # noqa: RET505
+        return _check_attrs_xr(variable, required_attributes, missing_attributes_messages, error_threshold)
 
 
 def _check_variable_attributes(variable: Any) -> List[str]:
@@ -534,3 +570,19 @@ def convert_to_datetime64_utc(x: ConvertibleToTimestamp) -> np.datetime64:
         raise TypeError(f"Cannot convert {type(x)} to np.datetime64 with UTC timezone.")
 
     return x.to_datetime64()
+
+def exportable_to_stf2(data:MdDatasetsType) -> bool:
+    """Check if the dataset can be written to a netCDF file compliant with STF 2.0 specification.
+
+    This method checks if the underlying xarray dataset or dataarray has the required dimensions and global attributes as specified by the STF 2.0 convention.
+
+    Returns:
+        bool: True if the dataset can be written to a STF 2.0 compliant netCDF file, False otherwise.
+    """
+    from efts_io.conventions import has_required_stf2_dimensions, has_required_global_attributes, has_required_variables_xr, mandatory_xarray_dimensions  # noqa: I001
+    required_stf2_dimensions = has_required_stf2_dimensions(data, mandatory_xarray_dimensions)
+    required_attributes = has_required_global_attributes(data)
+    required_variables = has_required_variables_xr(data)
+
+    return required_stf2_dimensions and required_attributes and required_variables
+
