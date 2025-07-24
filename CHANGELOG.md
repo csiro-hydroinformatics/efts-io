@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- insertion marker -->
+## [0.4.0](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.4.0) - 2025-07-24
+
+<small>[Compare with 0.3.0](https://github.com/csiro-hydroinformatics/efts-io/compare/0.3.0...0.4.0)</small>
+
+### Features
+
+- first revised read-write STF 2.0 round-trip, using low-level netCDF4 bindings ([efb4508](https://github.com/csiro-hydroinformatics/efts-io/commit/efb4508d52fdf8ebd28ba2c5cc74eb862711896f) by J-M).
+
 ## [0.3.0](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.3.0) - 2025-07-21
 
 <small>Bump version to supersede deprecated package version</small>
