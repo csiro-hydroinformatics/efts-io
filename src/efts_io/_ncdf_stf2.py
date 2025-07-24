@@ -17,6 +17,7 @@ from efts_io.conventions import (
     LAT_VARNAME,
     LOCATION_TYPE_ATTR_KEY,
     LON_VARNAME,
+    REALISATION_DIMNAME,
     STATION_ID_DIMNAME,
     STF_2_0_URL,
     TYPE_ATTR_KEY,
@@ -123,7 +124,6 @@ def write_nc_stf2(
         STATION_ID_VARNAME,
         STATION_NAME_VARNAME,
         STF_CONVENTION_VERSION_ATTR_KEY,
-        STF_NC_SPEC_ATTR_KEY,
         STR_LEN_DIMNAME,
         TIME_DIMNAME,
         TIME_STANDARD_ATTR_KEY,
@@ -213,7 +213,7 @@ def write_nc_stf2(
     ncfile.source = dataset.attrs.get(SOURCE_ATTR_KEY, "")  # = source
     ncfile.catchment = dataset.attrs.get(CATCHMENT_ATTR_KEY, "")  # = catchment
     ncfile.STF_convention_version = dataset.attrs.get(STF_CONVENTION_VERSION_ATTR_KEY, "")  # = stf_nc_vers
-    ncfile.STF_nc_spec = STF_2_0_URL
+    ncfile.STF_nc_spec = STF_2_0_URL  # we do not transfer the spec version, this code determines it.
     ncfile.comment = dataset.attrs.get(COMMENT_ATTR_KEY, "")  # = comment
     ncfile.history = dataset.attrs.get(HISTORY_ATTR_KEY, "")
     # = "Created " + datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
@@ -271,7 +271,7 @@ def write_nc_stf2(
                 opt_nc_var.setncattr(x, xrvar.attrs[x])
 
     for var_id in (AREA_VARNAME, X_VARNAME, Y_VARNAME, ELEVATION_VARNAME):
-        add_optional_variables(data, ncfile, var_id)
+        add_optional_variables(dataset, ncfile, var_id)
 
     # lead time
     # ------------
@@ -285,13 +285,13 @@ def write_nc_stf2(
 
     # ensemble members
     # ------------------
-    ncfile.createDimension(ENS_MEMBER_DIMNAME, len(data[ENS_MEMBER_DIMNAME]))
+    ncfile.createDimension(ENS_MEMBER_DIMNAME, len(data[REALISATION_DIMNAME]))
     ens_mem_var = ncfile.createVariable(ENS_MEMBER_DIMNAME, intdata_type, (ENS_MEMBER_DIMNAME,), fill_value=-9999)
     ens_mem_var.setncattr(STANDARD_NAME_ATTR_KEY, ENS_MEMBER_DIMNAME)
     ens_mem_var.setncattr(LONG_NAME_ATTR_KEY, "ensemble member")
     ens_mem_var.setncattr(UNITS_ATTR_KEY, "member id")
     ens_mem_var.setncattr(AXIS_ATTR_KEY, "u")
-    ens_mem_var[:] = np.arange(1, len(data[ENS_MEMBER_DIMNAME]) + 1)
+    ens_mem_var[:] = np.arange(1, len(data[REALISATION_DIMNAME]) + 1)
 
     # time
     # ------

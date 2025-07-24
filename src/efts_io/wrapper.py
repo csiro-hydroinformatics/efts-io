@@ -99,7 +99,7 @@ def load_from_stf2_file(file_path:str, time_zone_timestamps:bool) -> xr.Dataset 
         tz_str=tz,
     )
     # stat_coords = x.coords[self.STATION_DIMNAME]
-    # see the use of astype later on in variable transfer, following line not needed. 
+    # see the use of astype later on in variable transfer, following line not needed.
     # station_names = byte_stations_to_str(x[STATION_NAME_VARNAME].values).astype(np.str_)
     station_ids_strings = x[STATION_ID_VARNAME].values.astype(np.str_)
     # x = x.assign_coords(
@@ -116,25 +116,37 @@ def load_from_stf2_file(file_path:str, time_zone_timestamps:bool) -> xr.Dataset 
         },
         attrs=x.attrs,
     )
-
-    # Copy data variables from the original dataset
+    # Copy data variables from the renamed dataset
     for var_name in x.data_vars:
         if var_name not in (STATION_ID_VARNAME, STATION_NAME_VARNAME):
-            rename_map = {}
-            v = x[var_name]
-            if ENS_MEMBER_DIMNAME in v.dims:
-                rename_map[ENS_MEMBER_DIMNAME] = REALISATION_DIMNAME
-            if STATION_DIMNAME in v.dims:
-                rename_map[STATION_DIMNAME] = STATION_ID_DIMNAME
-            v = v.rename(rename_map) if rename_map else v
-            new_dataset[var_name] = v
-    # STATION_NAME_VARNAME also has its values changed.
-    new_station_names_var = x[STATION_NAME_VARNAME].rename({
-        STATION_DIMNAME: STATION_ID_DIMNAME,
-    })
-    new_dataset[STATION_NAME_VARNAME] = new_station_names_var.astype(np.str_)
-
+            # Get the variable from the original dataset
+            orig_var = x[var_name]
+            # Determine the dimensions for the new variable
+            new_dims = []
+            for dim in orig_var.dims:
+                if dim == ENS_MEMBER_DIMNAME:
+                    new_dims.append(REALISATION_DIMNAME)
+                elif dim == STATION_DIMNAME:
+                    new_dims.append(STATION_ID_DIMNAME)
+                else:
+                    new_dims.append(dim)
+            # Create a new DataArray with the correct dimensions
+            new_dataset[var_name] = xr.DataArray(
+                data=orig_var.values,
+                dims=new_dims,
+                coords={dim: new_dataset[dim] for dim in new_dims if dim in new_dataset.coords},
+                attrs=orig_var.attrs,
+            )
+    # Handle station names separately
+    station_names_var = x[STATION_NAME_VARNAME]
+    new_dataset[STATION_NAME_VARNAME] = xr.DataArray(
+        data=station_names_var.values.astype(np.str_),
+        dims=[STATION_ID_DIMNAME],
+        coords={STATION_ID_DIMNAME: new_dataset[STATION_ID_DIMNAME]},
+        attrs=station_names_var.attrs,
+    )
     return new_dataset
+
 class EftsDataSet:
     """Convenience class for access to a Ensemble Forecast Time Series in netCDF file."""
 
