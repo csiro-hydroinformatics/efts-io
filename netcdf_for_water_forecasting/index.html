@@ -86,7 +86,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#netcdf-for-water-forecasting-conventions-v20" class="md-skip">
+        <a href="#netcdf-for-water-forecasting-conventions" class="md-skip">
           Skip to content
         </a>
       
@@ -566,6 +566,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Version
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#foreword" class="md-nav__link">
     <span class="md-ellipsis">
       Foreword
@@ -587,15 +596,6 @@
   <a href="#netcdf-introduction-and-terms" class="md-nav__link">
     <span class="md-ellipsis">
       NetCDF Introduction and Terms
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#version" class="md-nav__link">
-    <span class="md-ellipsis">
-      Version
     </span>
   </a>
   
@@ -1819,6 +1819,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Version
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#foreword" class="md-nav__link">
     <span class="md-ellipsis">
       Foreword
@@ -1840,15 +1849,6 @@
   <a href="#netcdf-introduction-and-terms" class="md-nav__link">
     <span class="md-ellipsis">
       NetCDF Introduction and Terms
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#version" class="md-nav__link">
-    <span class="md-ellipsis">
-      Version
     </span>
   </a>
   
@@ -2473,18 +2473,18 @@
   
 
 
-<h1 id="netcdf-for-water-forecasting-conventions-v20">NetCDF for Water Forecasting Conventions v2.0<a class="headerlink" href="#netcdf-for-water-forecasting-conventions-v20" title="Permanent link">&para;</a></h1>
+<h1 id="netcdf-for-water-forecasting-conventions">NetCDF for Water Forecasting Conventions<a class="headerlink" href="#netcdf-for-water-forecasting-conventions" title="Permanent link">&para;</a></h1>
+<h2 id="version">Version<a class="headerlink" href="#version" title="Permanent link">&para;</a></h2>
+<p>This document specifies conventions at version 2.0.</p>
 <h2 id="foreword">Foreword<a class="headerlink" href="#foreword" title="Permanent link">&para;</a></h2>
-<p>The <a href="https://github.com/jmp75/efts/blob/master/docs/netcdf_for_water_forecasting.md">present document at the efts repository</a> is a possibly temporary copy for convenient reference. The point of truth is at <a href="https://confluence.csiro.au/display/wirada/netCDF+for+Water+Forecasting+Specification+v2.0">this location</a> which is not yet public as of March 2018. </p>
-<p>Credits for the original document go to <a href="https://people-my.csiro.au/B/J/james-bennett">James Bennett (CSIRO)</a> </p>
+<p>As of July 2025 the latest version of these conventions should be available at <a href="https://csiro-hydroinformatics.github.io/efts-io/netcdf_for_water_forecasting/">https://csiro-hydroinformatics.github.io/efts-io/netcdf_for_water_forecasting/</a>.</p>
+<p>The initial point of truth in March 2018 is/was at <a href="https://confluence.csiro.au/display/wirada/netCDF+for+Water+Forecasting+Specification+v2.0">this location</a> March 2018. Credits for the specifications go to <a href="https://people-my.csiro.au/B/J/james-bennett">James Bennett (CSIRO)</a>.</p>
 <h2 id="purpose">Purpose<a class="headerlink" href="#purpose" title="Permanent link">&para;</a></h2>
 <p>Plain text files are not well suited to storing the large volumes of data generated for and by ensemble streamflow forecasts with numerical weather prediction models. netCDF is a binary file format developed primarily for climate, ocean and meteorological data. Detailed, formalised descriptions of the data (metadata) can be included inside the netCDF file, and netCDF can store highly compressed data, making the format suitable for the STF project. However, netCDF has traditionally been used to store time slices of gridded data, rather than complete time series of point data. This document describes the conventions we have developed for storing complete time series data used in ensemble streamflow forecasting in netCDF.</p>
 <h2 id="netcdf-introduction-and-terms">NetCDF Introduction and Terms<a class="headerlink" href="#netcdf-introduction-and-terms" title="Permanent link">&para;</a></h2>
 <p>NetCDF is a binary format, which renders it unintelligible to text editors. It also results in a significant decrease in data size, dis-ambiguity in format, platform independence and implementation independence. The implementation independence arises from the usage of standard libraries for reading and writing in NetCDF format. All tools in this project which use netCDF format, including SWIFT, use these libraries.</p>
 <p>The netCDF format uses dimensions, and variables, to store data. Data is stored in variables, each variable can be considered as an array, and is independent of each other variable. The data space of these variables is defined by the dimensions. For example, for a gridded rainfall data set, the dimensions may be latitude and longitude, and the variable may be millimetres per day.</p>
 <p>Metadata is stored in netCDF format as attributes. Attributes can be defined as global, applying to the whole data set, or defined as specific to a variable. For instance, the origin of a variable (e.g. Rain gauge) may be stored specifically for that variable, whereas the agency responsible for the data set may be stored as a global attribute.</p>
-<h2 id="version">Version<a class="headerlink" href="#version" title="Permanent link">&para;</a></h2>
-<p>This is the second version of this specification. </p>
 <h2 id="schematic">Schematic<a class="headerlink" href="#schematic" title="Permanent link">&para;</a></h2>
 <p>The netCDF specification has been inspired by the Deltares NETCDF-CF_TIMESERIES structure for compatibilities purposes.</p>
 <h3 id="dimensions">Dimensions<a class="headerlink" href="#dimensions" title="Permanent link">&para;</a></h3>
