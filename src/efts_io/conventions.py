@@ -118,6 +118,21 @@ mandatory_global_attributes = [
 mandatory_netcdf_dimensions = [TIME_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME, STR_LEN_DIMNAME, ENS_MEMBER_DIMNAME]
 mandatory_xarray_dimensions = [TIME_DIMNAME, STATION_ID_DIMNAME, LEAD_TIME_DIMNAME, REALISATION_DIMNAME]
 
+# mappings to help automatic handling between stf and in memory dimensions
+stf_to_xr_dims = {
+    TIME_DIMNAME: TIME_DIMNAME,
+    ENS_MEMBER_DIMNAME: REALISATION_DIMNAME,
+    STATION_DIMNAME: STATION_ID_DIMNAME,
+    LEAD_TIME_DIMNAME: LEAD_TIME_DIMNAME,
+}
+
+xr_to_stf_dims = {
+    TIME_DIMNAME: TIME_DIMNAME,
+    REALISATION_DIMNAME: ENS_MEMBER_DIMNAME,
+    STATION_ID_DIMNAME: STATION_DIMNAME,
+    LEAD_TIME_DIMNAME: LEAD_TIME_DIMNAME,
+}
+
 mandatory_varnames_xr = [
     TIME_DIMNAME,
     LEAD_TIME_DIMNAME,
@@ -196,6 +211,24 @@ def _has_required_dimensions(
         kk = set([k for k in dims])  # noqa: C403, C416
         return kk == set(mandatory_dimensions)
 
+def _is_subset_required_dimensions(
+    d: MdDatasetsType,
+    mandatory_dimensions: Iterable[str],
+) -> bool:
+    if _is_nc_dataset(d):
+        d_set = set(d.dimensions.keys())
+        return d_set.intersection(set(mandatory_dimensions)) == d_set
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter(action="ignore", category=FutureWarning)
+        # FutureWarning: The return type of `Dataset.dims` will be changed
+        # to return a set of dimension names in future, in order to be more
+        # consistent with `DataArray.dims`.
+        dims = d.dims
+        # work around legacy discrepancy between data arrays and datasets: list and dict.
+        d_set = set([k for k in dims])  # noqa: C403, C416
+        return d_set.intersection(set(mandatory_dimensions)) == d_set
 
 def has_required_stf2_dimensions(d: MdDatasetsType, mandatory_dimensions: Optional[Iterable[str]] = None) -> bool:
     """Has the dataset the required dimensions for STF conventions.
@@ -213,6 +246,10 @@ def has_required_stf2_dimensions(d: MdDatasetsType, mandatory_dimensions: Option
 def has_required_xarray_dimensions(d: MdDatasetsType) -> bool:
     """Has the dataset the required dimensions for an in memory xarray representation."""
     return _has_required_dimensions(d, mandatory_xarray_dimensions)
+
+def is_subset_required_xarray_dimensions(d: MdDatasetsType) -> bool:
+    """Has the data array or dataset dimensions that are a subset of the spedified dims?"""
+    return _is_subset_required_dimensions(d, mandatory_xarray_dimensions)
 
 
 def _has_all_members(tested: Iterable[str], reference: Iterable[str]) -> bool:

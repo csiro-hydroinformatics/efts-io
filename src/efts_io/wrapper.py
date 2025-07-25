@@ -722,16 +722,30 @@ def xr_efts(
     nc_attributes: Optional[Dict[str, str]] = None,
 ) -> xr.Dataset:
     """Create an xarray Dataset for EFTS data."""
+    # Check that station ids are unique:
+    if len(set(station_ids)) != len(station_ids):
+        raise ValueError("Station names must be unique.")
+    # I learned today that xarray 2025.7.1 can accept pandas datetimeindex as coordinates
+    # See https://github.com/csiro-hydroinformatics/efts-io/issues/13, in the future may change design.
+    if isinstance (issue_times, pd.DatetimeIndex):
+        # This will convert each item to a tstamp such as
+        # Timestamp('2023-01-01 00:00:00+1000', tz='UTC+10:00')
+        issue_times = list(issue_times) # issue_times is iterable,and iterated over indeed.
     if lead_times is None:
         lead_times = [0]
     coords = {
         TIME_DIMNAME: issue_times,
-        STATION_DIMNAME: np.arange(start=1, stop=len(station_ids) + 1, step=1),
-        ENS_MEMBER_DIMNAME: np.arange(start=1, stop=ensemble_size + 1, step=1),
+        # STATION_DIMNAME: np.arange(start=1, stop=len(station_ids) + 1, step=1),
+        STATION_ID_DIMNAME: station_ids, # np.arange(start=1, stop=len(station_ids) + 1, step=1),
+        REALISATION_DIMNAME: np.arange(start=1, stop=ensemble_size + 1, step=1),
         LEAD_TIME_DIMNAME: lead_times,
-        # New coordinate can also be attached to an existing dimension:
+        # Initially, I was exploring attaching a coordinate to an existing dimension STATION_DIMNAME, using:
         # https://docs.xarray.dev/en/latest/generated/xarray.DataArray.assign_coords.html#xarray.DataArray.assign_coords
-        STATION_ID_VARNAME: (STATION_DIMNAME, station_ids),
+        # then using https://github.com/pydata/xarray/issues/2028#issuecomment-1265252754  to be able to
+        # index by station IDs. But in July 2025 decided to not have a STATION_DIMNAME dimension, which is
+        # an artefact from legacy conventions (Fortran 1-based indexing and other related limitations).
+        # Keeping a number based STATION_DIMNAME here is only making things more difficult and data subsetting more prone to bugs.
+        # STATION_ID_VARNAME: (STATION_DIMNAME, station_ids),
     }
     n_stations = len(station_ids)
     latitudes = latitudes if latitudes is not None else nan_full(n_stations)
@@ -739,10 +753,10 @@ def xr_efts(
     areas = areas if areas is not None else nan_full(n_stations)
     station_names = station_names if station_names is not None else [f"{i}" for i in station_ids]
     data_vars = {
-        STATION_NAME_VARNAME: (STATION_DIMNAME, station_names),
-        LAT_VARNAME: (STATION_DIMNAME, latitudes),
-        LON_VARNAME: (STATION_DIMNAME, longitudes),
-        AREA_VARNAME: (STATION_DIMNAME, areas),
+        STATION_NAME_VARNAME: (STATION_ID_DIMNAME, station_names),
+        LAT_VARNAME: (STATION_ID_DIMNAME, latitudes),
+        LON_VARNAME: (STATION_ID_DIMNAME, longitudes),
+        AREA_VARNAME: (STATION_ID_DIMNAME, areas),
     }
     nc_attributes = nc_attributes or _stf2_mandatory_global_attributes()
     d = xr.Dataset(
@@ -751,7 +765,7 @@ def xr_efts(
         attrs=nc_attributes,
     )
     # Credits to the work reported in https://github.com/pydata/xarray/issues/2028#issuecomment-1265252754
-    d = d.set_xindex(STATION_ID_VARNAME)
+    # d = d.set_xindex(STATION_ID_VARNAME)
     d.time.attrs = {
         STANDARD_NAME_ATTR_KEY: TIME_DIMNAME,
         LONG_NAME_ATTR_KEY: TIME_DIMNAME,
@@ -765,8 +779,8 @@ def xr_efts(
         AXIS_ATTR_KEY: "v",
         UNITS_ATTR_KEY: f"{lead_time_tstep} since time",
     }
-    d.ens_member.attrs = {
-        STANDARD_NAME_ATTR_KEY: ENS_MEMBER_DIMNAME,
+    d.realisation.attrs = {
+        STANDARD_NAME_ATTR_KEY: ENS_MEMBER_DIMNAME, # TODO: should we keep the STF 2.0 ens_member as a standard name?
         LONG_NAME_ATTR_KEY: "ensemble member",
         UNITS_ATTR_KEY: "member id",
         AXIS_ATTR_KEY: "u",

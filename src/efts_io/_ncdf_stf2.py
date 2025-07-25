@@ -129,7 +129,7 @@ def write_nc_stf2(
         TIME_STANDARD_ATTR_KEY,
         TITLE_ATTR_KEY,
         UNITS_ATTR_KEY,
-        has_required_xarray_dimensions,
+        is_subset_required_xarray_dimensions,
         has_required_global_attributes,
         mandatory_xarray_dimensions,
         mandatory_global_attributes,
@@ -138,9 +138,9 @@ def write_nc_stf2(
         has_variable,
     )
 
-    if not has_required_xarray_dimensions(data):
+    if not is_subset_required_xarray_dimensions(data):
         raise ValueError(
-            f"DataArray must have the following dimensions: {mandatory_xarray_dimensions}",
+            f"DataArray must have dimensions that are a subset of: {mandatory_xarray_dimensions}",
         )
 
     if not has_required_global_attributes(dataset):
@@ -372,10 +372,11 @@ def write_nc_stf2(
             var_name_s = f"{v_type[var_type]}_sim"
             var_name_l = f"simulated {v_type_long[var_type]}"
 
+    dimensions_order = (TIME_DIMNAME, ENS_MEMBER_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME)
     qsim_var = ncfile.createVariable(
         var_name_s,
         "f",
-        (TIME_DIMNAME, ENS_MEMBER_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME),
+        dimensions_order,
         fill_value=-9999,
     )
     qsim_var.setncattr(STANDARD_NAME_ATTR_KEY, var_name_s)
@@ -391,7 +392,10 @@ def write_nc_stf2(
     else:
         qsim_var.setncattr(LOCATION_TYPE_ATTR_KEY, "Point")
 
-    # WARNING: I do not like the look of the following; is it bug prone?
+
+    # expand and reorder if necessary the dimensions of the array.
+    # In part see feature request https://github.com/csiro-hydroinformatics/efts-io/issues/14
+    data = make_ready_for_saving(data, dataset, dimensions_order)
     qsim_var[:, :, :, :] = data.values[:]
 
     # Specify the quality variable
@@ -429,3 +433,60 @@ def write_nc_stf2(
     # close file
     ncfile.close()
 
+
+def make_ready_for_saving(data: xr.DataArray, dataset: xr.Dataset, dimensions_order: tuple) -> xr.DataArray:
+    """Transform an xarray DataArray to ensure it has all required dimensions in the correct order for saving to NetCDF.
+
+    Uses the coordinates from the parent dataset when expanding dimensions if required.
+
+    Args:
+        data: Input data array with xarray dimensions naming convention.
+            Coordinates names must be one or several of TIME_DIMNAME, STATION_ID_DIMNAME, LEAD_TIME_DIMNAME, REALISATION_DIMNAME
+        dataset: Parent xarray dataset containing coordinate information
+            Coordinates names must include TIME_DIMNAME, STATION_ID_DIMNAME, LEAD_TIME_DIMNAME, REALISATION_DIMNAME
+        dimensions_order: Expected order of target dimensions in the output NetCDF file, in fine.
+            It must a tuple combining one of the values TIME_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME, ENS_MEMBER_DIMNAME
+
+    Returns:
+        Data array with all required dimensions in the correct order
+
+    Raises:
+        ValueError: Unexpected dimension in the dataarray, not in 
+    """
+    from efts_io.conventions import xr_to_stf_dims, stf_to_xr_dims  # noqa: I001
+    known_xr_dims = tuple(xr_to_stf_dims.keys())
+    present_xr_dims = tuple(data.sizes.keys())
+    if not set(present_xr_dims).intersection(known_xr_dims) == set(present_xr_dims):
+        raise ValueError(
+            f"DataArray dimensions {present_xr_dims} is not a subset of expected dimensions: {known_xr_dims}",
+        )
+    missing_xr_dims = list(set(known_xr_dims).difference(set(present_xr_dims)))
+
+    # check that the missing_xr_dims in the `dataset` are all of length one:
+    for xr_dim in missing_xr_dims:
+        if xr_dim not in dataset.coords:
+            raise ValueError(f"Dimension '{xr_dim}' is missing from the dataset coordinates.")
+        if dataset.coords[xr_dim].size != 1:
+            raise ValueError(
+                f"Dimension '{xr_dim}' is missing from the data array and cannot be added because it has more than one value in the dataset.",
+            )
+
+    if len(missing_xr_dims) > 0:
+        # expand result with the one-length dimensions present in the dataset but not coords of the dataarray:
+        result = data.expand_dims({xr_dim: dataset.coords[xr_dim] for xr_dim in missing_xr_dims})
+    else:
+        result = data
+
+    # Build a list of xarray dimension names in the order specified by dimensions_order
+    ordered_xr_dims = []
+    if result.dims == dimensions_order:
+        return result.copy()
+    for stf_dim in dimensions_order:
+        xr_dim = stf_to_xr_dims.get(stf_dim, stf_dim)
+        ordered_xr_dims.append(xr_dim)
+
+    # Transpose to get the desired dimension order
+    # copy as a fallback, in case we have a degenerate case.
+    result = result.transpose(*ordered_xr_dims) if ordered_xr_dims else result.copy()
+
+    return result
