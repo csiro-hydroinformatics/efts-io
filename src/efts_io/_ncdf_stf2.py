@@ -131,7 +131,6 @@ def write_nc_stf2(
         TITLE_ATTR_KEY,
         UNITS_ATTR_KEY,
         is_subset_required_xarray_dimensions,
-        has_required_global_attributes,
         mandatory_xarray_dimensions,
         mandatory_global_attributes,
         has_required_variables_xr,
@@ -453,7 +452,7 @@ def make_ready_for_saving(data: xr.DataArray, dataset: xr.Dataset, dimensions_or
         Data array with all required dimensions in the correct order
 
     Raises:
-        ValueError: Unexpected dimension in the dataarray, not in 
+        ValueError: Unexpected dimension in the dataarray, not in
     """
     from efts_io.conventions import xr_to_stf_dims, stf_to_xr_dims  # noqa: I001
     known_xr_dims = tuple(xr_to_stf_dims.keys())
@@ -489,6 +488,4 @@ def make_ready_for_saving(data: xr.DataArray, dataset: xr.Dataset, dimensions_or
 
     # Transpose to get the desired dimension order
     # copy as a fallback, in case we have a degenerate case.
-    result = result.transpose(*ordered_xr_dims) if ordered_xr_dims else result.copy()
-
-    return result
+    return result.transpose(*ordered_xr_dims) if ordered_xr_dims else result.copy()
