@@ -74,7 +74,7 @@ def create_data_array(
     """
     xr_dimensions = [stf_to_xr_dims[x] if x in stf_to_xr_dims else x for x in stf_equivalent_dimensions]
     if dataset is not None:
-        dimsizes = {x: len(dataset.coords[x]) if x in stf_to_xr_dims else 2 for x in xr_dimensions}
+        dimsizes = {x: len(dataset.coords[x]) if x in xr_to_stf_dims else 2 for x in xr_dimensions}
     else:
         dimsizes = {}
     shape = tuple(dimsizes[dim] if dim in dimsizes else 2 for dim in xr_dimensions) 
@@ -104,18 +104,20 @@ def create_data_array(
 def test_create_data_array_with_all_dimensions():
     """Test the creation of a DataArray with all specified dimensions."""
     dataset = sample_dataset(n_time=5, n_stations=2, n_lead_time=3, n_realisations=4)
-    stf_equivalent_dimensions = (TIME_DIMNAME, STATION_ID_DIMNAME, LEAD_TIME_DIMNAME, REALISATION_DIMNAME)
+    stf_equivalent_dimensions = stf_dimensions_order()
     data_array = create_data_array(stf_equivalent_dimensions, dataset)
 
-    assert data_array.dims == (TIME_DIMNAME, STATION_ID_DIMNAME, LEAD_TIME_DIMNAME, REALISATION_DIMNAME)
-    assert data_array.shape == (5, 2, 3, 4)
+    assert data_array.dims == xr_dimensions_order()
+    # (TIME_DIMNAME, REALISATION_DIMNAME, STATION_ID_DIMNAME, LEAD_TIME_DIMNAME)
+    assert data_array.shape == (5, 4, 2, 3)
 
 def test_create_data_array_with_missing_dimensions():
     """Test the creation of a DataArray with missing dimensions."""
     dataset = sample_dataset(n_time=5, n_stations=2, n_lead_time=3, n_realisations=4)
-    stf_equivalent_dimensions = (TIME_DIMNAME, STATION_ID_DIMNAME)
+    stf_equivalent_dimensions = (TIME_DIMNAME, STATION_DIMNAME)
     data_array = create_data_array(stf_equivalent_dimensions, dataset)
 
+    # (TIME_DIMNAME, REALISATION_DIMNAME, STATION_ID_DIMNAME, LEAD_TIME_DIMNAME)
     assert data_array.dims == (TIME_DIMNAME, STATION_ID_DIMNAME)
     assert data_array.shape == (5, 2)
 
