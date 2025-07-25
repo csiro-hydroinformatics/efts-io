@@ -104,6 +104,15 @@ LOCATION_TYPE_ATTR_KEY = "location_type"
 STF_2_0_URL = "https://github.com/csiro-hydroinformatics/efts-io/blob/42ee35f0f019e9bad48b94914429476a7e8278dc/docs/netcdf_for_water_forecasting.md"
 
 
+mandatory_global_attributes_xr = [
+    TITLE_ATTR_KEY,
+    INSTITUTION_ATTR_KEY,
+    SOURCE_ATTR_KEY,
+    CATCHMENT_ATTR_KEY,
+    COMMENT_ATTR_KEY,
+    HISTORY_ATTR_KEY,
+]
+
 mandatory_global_attributes = [
     TITLE_ATTR_KEY,
     INSTITUTION_ATTR_KEY,
@@ -267,6 +276,13 @@ def has_required_global_attributes(d: MdDatasetsType) -> bool:
         a = d.attrs.keys()
         tested = set(a)
     return _has_all_members(tested, mandatory_global_attributes)
+
+
+def has_required_xarray_global_attributes(d: MdDatasetsType) -> bool:
+    """has_required_global_attributes."""
+    a = d.attrs.keys()
+    tested = set(a)
+    return _has_all_members(tested, mandatory_global_attributes_xr)
 
 
 def has_required_variables_xr(d: MdDatasetsType) -> bool:

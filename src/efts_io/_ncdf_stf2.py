@@ -26,6 +26,7 @@ from efts_io.conventions import (
     AttributesErrorLevel,
     check_optional_variable_attributes,
     convert_to_datetime64_utc,
+    has_required_xarray_global_attributes,
 )
 
 from netCDF4 import Dataset
@@ -143,7 +144,7 @@ def write_nc_stf2(
             f"DataArray must have dimensions that are a subset of: {mandatory_xarray_dimensions}",
         )
 
-    if not has_required_global_attributes(dataset):
+    if not has_required_xarray_global_attributes(dataset):
         raise ValueError(
             f"DataArray must have the following global attributes: {mandatory_global_attributes}",
         )
@@ -273,6 +274,11 @@ def write_nc_stf2(
     for var_id in (AREA_VARNAME, X_VARNAME, Y_VARNAME, ELEVATION_VARNAME):
         add_optional_variables(dataset, ncfile, var_id)
 
+    dimensions_order = (TIME_DIMNAME, ENS_MEMBER_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME)
+    # expand and reorder if necessary the dimensions of the array.
+    # In part see feature request https://github.com/csiro-hydroinformatics/efts-io/issues/14
+    data = make_ready_for_saving(data, dataset, dimensions_order)
+
     # lead time
     # ------------
     ncfile.createDimension(LEAD_TIME_DIMNAME, len(data[LEAD_TIME_DIMNAME]))
@@ -372,7 +378,6 @@ def write_nc_stf2(
             var_name_s = f"{v_type[var_type]}_sim"
             var_name_l = f"simulated {v_type_long[var_type]}"
 
-    dimensions_order = (TIME_DIMNAME, ENS_MEMBER_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME)
     qsim_var = ncfile.createVariable(
         var_name_s,
         "f",
@@ -393,9 +398,6 @@ def write_nc_stf2(
         qsim_var.setncattr(LOCATION_TYPE_ATTR_KEY, "Point")
 
 
-    # expand and reorder if necessary the dimensions of the array.
-    # In part see feature request https://github.com/csiro-hydroinformatics/efts-io/issues/14
-    data = make_ready_for_saving(data, dataset, dimensions_order)
     qsim_var[:, :, :, :] = data.values[:]
 
     # Specify the quality variable
