@@ -1,3 +1,12 @@
+# No, or at least not sure yet about these
+.clinerules/
+.continue/
+pd.png
+src/efts_io/data/bak.nc
+
+# trial wandb endpoints
+*wandb*
+
 # notebooks
 .ipynb_checkpoints/
 
