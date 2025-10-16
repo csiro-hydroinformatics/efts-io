@@ -1812,7 +1812,7 @@
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">vd</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
             <span class="n">UNITS_ATTR_KEY</span><span class="p">:</span> <span class="n">vd</span><span class="p">[</span><span class="n">UNITS_ATTR_KEY</span><span class="p">],</span>
-            <span class="s2">&quot;dim&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">station_dim</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="c1"># TOCHECK or not a list but the str?</span>
+            <span class="s2">&quot;dim&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">station_dim</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>  <span class="c1"># TOCHECK or not a list but the str?</span>
             <span class="s2">&quot;missval&quot;</span><span class="p">:</span> <span class="n">vd</span><span class="p">[</span><span class="s2">&quot;missval&quot;</span><span class="p">],</span>
             <span class="s2">&quot;longname&quot;</span><span class="p">:</span> <span class="n">vd</span><span class="p">[</span><span class="s2">&quot;longname&quot;</span><span class="p">],</span>
             <span class="s2">&quot;prec&quot;</span><span class="p">:</span> <span class="n">vd</span><span class="p">[</span><span class="s2">&quot;precision&quot;</span><span class="p">],</span>
@@ -1877,7 +1877,7 @@
     <span class="n">missval</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mf">9999.0</span><span class="p">,</span>
     <span class="n">precision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;double&quot;</span><span class="p">,</span>
     <span class="n">dim_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span>
-    <span class="n">var_attribute</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">var_attribute</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a variable definition.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">var_attribute</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>

@@ -1922,10 +1922,7 @@
 
                   <details class="quote">
                     <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">170</span>
-<span class="normal">171</span>
-<span class="normal">172</span>
-<span class="normal">173</span>
+                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">173</span>
 <span class="normal">174</span>
 <span class="normal">175</span>
 <span class="normal">176</span>
@@ -1937,7 +1934,10 @@
 <span class="normal">182</span>
 <span class="normal">183</span>
 <span class="normal">184</span>
-<span class="normal">185</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a new EftsDataSet object.&quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">time_dim</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">time_zone</span> <span class="o">=</span> <span class="s2">&quot;UTC&quot;</span>
@@ -2181,10 +2181,7 @@ timestamp: If not provided, the current UTC time is used.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">267</span>
-<span class="normal">268</span>
-<span class="normal">269</span>
-<span class="normal">270</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">270</span>
 <span class="normal">271</span>
 <span class="normal">272</span>
 <span class="normal">273</span>
@@ -2194,7 +2191,10 @@ timestamp: If not provided, the current UTC time is used.</p>
 <span class="normal">277</span>
 <span class="normal">278</span>
 <span class="normal">279</span>
-<span class="normal">280</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">append_history</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">append_history</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Append a new entry to the `history` attribute with a timestamp.</span>
 
 <span class="sd">    message: The message to append.</span>
@@ -2235,12 +2235,7 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">359</span>
-<span class="normal">360</span>
-<span class="normal">361</span>
-<span class="normal">362</span>
-<span class="normal">363</span>
-<span class="normal">364</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">364</span>
 <span class="normal">365</span>
 <span class="normal">366</span>
 <span class="normal">367</span>
@@ -2271,7 +2266,12 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 <span class="normal">392</span>
 <span class="normal">393</span>
 <span class="normal">394</span>
-<span class="normal">395</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_data_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_var_def</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_data_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_var_def</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create data variables in the data set.</span>
 
 <span class="sd">    var_defs_dict[&quot;variable_1&quot;].keys()</span>
@@ -2281,9 +2281,9 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
     <span class="n">ens_data_var_def</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data_var_def</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;dim_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">]</span>
     <span class="n">point_data_var_def</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data_var_def</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;dim_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;2&quot;</span><span class="p">]</span>
 
-    <span class="n">four_dims_names</span> <span class="o">=</span> <span class="p">(</span><span class="n">LEAD_TIME_DIMNAME</span><span class="p">,</span> <span class="n">STATION_DIMNAME</span><span class="p">,</span> <span class="n">ENS_MEMBER_DIMNAME</span><span class="p">,</span> <span class="n">TIME_DIMNAME</span><span class="p">)</span>
-    <span class="n">three_dims_names</span> <span class="o">=</span> <span class="p">(</span><span class="n">STATION_DIMNAME</span><span class="p">,</span> <span class="n">ENS_MEMBER_DIMNAME</span><span class="p">,</span> <span class="n">TIME_DIMNAME</span><span class="p">)</span>
-    <span class="n">two_dims_names</span> <span class="o">=</span> <span class="p">(</span><span class="n">STATION_DIMNAME</span><span class="p">,</span> <span class="n">TIME_DIMNAME</span><span class="p">)</span>
+    <span class="n">four_dims_names</span> <span class="o">=</span> <span class="p">(</span><span class="n">LEAD_TIME_DIMNAME</span><span class="p">,</span> <span class="n">STATION_ID_DIMNAME</span><span class="p">,</span> <span class="n">REALISATION_DIMNAME</span><span class="p">,</span> <span class="n">TIME_DIMNAME</span><span class="p">)</span>
+    <span class="n">three_dims_names</span> <span class="o">=</span> <span class="p">(</span><span class="n">STATION_ID_DIMNAME</span><span class="p">,</span> <span class="n">REALISATION_DIMNAME</span><span class="p">,</span> <span class="n">TIME_DIMNAME</span><span class="p">)</span>
+    <span class="n">two_dims_names</span> <span class="o">=</span> <span class="p">(</span><span class="n">STATION_ID_DIMNAME</span><span class="p">,</span> <span class="n">TIME_DIMNAME</span><span class="p">)</span>
 
     <span class="n">four_dims_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="n">dimname</span><span class="p">]</span> <span class="k">for</span> <span class="n">dimname</span> <span class="ow">in</span> <span class="n">four_dims_names</span><span class="p">)</span>
     <span class="n">three_dims_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="n">dimname</span><span class="p">]</span> <span class="k">for</span> <span class="n">dimname</span> <span class="ow">in</span> <span class="n">three_dims_names</span><span class="p">)</span>
@@ -2334,14 +2334,14 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">397</span>
-<span class="normal">398</span>
-<span class="normal">399</span>
-<span class="normal">400</span>
-<span class="normal">401</span>
-<span class="normal">402</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">402</span>
 <span class="normal">403</span>
-<span class="normal">404</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_all_series</span><span class="p">(</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span>
+<span class="normal">409</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_all_series</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">variable_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;rain_obs&quot;</span><span class="p">,</span>
     <span class="n">dimension_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># noqa: ARG002</span>
@@ -2372,9 +2372,9 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">425</span>
-<span class="normal">426</span>
-<span class="normal">427</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_dim_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">430</span>
+<span class="normal">431</span>
+<span class="normal">432</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_dim_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Gets the name of all dimensions in the data set.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">sizes</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>  <span class="c1"># noqa: C416, SIM118</span>
 </code></pre></div></td></tr></table></div>
@@ -2406,17 +2406,17 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">431</span>
-<span class="normal">432</span>
-<span class="normal">433</span>
-<span class="normal">434</span>
-<span class="normal">435</span>
-<span class="normal">436</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">436</span>
 <span class="normal">437</span>
 <span class="normal">438</span>
 <span class="normal">439</span>
 <span class="normal">440</span>
-<span class="normal">441</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_ensemble_for_stations</span><span class="p">(</span>
+<span class="normal">441</span>
+<span class="normal">442</span>
+<span class="normal">443</span>
+<span class="normal">444</span>
+<span class="normal">445</span>
+<span class="normal">446</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_ensemble_for_stations</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">variable_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;rain_sim&quot;</span><span class="p">,</span>
     <span class="n">identifier</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -2456,12 +2456,7 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">443</span>
-<span class="normal">444</span>
-<span class="normal">445</span>
-<span class="normal">446</span>
-<span class="normal">447</span>
-<span class="normal">448</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">448</span>
 <span class="normal">449</span>
 <span class="normal">450</span>
 <span class="normal">451</span>
@@ -2496,7 +2491,12 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 <span class="normal">480</span>
 <span class="normal">481</span>
 <span class="normal">482</span>
-<span class="normal">483</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_ensemble_forecasts</span><span class="p">(</span>
+<span class="normal">483</span>
+<span class="normal">484</span>
+<span class="normal">485</span>
+<span class="normal">486</span>
+<span class="normal">487</span>
+<span class="normal">488</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_ensemble_forecasts</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">variable_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;rain_sim&quot;</span><span class="p">,</span>
     <span class="n">identifier</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -2560,9 +2560,9 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">511</span>
-<span class="normal">512</span>
-<span class="normal">513</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_ensemble_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">516</span>
+<span class="normal">517</span>
+<span class="normal">518</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_ensemble_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the length of the ensemble size dimension.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim_size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ENS_MEMBER_DIMNAME</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -2588,9 +2588,9 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">515</span>
-<span class="normal">516</span>
-<span class="normal">517</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_lead_time_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">520</span>
+<span class="normal">521</span>
+<span class="normal">522</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_lead_time_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Length of the lead time dimension.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim_size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">LEAD_TIME_DIMNAME</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -2616,9 +2616,9 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">519</span>
-<span class="normal">520</span>
-<span class="normal">521</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_lead_time_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">524</span>
+<span class="normal">525</span>
+<span class="normal">526</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_lead_time_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the values of the lead time dimension.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">LEAD_TIME_DIMNAME</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
 </code></pre></div></td></tr></table></div>
@@ -2648,17 +2648,17 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">527</span>
-<span class="normal">528</span>
-<span class="normal">529</span>
-<span class="normal">530</span>
-<span class="normal">531</span>
-<span class="normal">532</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">532</span>
 <span class="normal">533</span>
 <span class="normal">534</span>
 <span class="normal">535</span>
 <span class="normal">536</span>
-<span class="normal">537</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_single_series</span><span class="p">(</span>
+<span class="normal">537</span>
+<span class="normal">538</span>
+<span class="normal">539</span>
+<span class="normal">540</span>
+<span class="normal">541</span>
+<span class="normal">542</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_single_series</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">variable_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;rain_obs&quot;</span><span class="p">,</span>
     <span class="n">identifier</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -2692,9 +2692,9 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">539</span>
-<span class="normal">540</span>
-<span class="normal">541</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_station_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">544</span>
+<span class="normal">545</span>
+<span class="normal">546</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_station_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the number of stations in the data set.&quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_dim_size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">STATION_DIMNAME</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -2720,11 +2720,11 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">543</span>
-<span class="normal">544</span>
-<span class="normal">545</span>
-<span class="normal">546</span>
-<span class="normal">547</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_stations_varname</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">548</span>
+<span class="normal">549</span>
+<span class="normal">550</span>
+<span class="normal">551</span>
+<span class="normal">552</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_stations_varname</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the name of the variable that has the station identifiers.&quot;&quot;&quot;</span>
     <span class="c1"># Gets the name of the variable that has the station identifiers</span>
     <span class="c1"># TODO: station is integer normally in STF (Euargh)</span>
@@ -2752,10 +2752,10 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">549</span>
-<span class="normal">550</span>
-<span class="normal">551</span>
-<span class="normal">552</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_time_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">554</span>
+<span class="normal">555</span>
+<span class="normal">556</span>
+<span class="normal">557</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_time_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the time dimension variable as a vector of date-time stamps.&quot;&quot;&quot;</span>
     <span class="c1"># Gets the time dimension variable as a vector of date-time stamps</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">values</span>  <span class="c1"># but loosing attributes.</span>
@@ -2782,9 +2782,9 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">523</span>
-<span class="normal">524</span>
-<span class="normal">525</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">put_lead_time_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">528</span>
+<span class="normal">529</span>
+<span class="normal">530</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">put_lead_time_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set the values of the lead time dimension.&quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">LEAD_TIME_DIMNAME</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -2818,11 +2818,7 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">325</span>
-<span class="normal">326</span>
-<span class="normal">327</span>
-<span class="normal">328</span>
-<span class="normal">329</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">329</span>
 <span class="normal">330</span>
 <span class="normal">331</span>
 <span class="normal">332</span>
@@ -2850,37 +2846,43 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 <span class="normal">354</span>
 <span class="normal">355</span>
 <span class="normal">356</span>
-<span class="normal">357</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">save_to_stf2</span><span class="p">(</span>
+<span class="normal">357</span>
+<span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">save_to_stf2</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">variable_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">var_type</span><span class="p">:</span> <span class="n">StfVariable</span> <span class="o">=</span> <span class="n">StfVariable</span><span class="o">.</span><span class="n">STREAMFLOW</span><span class="p">,</span>
     <span class="n">data_type</span><span class="p">:</span> <span class="n">StfDataType</span> <span class="o">=</span> <span class="n">StfDataType</span><span class="o">.</span><span class="n">OBSERVED</span><span class="p">,</span>
     <span class="n">ens</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># noqa: FBT001, FBT002</span>
-    <span class="n">timestep</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s2">&quot;days&quot;</span><span class="p">,</span>
+    <span class="n">timestep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;days&quot;</span><span class="p">,</span>
     <span class="n">data_qual</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save to file.&quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">efts_io._ncdf_stf2</span> <span class="kn">import</span> <span class="n">write_nc_stf2</span>
+
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">variable_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Inner data is a DataSet, so an explicit variable name must be explicitely specified.&quot;</span><span class="p">)</span>
         <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span>
-    <span class="c1">#elif isinstance(self.data, xr.DataArray):</span>
+    <span class="c1"># elif isinstance(self.data, xr.DataArray):</span>
     <span class="c1">#    d = self.data</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported data type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="n">write_nc_stf2</span><span class="p">(</span>
-        <span class="n">out_nc_file</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="c1"># : str,</span>
+        <span class="n">out_nc_file</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>  <span class="c1"># : str,</span>
         <span class="n">dataset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
-        <span class="n">data</span><span class="o">=</span><span class="n">d</span><span class="p">,</span> <span class="c1"># : xr.DataArray,</span>
-        <span class="n">var_type</span><span class="o">=</span><span class="n">var_type</span><span class="p">,</span> <span class="c1"># : int = 1,</span>
-        <span class="n">data_type</span><span class="o">=</span><span class="n">data_type</span><span class="p">,</span> <span class="c1"># : int = 3,</span>
-        <span class="n">stf_nc_vers</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="c1"># : int = 2,</span>
-        <span class="n">ens</span><span class="o">=</span><span class="n">ens</span><span class="p">,</span> <span class="c1"># : bool = False,</span>
-        <span class="n">timestep</span><span class="o">=</span><span class="n">timestep</span><span class="p">,</span> <span class="c1"># :str=&quot;days&quot;,</span>
-        <span class="n">data_qual</span><span class="o">=</span><span class="n">data_qual</span><span class="p">,</span> <span class="c1"># : Optional[xr.DataArray] = None,</span>
-        <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="c1"># :bool=True,</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">d</span><span class="p">,</span>  <span class="c1"># : xr.DataArray,</span>
+        <span class="n">var_type</span><span class="o">=</span><span class="n">var_type</span><span class="p">,</span>  <span class="c1"># : int = 1,</span>
+        <span class="n">data_type</span><span class="o">=</span><span class="n">data_type</span><span class="p">,</span>  <span class="c1"># : int = 3,</span>
+        <span class="n">stf_nc_vers</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>  <span class="c1"># : int = 2,</span>
+        <span class="n">ens</span><span class="o">=</span><span class="n">ens</span><span class="p">,</span>  <span class="c1"># : bool = False,</span>
+        <span class="n">timestep</span><span class="o">=</span><span class="n">timestep</span><span class="p">,</span>  <span class="c1"># :str=&quot;days&quot;,</span>
+        <span class="n">data_qual</span><span class="o">=</span><span class="n">data_qual</span><span class="p">,</span>  <span class="c1"># : Optional[xr.DataArray] = None,</span>
+        <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># :bool=True,</span>
         <span class="c1"># loc_info=loc_info, # : Optional[Dict[str, Any]] = None,</span>
     <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -2914,10 +2916,7 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">291</span>
-<span class="normal">292</span>
-<span class="normal">293</span>
-<span class="normal">294</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">294</span>
 <span class="normal">295</span>
 <span class="normal">296</span>
 <span class="normal">297</span>
@@ -2935,7 +2934,10 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 <span class="normal">309</span>
 <span class="normal">310</span>
 <span class="normal">311</span>
-<span class="normal">312</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">set_mandatory_global_attributes</span><span class="p">(</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">set_mandatory_global_attributes</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;not provided&quot;</span><span class="p">,</span>
     <span class="n">institution</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;not provided&quot;</span><span class="p">,</span>
@@ -2982,14 +2984,14 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">282</span>
-<span class="normal">283</span>
-<span class="normal">284</span>
-<span class="normal">285</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">285</span>
 <span class="normal">286</span>
 <span class="normal">287</span>
 <span class="normal">288</span>
-<span class="normal">289</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">to_netcdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;2.0&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">to_netcdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;2.0&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Write the data set to a netCDF file.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
@@ -3033,16 +3035,17 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">314</span>
-<span class="normal">315</span>
-<span class="normal">316</span>
-<span class="normal">317</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">317</span>
 <span class="normal">318</span>
 <span class="normal">319</span>
 <span class="normal">320</span>
 <span class="normal">321</span>
 <span class="normal">322</span>
-<span class="normal">323</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">writeable_to_stf2</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">writeable_to_stf2</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the dataset can be written to a netCDF file compliant with STF 2.0 specification.</span>
 
 <span class="sd">    This method checks if the underlying xarray dataset or dataarray has the required dimensions and global attributes as specified by the STF 2.0 convention.</span>
@@ -3051,6 +3054,7 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 <span class="sd">        bool: True if the dataset can be written to a STF 2.0 compliant netCDF file, False otherwise.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">efts_io.conventions</span> <span class="kn">import</span> <span class="n">exportable_to_stf2</span>
+
     <span class="k">return</span> <span class="n">exportable_to_stf2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -3193,26 +3197,7 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 959</span>
-<span class="normal"> 960</span>
-<span class="normal"> 961</span>
-<span class="normal"> 962</span>
-<span class="normal"> 963</span>
-<span class="normal"> 964</span>
-<span class="normal"> 965</span>
-<span class="normal"> 966</span>
-<span class="normal"> 967</span>
-<span class="normal"> 968</span>
-<span class="normal"> 969</span>
-<span class="normal"> 970</span>
-<span class="normal"> 971</span>
-<span class="normal"> 972</span>
-<span class="normal"> 973</span>
-<span class="normal"> 974</span>
-<span class="normal"> 975</span>
-<span class="normal"> 976</span>
-<span class="normal"> 977</span>
-<span class="normal"> 978</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 978</span>
 <span class="normal"> 979</span>
 <span class="normal"> 980</span>
 <span class="normal"> 981</span>
@@ -3274,17 +3259,35 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 <span class="normal">1037</span>
 <span class="normal">1038</span>
 <span class="normal">1039</span>
-<span class="normal">1040</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_efts</span><span class="p">(</span>
+<span class="normal">1040</span>
+<span class="normal">1041</span>
+<span class="normal">1042</span>
+<span class="normal">1043</span>
+<span class="normal">1044</span>
+<span class="normal">1045</span>
+<span class="normal">1046</span>
+<span class="normal">1047</span>
+<span class="normal">1048</span>
+<span class="normal">1049</span>
+<span class="normal">1050</span>
+<span class="normal">1051</span>
+<span class="normal">1052</span>
+<span class="normal">1053</span>
+<span class="normal">1054</span>
+<span class="normal">1055</span>
+<span class="normal">1056</span>
+<span class="normal">1057</span>
+<span class="normal">1058</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_efts</span><span class="p">(</span>
     <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">time_dim_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
     <span class="n">data_var_definitions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
     <span class="n">stations_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
     <span class="n">station_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># noqa: ARG001</span>
     <span class="n">nc_attributes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">optional_vars</span><span class="p">:</span><span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="n">Any</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">lead_length</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">48</span><span class="p">,</span>
-    <span class="n">ensemble_length</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
-    <span class="n">lead_time_tstep</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s2">&quot;hours&quot;</span><span class="p">,</span>
+    <span class="n">optional_vars</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">lead_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">48</span><span class="p">,</span>
+    <span class="n">ensemble_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
+    <span class="n">lead_time_tstep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;hours&quot;</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EftsDataSet</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a new EFTS dataset.&quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
@@ -3295,7 +3298,6 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="s2">&quot;You must provide station identifiers when creating a new EFTS netCDF data set&quot;</span><span class="p">,</span>
         <span class="p">)</span>
-
 
     <span class="k">if</span> <span class="n">nc_attributes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -3414,8 +3416,7 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 75</span>
-<span class="normal"> 76</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 76</span>
 <span class="normal"> 77</span>
 <span class="normal"> 78</span>
 <span class="normal"> 79</span>
@@ -3487,7 +3488,9 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 <span class="normal">145</span>
 <span class="normal">146</span>
 <span class="normal">147</span>
-<span class="normal">148</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">load_from_stf2_file</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">time_zone_timestamps</span><span class="p">:</span><span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span> <span class="p">:</span> <span class="c1"># noqa: FBT001</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">load_from_stf2_file</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">time_zone_timestamps</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">:</span>  <span class="c1"># noqa: FBT001</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load data from an STF 2.0 netcdf file to an xarray representation.</span>
 
 <span class="sd">    Args:</span>
@@ -3498,6 +3501,7 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 <span class="sd">        _type_: xarray Dataset</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">xarray.coding</span> <span class="kn">import</span> <span class="n">times</span>
+
     <span class="c1"># work around https://jira.csiro.au/browse/WIRADA-635</span>
     <span class="c1"># lead_time can be a problem with xarray, so do not decode &quot;times&quot;</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">decode_times</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -3584,11 +3588,11 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">704</span>
-<span class="normal">705</span>
-<span class="normal">706</span>
-<span class="normal">707</span>
-<span class="normal">708</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">nan_full</span><span class="p">(</span><span class="n">shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">709</span>
+<span class="normal">710</span>
+<span class="normal">711</span>
+<span class="normal">712</span>
+<span class="normal">713</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">nan_full</span><span class="p">(</span><span class="n">shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a full array of NaNs with the given shape.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
         <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">shape</span><span class="p">,)</span>
@@ -3618,15 +3622,15 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">693</span>
-<span class="normal">694</span>
-<span class="normal">695</span>
-<span class="normal">696</span>
-<span class="normal">697</span>
-<span class="normal">698</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">698</span>
 <span class="normal">699</span>
 <span class="normal">700</span>
-<span class="normal">701</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">open_efts</span><span class="p">(</span><span class="n">ncfile</span><span class="p">:</span><span class="n">Any</span><span class="p">,</span> <span class="n">writein</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EftsDataSet</span><span class="p">:</span>  <span class="c1"># noqa: ARG001, FBT001, FBT002</span>
+<span class="normal">701</span>
+<span class="normal">702</span>
+<span class="normal">703</span>
+<span class="normal">704</span>
+<span class="normal">705</span>
+<span class="normal">706</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">open_efts</span><span class="p">(</span><span class="n">ncfile</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">writein</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EftsDataSet</span><span class="p">:</span>  <span class="c1"># noqa: ARG001, FBT001, FBT002</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Open an EFTS NetCDF file.&quot;&quot;&quot;</span>
     <span class="c1"># raise NotImplemented(&quot;open_efts&quot;)</span>
     <span class="c1"># if isinstance(ncfile, str):</span>
@@ -3669,12 +3673,7 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 
             <details class="quote">
               <summary>Source code in <code>src/efts_io/wrapper.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">711</span>
-<span class="normal">712</span>
-<span class="normal">713</span>
-<span class="normal">714</span>
-<span class="normal">715</span>
-<span class="normal">716</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">716</span>
 <span class="normal">717</span>
 <span class="normal">718</span>
 <span class="normal">719</span>
@@ -3741,7 +3740,26 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
 <span class="normal">780</span>
 <span class="normal">781</span>
 <span class="normal">782</span>
-<span class="normal">783</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">xr_efts</span><span class="p">(</span>
+<span class="normal">783</span>
+<span class="normal">784</span>
+<span class="normal">785</span>
+<span class="normal">786</span>
+<span class="normal">787</span>
+<span class="normal">788</span>
+<span class="normal">789</span>
+<span class="normal">790</span>
+<span class="normal">791</span>
+<span class="normal">792</span>
+<span class="normal">793</span>
+<span class="normal">794</span>
+<span class="normal">795</span>
+<span class="normal">796</span>
+<span class="normal">797</span>
+<span class="normal">798</span>
+<span class="normal">799</span>
+<span class="normal">800</span>
+<span class="normal">801</span>
+<span class="normal">802</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">xr_efts</span><span class="p">(</span>
     <span class="n">issue_times</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">ConvertibleToTimestamp</span><span class="p">],</span>
     <span class="n">station_ids</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">lead_times</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -3755,16 +3773,30 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
     <span class="n">nc_attributes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create an xarray Dataset for EFTS data.&quot;&quot;&quot;</span>
+    <span class="c1"># Check that station ids are unique:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">station_ids</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">station_ids</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Station names must be unique.&quot;</span><span class="p">)</span>
+    <span class="c1"># I learned today that xarray 2025.7.1 can accept pandas datetimeindex as coordinates</span>
+    <span class="c1"># See https://github.com/csiro-hydroinformatics/efts-io/issues/13, in the future may change design.</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">issue_times</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">):</span>
+        <span class="c1"># This will convert each item to a tstamp such as</span>
+        <span class="c1"># Timestamp(&#39;2023-01-01 00:00:00+1000&#39;, tz=&#39;UTC+10:00&#39;)</span>
+        <span class="n">issue_times</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">issue_times</span><span class="p">)</span>  <span class="c1"># issue_times is iterable,and iterated over indeed.</span>
     <span class="k">if</span> <span class="n">lead_times</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">lead_times</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">coords</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">TIME_DIMNAME</span><span class="p">:</span> <span class="n">issue_times</span><span class="p">,</span>
-        <span class="n">STATION_DIMNAME</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">station_ids</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-        <span class="n">ENS_MEMBER_DIMNAME</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">ensemble_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+        <span class="c1"># STATION_DIMNAME: np.arange(start=1, stop=len(station_ids) + 1, step=1),</span>
+        <span class="n">STATION_ID_DIMNAME</span><span class="p">:</span> <span class="n">station_ids</span><span class="p">,</span>  <span class="c1"># np.arange(start=1, stop=len(station_ids) + 1, step=1),</span>
+        <span class="n">REALISATION_DIMNAME</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">ensemble_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
         <span class="n">LEAD_TIME_DIMNAME</span><span class="p">:</span> <span class="n">lead_times</span><span class="p">,</span>
-        <span class="c1"># New coordinate can also be attached to an existing dimension:</span>
+        <span class="c1"># Initially, I was exploring attaching a coordinate to an existing dimension STATION_DIMNAME, using:</span>
         <span class="c1"># https://docs.xarray.dev/en/latest/generated/xarray.DataArray.assign_coords.html#xarray.DataArray.assign_coords</span>
-        <span class="n">STATION_ID_VARNAME</span><span class="p">:</span> <span class="p">(</span><span class="n">STATION_DIMNAME</span><span class="p">,</span> <span class="n">station_ids</span><span class="p">),</span>
+        <span class="c1"># then using https://github.com/pydata/xarray/issues/2028#issuecomment-1265252754  to be able to</span>
+        <span class="c1"># index by station IDs. But in July 2025 decided to not have a STATION_DIMNAME dimension, which is</span>
+        <span class="c1"># an artefact from legacy conventions (Fortran 1-based indexing and other related limitations).</span>
+        <span class="c1"># Keeping a number based STATION_DIMNAME here is only making things more difficult and data subsetting more prone to bugs.</span>
+        <span class="c1"># STATION_ID_VARNAME: (STATION_DIMNAME, station_ids),</span>
     <span class="p">}</span>
     <span class="n">n_stations</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">station_ids</span><span class="p">)</span>
     <span class="n">latitudes</span> <span class="o">=</span> <span class="n">latitudes</span> <span class="k">if</span> <span class="n">latitudes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">nan_full</span><span class="p">(</span><span class="n">n_stations</span><span class="p">)</span>
@@ -3772,10 +3804,10 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
     <span class="n">areas</span> <span class="o">=</span> <span class="n">areas</span> <span class="k">if</span> <span class="n">areas</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">nan_full</span><span class="p">(</span><span class="n">n_stations</span><span class="p">)</span>
     <span class="n">station_names</span> <span class="o">=</span> <span class="n">station_names</span> <span class="k">if</span> <span class="n">station_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">station_ids</span><span class="p">]</span>
     <span class="n">data_vars</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">STATION_NAME_VARNAME</span><span class="p">:</span> <span class="p">(</span><span class="n">STATION_DIMNAME</span><span class="p">,</span> <span class="n">station_names</span><span class="p">),</span>
-        <span class="n">LAT_VARNAME</span><span class="p">:</span> <span class="p">(</span><span class="n">STATION_DIMNAME</span><span class="p">,</span> <span class="n">latitudes</span><span class="p">),</span>
-        <span class="n">LON_VARNAME</span><span class="p">:</span> <span class="p">(</span><span class="n">STATION_DIMNAME</span><span class="p">,</span> <span class="n">longitudes</span><span class="p">),</span>
-        <span class="n">AREA_VARNAME</span><span class="p">:</span> <span class="p">(</span><span class="n">STATION_DIMNAME</span><span class="p">,</span> <span class="n">areas</span><span class="p">),</span>
+        <span class="n">STATION_NAME_VARNAME</span><span class="p">:</span> <span class="p">(</span><span class="n">STATION_ID_DIMNAME</span><span class="p">,</span> <span class="n">station_names</span><span class="p">),</span>
+        <span class="n">LAT_VARNAME</span><span class="p">:</span> <span class="p">(</span><span class="n">STATION_ID_DIMNAME</span><span class="p">,</span> <span class="n">latitudes</span><span class="p">),</span>
+        <span class="n">LON_VARNAME</span><span class="p">:</span> <span class="p">(</span><span class="n">STATION_ID_DIMNAME</span><span class="p">,</span> <span class="n">longitudes</span><span class="p">),</span>
+        <span class="n">AREA_VARNAME</span><span class="p">:</span> <span class="p">(</span><span class="n">STATION_ID_DIMNAME</span><span class="p">,</span> <span class="n">areas</span><span class="p">),</span>
     <span class="p">}</span>
     <span class="n">nc_attributes</span> <span class="o">=</span> <span class="n">nc_attributes</span> <span class="ow">or</span> <span class="n">_stf2_mandatory_global_attributes</span><span class="p">()</span>
     <span class="n">d</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span>
@@ -3784,7 +3816,7 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
         <span class="n">attrs</span><span class="o">=</span><span class="n">nc_attributes</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="c1"># Credits to the work reported in https://github.com/pydata/xarray/issues/2028#issuecomment-1265252754</span>
-    <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">set_xindex</span><span class="p">(</span><span class="n">STATION_ID_VARNAME</span><span class="p">)</span>
+    <span class="c1"># d = d.set_xindex(STATION_ID_VARNAME)</span>
     <span class="n">d</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">attrs</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">STANDARD_NAME_ATTR_KEY</span><span class="p">:</span> <span class="n">TIME_DIMNAME</span><span class="p">,</span>
         <span class="n">LONG_NAME_ATTR_KEY</span><span class="p">:</span> <span class="n">TIME_DIMNAME</span><span class="p">,</span>
@@ -3798,8 +3830,8 @@ dict_keys(['name', 'longname', 'units', 'dim_type', 'missval', 'precision', 'att
         <span class="n">AXIS_ATTR_KEY</span><span class="p">:</span> <span class="s2">&quot;v&quot;</span><span class="p">,</span>
         <span class="n">UNITS_ATTR_KEY</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">lead_time_tstep</span><span class="si">}</span><span class="s2"> since time&quot;</span><span class="p">,</span>
     <span class="p">}</span>
-    <span class="n">d</span><span class="o">.</span><span class="n">ens_member</span><span class="o">.</span><span class="n">attrs</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">STANDARD_NAME_ATTR_KEY</span><span class="p">:</span> <span class="n">ENS_MEMBER_DIMNAME</span><span class="p">,</span>
+    <span class="n">d</span><span class="o">.</span><span class="n">realisation</span><span class="o">.</span><span class="n">attrs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">STANDARD_NAME_ATTR_KEY</span><span class="p">:</span> <span class="n">ENS_MEMBER_DIMNAME</span><span class="p">,</span>  <span class="c1"># TODO: should we keep the STF 2.0 ens_member as a standard name?</span>
         <span class="n">LONG_NAME_ATTR_KEY</span><span class="p">:</span> <span class="s2">&quot;ensemble member&quot;</span><span class="p">,</span>
         <span class="n">UNITS_ATTR_KEY</span><span class="p">:</span> <span class="s2">&quot;member id&quot;</span><span class="p">,</span>
         <span class="n">AXIS_ATTR_KEY</span><span class="p">:</span> <span class="s2">&quot;u&quot;</span><span class="p">,</span>
