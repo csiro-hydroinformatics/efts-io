@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- insertion marker -->
+## [0.5.0](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.5.0) - 2025-10-16
+
+<small>[Compare with 0.4.0](https://github.com/csiro-hydroinformatics/efts-io/compare/0.4.0...0.5.0)</small>
+
+### Features
+
+- Gracefully handle data with dimensions less than 4 if the missing ones are degenerate (lengh 1). ([abd17b9](https://github.com/csiro-hydroinformatics/efts-io/commit/abd17b9924bbbc23328b27a38eda2517eac876be) by J-M).
+
+### Bug Fixes
+
+- data arrays created from EftsDataset methods should be wirteable to STF2 ([b6b248d](https://github.com/csiro-hydroinformatics/efts-io/commit/b6b248d837be5553904f256a71e1521e199af4f1) by J-M).
+- feature for #14 not called early enough when saving to file ([80c6ec9](https://github.com/csiro-hydroinformatics/efts-io/commit/80c6ec97a910d988da510b59ac6428fb42037085) by J-M).
+
 ## [0.4.0](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.4.0) - 2025-07-24
 
 <small>[Compare with 0.3.0](https://github.com/csiro-hydroinformatics/efts-io/compare/0.3.0...0.4.0)</small>
