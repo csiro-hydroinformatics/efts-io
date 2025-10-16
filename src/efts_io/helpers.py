@@ -42,6 +42,7 @@ def get_sample_data_path(file_name: str) -> str:
     with importlib.resources.path("efts_io.data", file_name) as data_path:
         return str(data_path)
 
+
 def derived_rainfall_tas() -> str:
     """Sample rainfall from Tasmania."""
     sample_data_file = "derived_rainfall_tas.nc"

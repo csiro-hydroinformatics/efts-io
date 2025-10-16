@@ -72,7 +72,8 @@ def _first_where(condition: np.ndarray) -> int:
         raise ValueError("first_where: Invalid condition, no element is true")
     return x[0]
 
-def load_from_stf2_file(file_path:str, time_zone_timestamps:bool) -> xr.Dataset : # noqa: FBT001
+
+def load_from_stf2_file(file_path: str, time_zone_timestamps: bool) -> xr.Dataset:  # noqa: FBT001
     """Load data from an STF 2.0 netcdf file to an xarray representation.
 
     Args:
@@ -83,6 +84,7 @@ def load_from_stf2_file(file_path:str, time_zone_timestamps:bool) -> xr.Dataset 
         _type_: xarray Dataset
     """
     from xarray.coding import times
+
     # work around https://jira.csiro.au/browse/WIRADA-635
     # lead_time can be a problem with xarray, so do not decode "times"
     x = xr.open_dataset(file_path, decode_times=False)
@@ -146,6 +148,7 @@ def load_from_stf2_file(file_path:str, time_zone_timestamps:bool) -> xr.Dataset 
         attrs=station_names_var.attrs,
     )
     return new_dataset
+
 
 class EftsDataSet:
     """Convenience class for access to a Ensemble Forecast Time Series in netCDF file."""
@@ -320,6 +323,7 @@ class EftsDataSet:
             bool: True if the dataset can be written to a STF 2.0 compliant netCDF file, False otherwise.
         """
         from efts_io.conventions import exportable_to_stf2
+
         return exportable_to_stf2(self.data)
 
     def save_to_stf2(
@@ -329,30 +333,31 @@ class EftsDataSet:
         var_type: StfVariable = StfVariable.STREAMFLOW,
         data_type: StfDataType = StfDataType.OBSERVED,
         ens: bool = False,  # noqa: FBT001, FBT002
-        timestep:str="days",
+        timestep: str = "days",
         data_qual: Optional[xr.DataArray] = None,
     ) -> None:
         """Save to file."""
         from efts_io._ncdf_stf2 import write_nc_stf2
+
         if isinstance(self.data, xr.Dataset):
             if variable_name is None:
                 raise ValueError("Inner data is a DataSet, so an explicit variable name must be explicitely specified.")
             d = self.data[variable_name]
-        #elif isinstance(self.data, xr.DataArray):
+        # elif isinstance(self.data, xr.DataArray):
         #    d = self.data
         else:
             raise TypeError(f"Unsupported data type {type(self.data)}")
         write_nc_stf2(
-            out_nc_file=path, # : str,
+            out_nc_file=path,  # : str,
             dataset=self.data,
-            data=d, # : xr.DataArray,
-            var_type=var_type, # : int = 1,
-            data_type=data_type, # : int = 3,
-            stf_nc_vers = 2, # : int = 2,
-            ens=ens, # : bool = False,
-            timestep=timestep, # :str="days",
-            data_qual=data_qual, # : Optional[xr.DataArray] = None,
-            overwrite=True, # :bool=True,
+            data=d,  # : xr.DataArray,
+            var_type=var_type,  # : int = 1,
+            data_type=data_type,  # : int = 3,
+            stf_nc_vers=2,  # : int = 2,
+            ens=ens,  # : bool = False,
+            timestep=timestep,  # :str="days",
+            data_qual=data_qual,  # : Optional[xr.DataArray] = None,
+            overwrite=True,  # :bool=True,
             # loc_info=loc_info, # : Optional[Dict[str, Any]] = None,
         )
 
@@ -366,9 +371,9 @@ class EftsDataSet:
         ens_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "3"]
         point_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "2"]
 
-        four_dims_names = (LEAD_TIME_DIMNAME, STATION_DIMNAME, ENS_MEMBER_DIMNAME, TIME_DIMNAME)
-        three_dims_names = (STATION_DIMNAME, ENS_MEMBER_DIMNAME, TIME_DIMNAME)
-        two_dims_names = (STATION_DIMNAME, TIME_DIMNAME)
+        four_dims_names = (LEAD_TIME_DIMNAME, STATION_ID_DIMNAME, REALISATION_DIMNAME, TIME_DIMNAME)
+        three_dims_names = (STATION_ID_DIMNAME, REALISATION_DIMNAME, TIME_DIMNAME)
+        two_dims_names = (STATION_ID_DIMNAME, TIME_DIMNAME)
 
         four_dims_shape = tuple(self.data.sizes[dimname] for dimname in four_dims_names)
         three_dims_shape = tuple(self.data.sizes[dimname] for dimname in three_dims_names)
@@ -505,7 +510,7 @@ class EftsDataSet:
     #         dimension_id = self.get_stations_varname()
     #     raise NotImplementedError
 
-    def _dim_size(self, dimname:str) -> int:
+    def _dim_size(self, dimname: str) -> int:
         return self.data.sizes[dimname]
 
     def get_ensemble_size(self) -> int:
@@ -520,7 +525,7 @@ class EftsDataSet:
         """Return the values of the lead time dimension."""
         return self.data[self.LEAD_TIME_DIMNAME].values
 
-    def put_lead_time_values(self, values:Iterable[float]) -> None:
+    def put_lead_time_values(self, values: Iterable[float]) -> None:
         """Set the values of the lead time dimension."""
         self.data[self.LEAD_TIME_DIMNAME].values = np.array(values)
 
@@ -690,7 +695,7 @@ class EftsDataSet:
 #'
 #' @return A EftsDataSet object
 #' @importFrom methods is
-def open_efts(ncfile:Any, writein:bool=False) -> EftsDataSet:  # noqa: ARG001, FBT001, FBT002
+def open_efts(ncfile: Any, writein: bool = False) -> EftsDataSet:  # noqa: ARG001, FBT001, FBT002
     """Open an EFTS NetCDF file."""
     # raise NotImplemented("open_efts")
     # if isinstance(ncfile, str):
@@ -727,16 +732,16 @@ def xr_efts(
         raise ValueError("Station names must be unique.")
     # I learned today that xarray 2025.7.1 can accept pandas datetimeindex as coordinates
     # See https://github.com/csiro-hydroinformatics/efts-io/issues/13, in the future may change design.
-    if isinstance (issue_times, pd.DatetimeIndex):
+    if isinstance(issue_times, pd.DatetimeIndex):
         # This will convert each item to a tstamp such as
         # Timestamp('2023-01-01 00:00:00+1000', tz='UTC+10:00')
-        issue_times = list(issue_times) # issue_times is iterable,and iterated over indeed.
+        issue_times = list(issue_times)  # issue_times is iterable,and iterated over indeed.
     if lead_times is None:
         lead_times = [0]
     coords = {
         TIME_DIMNAME: issue_times,
         # STATION_DIMNAME: np.arange(start=1, stop=len(station_ids) + 1, step=1),
-        STATION_ID_DIMNAME: station_ids, # np.arange(start=1, stop=len(station_ids) + 1, step=1),
+        STATION_ID_DIMNAME: station_ids,  # np.arange(start=1, stop=len(station_ids) + 1, step=1),
         REALISATION_DIMNAME: np.arange(start=1, stop=ensemble_size + 1, step=1),
         LEAD_TIME_DIMNAME: lead_times,
         # Initially, I was exploring attaching a coordinate to an existing dimension STATION_DIMNAME, using:
@@ -780,7 +785,7 @@ def xr_efts(
         UNITS_ATTR_KEY: f"{lead_time_tstep} since time",
     }
     d.realisation.attrs = {
-        STANDARD_NAME_ATTR_KEY: ENS_MEMBER_DIMNAME, # TODO: should we keep the STF 2.0 ens_member as a standard name?
+        STANDARD_NAME_ATTR_KEY: ENS_MEMBER_DIMNAME,  # TODO: should we keep the STF 2.0 ens_member as a standard name?
         LONG_NAME_ATTR_KEY: "ensemble member",
         UNITS_ATTR_KEY: "member id",
         AXIS_ATTR_KEY: "u",
@@ -977,10 +982,10 @@ def create_efts(
     stations_ids: List[int],
     station_names: Optional[List[str]] = None,  # noqa: ARG001
     nc_attributes: Optional[Dict[str, str]] = None,
-    optional_vars:Optional[dict[str,Any]]=None,
-    lead_length:int=48,
-    ensemble_length:int=50,
-    lead_time_tstep:str="hours",
+    optional_vars: Optional[dict[str, Any]] = None,
+    lead_length: int = 48,
+    ensemble_length: int = 50,
+    lead_time_tstep: str = "hours",
 ) -> EftsDataSet:
     """Create a new EFTS dataset."""
     import xarray as xr
@@ -991,7 +996,6 @@ def create_efts(
         raise ValueError(
             "You must provide station identifiers when creating a new EFTS netCDF data set",
         )
-
 
     if nc_attributes is None:
         raise ValueError(

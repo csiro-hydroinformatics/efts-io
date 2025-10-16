@@ -302,7 +302,7 @@ _as_tstamps = np.vectorize(_cftime_to_pdtstamp)
 def cftimes_to_pdtstamps(
     cftimes: Iterable[DatetimeGregorian],
     tz_str: Optional[str] = None,
-) -> np.ndarray[pd.Timestamp,pd.Timestamp]:
+) -> np.ndarray[pd.Timestamp, pd.Timestamp]:
     """Convert one or more Climate and Forecast (CF) times to timestamps."""
     return _as_tstamps(cftimes, tz_str)
 
@@ -310,7 +310,7 @@ def cftimes_to_pdtstamps(
 def create_timestamps(
     time_dim_info: Dict[str, Any],
     tz_str: Optional[str] = None,
-) -> np.ndarray[pd.Timestamp,pd.Timestamp]:
+) -> np.ndarray[pd.Timestamp, pd.Timestamp]:
     """Create time axis timestamps given the time dimension information."""
     import xarray as xr
 

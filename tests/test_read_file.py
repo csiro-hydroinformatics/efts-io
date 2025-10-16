@@ -42,7 +42,9 @@ def dhours(i):
 def ddays(i):
     return pd.Timedelta(i * 24, "h")
 
+
 import pytest
+
 
 @pytest.mark.skip(reason="Ported from the R package, but may not be relevant or the best approach anymore")
 def test_read_thing():
@@ -284,6 +286,7 @@ def doTests(
 
 import tempfile
 import pytest
+
 
 @pytest.mark.skip(reason="Ported from the R package, but may not be relevant or the best approach anymore")
 def test_round_trip():

@@ -31,6 +31,7 @@ from efts_io.conventions import (
 
 from netCDF4 import Dataset
 
+
 class StfVariable(Enum):
     STREAMFLOW = 1
     POTENTIAL_EVAPOTRANSPIRATION = 2
@@ -154,7 +155,7 @@ def write_nc_stf2(
         )
 
     # Check that optional variables, if present, have the minimum attributes present.
-    def _check_optional_var_attr(dataset:xr.Dataset, var_id:str) -> None:
+    def _check_optional_var_attr(dataset: xr.Dataset, var_id: str) -> None:
         if has_variable(dataset, var_id):
             xrvar = dataset[var_id]
             check_optional_variable_attributes(xrvar, AttributesErrorLevel.ERROR)
@@ -261,7 +262,7 @@ def write_nc_stf2(
     lon_var.setncattr(AXIS_ATTR_KEY, "x")
     lon_var[:] = sub_x_centroid
 
-    def add_optional_variables(data:xr.DataArray, ncfile:Dataset, var_id:str) -> None:
+    def add_optional_variables(data: xr.DataArray, ncfile: Dataset, var_id: str) -> None:
         if has_variable(data, var_id):
             ncvar_type = "f"
             xrvar = data[var_id]
@@ -396,7 +397,6 @@ def write_nc_stf2(
     else:
         qsim_var.setncattr(LOCATION_TYPE_ATTR_KEY, "Point")
 
-
     qsim_var[:, :, :, :] = data.values[:]
 
     # Specify the quality variable
@@ -405,12 +405,18 @@ def write_nc_stf2(
         if int(stf_nc_vers) == 1:
             if data_type == 2:  # noqa: PLR2004
                 qsim_qual_var = ncfile.createVariable(
-                    qu_var_name_s, "f", (TIME_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME), fill_value=-1,
+                    qu_var_name_s,
+                    "f",
+                    (TIME_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME),
+                    fill_value=-1,
                 )
                 qsim_qual_var[:, :, :] = data_qual.values[:]
             else:
                 qsim_qual_var = ncfile.createVariable(
-                    qu_var_name_s, "f", (TIME_DIMNAME, STATION_DIMNAME), fill_value=-1,
+                    qu_var_name_s,
+                    "f",
+                    (TIME_DIMNAME, STATION_DIMNAME),
+                    fill_value=-1,
                 )
                 qsim_qual_var[:, :] = data_qual.values[:]
         else:
@@ -455,6 +461,7 @@ def make_ready_for_saving(data: xr.DataArray, dataset: xr.Dataset, dimensions_or
         ValueError: Unexpected dimension in the dataarray, not in
     """
     from efts_io.conventions import xr_to_stf_dims, stf_to_xr_dims  # noqa: I001
+
     known_xr_dims = tuple(xr_to_stf_dims.keys())
     present_xr_dims = tuple(data.sizes.keys())
     if not set(present_xr_dims).intersection(known_xr_dims) == set(present_xr_dims):

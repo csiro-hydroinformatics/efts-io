@@ -195,8 +195,10 @@ MdDatasetsType = Union[xr.Dataset, xr.DataArray]
 def _is_nc_dataset(d: Any) -> bool:
     return isinstance(d, nc.Dataset)
 
+
 def _is_nc_variable(d: Any) -> bool:
     return isinstance(d, nc.Variable)
+
 
 def _is_ncdf4_withattrs(d: Any) -> bool:
     return _is_nc_dataset(d) or _is_nc_variable(d)
@@ -220,6 +222,7 @@ def _has_required_dimensions(
         kk = set([k for k in dims])  # noqa: C403, C416
         return kk == set(mandatory_dimensions)
 
+
 def _is_subset_required_dimensions(
     d: MdDatasetsType,
     mandatory_dimensions: Iterable[str],
@@ -239,6 +242,7 @@ def _is_subset_required_dimensions(
         d_set = set([k for k in dims])  # noqa: C403, C416
         return d_set.intersection(set(mandatory_dimensions)) == d_set
 
+
 def has_required_stf2_dimensions(d: MdDatasetsType, mandatory_dimensions: Optional[Iterable[str]] = None) -> bool:
     """Has the dataset the required dimensions for STF conventions.
 
@@ -255,6 +259,7 @@ def has_required_stf2_dimensions(d: MdDatasetsType, mandatory_dimensions: Option
 def has_required_xarray_dimensions(d: MdDatasetsType) -> bool:
     """Has the dataset the required dimensions for an in memory xarray representation."""
     return _has_required_dimensions(d, mandatory_xarray_dimensions)
+
 
 def is_subset_required_xarray_dimensions(d: MdDatasetsType) -> bool:
     """Has the data array or dataset dimensions that are a subset of the spedified dims?"""
@@ -279,7 +284,7 @@ def has_required_global_attributes(d: MdDatasetsType) -> bool:
 
 
 def has_required_xarray_global_attributes(d: MdDatasetsType) -> bool:
-    """has_required_global_attributes."""
+    """has_required_xarray_global_attributes."""
     a = d.attrs.keys()
     tested = set(a)
     return _has_all_members(tested, mandatory_global_attributes_xr)
@@ -477,6 +482,7 @@ def _check_variable_attributes_qul(
     }
     return _check_attrs(variable, required_attributes, missing_attributes_messages, error_threshold=error_threshold)
 
+
 def _check_attrs_ncdataset(
     variable: Any,
     required_attributes: Dict[str, type],
@@ -624,7 +630,8 @@ def convert_to_datetime64_utc(x: ConvertibleToTimestamp) -> np.datetime64:
 
     return x.to_datetime64()
 
-def exportable_to_stf2(data:MdDatasetsType) -> bool:
+
+def exportable_to_stf2(data: MdDatasetsType) -> bool:
     """Check if the dataset can be written to a netCDF file compliant with STF 2.0 specification.
 
     This method checks if the underlying xarray dataset or dataarray has the required dimensions and global attributes as specified by the STF 2.0 convention.
@@ -632,10 +639,15 @@ def exportable_to_stf2(data:MdDatasetsType) -> bool:
     Returns:
         bool: True if the dataset can be written to a STF 2.0 compliant netCDF file, False otherwise.
     """
-    from efts_io.conventions import has_required_stf2_dimensions, has_required_global_attributes, has_required_variables_xr, mandatory_xarray_dimensions  # noqa: I001
+    from efts_io.conventions import has_required_stf2_dimensions, has_required_variables_xr, mandatory_xarray_dimensions  # noqa: I001
+
     required_stf2_dimensions = has_required_stf2_dimensions(data, mandatory_xarray_dimensions)
-    required_attributes = has_required_global_attributes(data)
+    required_attributes = has_required_xarray_global_attributes(data)
     required_variables = has_required_variables_xr(data)
+    # Check that station_ids are not strings though:
+    if STATION_ID_DIMNAME in data:  # must be, but no harm in checking
+        station_ids = data[STATION_ID_DIMNAME].values
+        if not np.issubdtype(station_ids.dtype, np.integer):
+            return False
 
     return required_stf2_dimensions and required_attributes and required_variables
-

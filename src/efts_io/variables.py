@@ -48,7 +48,7 @@ def create_variable_definition(
     missval: float = -9999.0,
     precision: str = "double",
     dim_type: str = "4",
-    var_attribute: Optional[dict[str,str]] = None,
+    var_attribute: Optional[dict[str, str]] = None,
 ) -> dict[str, Any]:
     """Create a variable definition."""
     if var_attribute is None:
@@ -311,7 +311,7 @@ def create_optional_vardefs(
         return {
             "name": vd["name"],
             UNITS_ATTR_KEY: vd[UNITS_ATTR_KEY],
-            "dim": list(station_dim[0]), # TOCHECK or not a list but the str?
+            "dim": list(station_dim[0]),  # TOCHECK or not a list but the str?
             "missval": vd["missval"],
             "longname": vd["longname"],
             "prec": vd["precision"],
