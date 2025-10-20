@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- insertion marker -->
+## [0.6.0](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.6.0) - 2025-10-20
+
+<small>[Compare with 0.5.0](https://github.com/csiro-hydroinformatics/efts-io/compare/0.5.0...0.6.0)</small>
+
+### Features
+
+- support larger integer for station identifiers, up to 18 or 19 digits or so. ([11dc9e5](https://github.com/csiro-hydroinformatics/efts-io/commit/11dc9e55fb883dbb591a7757dd7548a511762612) by J-M).
+
 ## [0.5.0](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.5.0) - 2025-10-16
 
 <small>[Compare with 0.4.0](https://github.com/csiro-hydroinformatics/efts-io/compare/0.4.0...0.5.0)</small>
