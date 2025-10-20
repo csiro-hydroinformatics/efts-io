@@ -1,6 +1,7 @@
 # import netCDF4
 import numpy as np
 import pandas as pd
+import pytest
 from efts_io._ncdf_stf2 import StfDataType, StfVariable
 from efts_io.wrapper import EftsDataSet, xr_efts
 
@@ -132,6 +133,18 @@ def test_create_new_efts_future_station_ids():
 def test_repro_issue_16():
     """Try to repro as closely as possible the issue reported in #16."""
     station_ids = [1, 2, 3]
+    _saving_to_stf2(station_ids)
+
+
+def test_large_station_integers():
+    """Try to repro as closely as possible the issue reported in #17."""
+    station_ids = [1, 2, 123456789123]
+    with pytest.raises(OverflowError):
+        _saving_to_stf2(station_ids, intdata_type="i4")
+    _saving_to_stf2(station_ids, intdata_type="i8")
+
+
+def _saving_to_stf2(station_ids, intdata_type="i4"):
     xr_ds = xr_efts(
         issue_times=pd.date_range("2023-10-01", periods=31, freq="D"),
         station_ids=station_ids,
@@ -155,6 +168,7 @@ def test_repro_issue_16():
         longitudes=[10.0, 11.0, 12.0],
     )
     eds = EftsDataSet(xr_ds)
+    eds.stf2_int_datatype = intdata_type
     eds.create_data_variables(
         {
             "rain_obs": {

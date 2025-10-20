@@ -187,6 +187,8 @@ class EftsDataSet:
         else:
             self.data = data
 
+        self.stf2_int_datatype = "i4"  # default integer type for STF2 saving
+
     @property
     def title(self) -> str:
         """Get or set the title attribute of the dataset."""
@@ -326,6 +328,18 @@ class EftsDataSet:
 
         return exportable_to_stf2(self.data)
 
+    @property
+    def stf2_int_datatype(self) -> str:
+        """The type of integer to save to in the STF 2.x netcdf convention: 'i4' or 'i8'."""
+        return self._stf2_int_datatype
+
+    @stf2_int_datatype.setter
+    def stf2_int_datatype(self, value: str) -> None:
+        """The type of integer to save to in the STF 2.x netcdf convention: 'i4' or 'i8'."""
+        if value not in ("i4", "i8"):
+            raise ValueError("stf2_int_datatype must be either 'i4' or 'i8'")
+        self._stf2_int_datatype = value
+
     def save_to_stf2(
         self,
         path: str,
@@ -359,6 +373,7 @@ class EftsDataSet:
             data_qual=data_qual,  # : Optional[xr.DataArray] = None,
             overwrite=True,  # :bool=True,
             # loc_info=loc_info, # : Optional[Dict[str, Any]] = None,
+            intdata_type=self.stf2_int_datatype,
         )
 
     def create_data_variables(self, data_var_def: Dict[str, Dict[str, Any]]) -> None:

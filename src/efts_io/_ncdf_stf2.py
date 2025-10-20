@@ -106,6 +106,7 @@ def write_nc_stf2(
     data_qual: Optional[xr.DataArray] = None,
     overwrite: bool = True,  # noqa: FBT001, FBT002
     # loc_info: Optional[Dict[str, Any]] = None,
+    intdata_type: str = "i4",
 ) -> None:
     from efts_io.conventions import (  # noqa: I001
         X_VARNAME,
@@ -162,8 +163,6 @@ def write_nc_stf2(
 
     for var_id in (AREA_VARNAME, X_VARNAME, Y_VARNAME, ELEVATION_VARNAME):
         _check_optional_var_attr(dataset, var_id)
-
-    intdata_type = "i4"
 
     var_type = var_type.value
     data_type = data_type.value
@@ -226,6 +225,20 @@ def write_nc_stf2(
     station_var[:] = station
 
     #  station_id
+
+    # we check that station_id can be safely stored as int32
+    # I add this deliberately as a check to avoid possibly silent data corruption as observed in
+    # https://github.com/csiro-hydroinformatics/efts-io/issues/17
+    if intdata_type == "i4":
+        max_station_id = np.max(station_id)
+        min_station_id = np.min(station_id)
+        if not np.issubdtype(type(max_station_id), np.integer) or not np.issubdtype(type(min_station_id), np.integer):
+            raise TypeError("station_id values must be integers to be stored in STF2.0 format.")
+        if max_station_id > np.iinfo(np.int32).max or min_station_id < np.iinfo(np.int32).min:
+            raise OverflowError(
+                f"station_id values must be in the int32 range [{np.iinfo(np.int32).min}, {np.iinfo(np.int32).max}] to be stored in STF2.0 format.",
+            )
+
     station_id_var = ncfile.createVariable(STATION_ID_VARNAME, intdata_type, (STATION_DIMNAME,), fill_value=-9999)
     station_id_var.setncattr(LONG_NAME_ATTR_KEY, "station or node identification code")
     station_id_var[:] = station_id
