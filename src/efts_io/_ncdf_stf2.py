@@ -5,7 +5,7 @@ These are functions ported from a collection of utilities initially in https://b
 
 import os  # noqa: I001
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
@@ -93,6 +93,26 @@ def _create_cf_time_axis(data: xr.DataArray, timestep_str: str) -> tuple[np.ndar
     units = f"{timestep_str} since {formatted_string_with_tz}"
     return axis, units, calendar
 
+def _validate_station_id_for_int32(station_id: np.ndarray, intdata_type: str) -> None:
+    """Validate that station_id values can be safely stored as int32.
+
+    Args:
+        station_id: Array of station ID values to validate
+        intdata_type: The intended integer data type (e.g., 'i4' for int32)
+
+    Raises:
+        TypeError: If station_id values are not integers
+        OverflowError: If station_id values are outside the int32 range
+    """
+    if intdata_type == "i4":
+        max_station_id = np.max(station_id)
+        min_station_id = np.min(station_id)
+        if not np.issubdtype(type(max_station_id), np.integer) or not np.issubdtype(type(min_station_id), np.integer):
+            raise TypeError("station_id values must be integers to be stored in STF2.0 format.")
+        if max_station_id > np.iinfo(np.int32).max or min_station_id < np.iinfo(np.int32).min:
+            raise OverflowError(
+                f"station_id values must be in the int32 range [{np.iinfo(np.int32).min}, {np.iinfo(np.int32).max}] to be stored in STF2.0 format.",
+            )
 
 def write_nc_stf2(
     out_nc_file: str,
@@ -242,18 +262,7 @@ def write_nc_stf2(
 
         #  station_id
 
-        # we check that station_id can be safely stored as int32
-        # I add this deliberately as a check to avoid possibly silent data corruption as observed in
-        # https://github.com/csiro-hydroinformatics/efts-io/issues/17
-        if intdata_type == "i4":
-            max_station_id = np.max(station_id)
-            min_station_id = np.min(station_id)
-            if not np.issubdtype(type(max_station_id), np.integer) or not np.issubdtype(type(min_station_id), np.integer):
-                raise TypeError("station_id values must be integers to be stored in STF2.0 format.")
-            if max_station_id > np.iinfo(np.int32).max or min_station_id < np.iinfo(np.int32).min:
-                raise OverflowError(
-                    f"station_id values must be in the int32 range [{np.iinfo(np.int32).min}, {np.iinfo(np.int32).max}] to be stored in STF2.0 format.",
-                )
+        _validate_station_id_for_int32(station_id, intdata_type)
 
         station_id_var = ncfile.createVariable(STATION_ID_VARNAME, intdata_type, (STATION_DIMNAME,), fill_value=-9999)
         station_id_var.setncattr(LONG_NAME_ATTR_KEY, "station or node identification code")
@@ -370,14 +379,7 @@ def write_nc_stf2(
         d_type[0] = "der"
         d_type_long[0] = "derived (from observations)"
 
-        if int(stf_nc_vers) == 1:
-            d_type[1] = "fcast"
-            d_type_long[1] = "forecast"
-        elif int(stf_nc_vers) == 2:  # noqa: PLR2004
-            d_type[1] = "fct"
-            d_type_long[1] = "forecast"
-        else:
-            raise ValueError("Version not recognised: Currently only version 1.X or 2.X are supported")
+        _get_stationid_data_types(stf_nc_vers, d_type, d_type_long)
 
         d_type[2] = "obs"
         d_type_long[2] = "observed"
@@ -478,6 +480,16 @@ def write_nc_stf2(
         # Only close the file here if no exception occurred
         # This prevents double-close in the exception handler
         ncfile.close()
+
+def _get_stationid_data_types(stf_nc_vers: Any, d_type:np.ndarray, d_type_long:np.ndarray) -> None:
+    if int(stf_nc_vers) == 1:
+        d_type[1] = "fcast"
+        d_type_long[1] = "forecast"
+    elif int(stf_nc_vers) == 2:  # noqa: PLR2004
+        d_type[1] = "fct"
+        d_type_long[1] = "forecast"
+    else:
+        raise ValueError("Version not recognised: Currently only version 1.X or 2.X are supported")
 
 
 def make_ready_for_saving(data: xr.DataArray, dataset: xr.Dataset, dimensions_order: tuple) -> xr.DataArray:
