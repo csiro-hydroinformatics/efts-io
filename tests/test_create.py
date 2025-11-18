@@ -140,11 +140,11 @@ def test_large_station_integers():
     """Try to repro as closely as possible the issue reported in #17."""
     station_ids = [1, 2, 123456789123]
     with pytest.raises(OverflowError):
-        _saving_to_stf2(station_ids, intdata_type="i4")
-    _saving_to_stf2(station_ids, intdata_type="i8")
+        _saving_to_stf2(station_ids, intdata_type="i4", delete=False)
+    _saving_to_stf2(station_ids, intdata_type="i8", delete=True)
 
 
-def _saving_to_stf2(station_ids, intdata_type="i4"):
+def _saving_to_stf2(station_ids, intdata_type="i4", delete=True):
     xr_ds = xr_efts(
         issue_times=pd.date_range("2023-10-01", periods=31, freq="D"),
         station_ids=station_ids,
@@ -187,7 +187,9 @@ def _saving_to_stf2(station_ids, intdata_type="i4"):
     # create a temporary file
     import tempfile
 
-    with tempfile.NamedTemporaryFile(suffix=".nc") as tmp:
+    # save to STF2.0 will clean up the file if write fails, 
+    # so in that case we should allow for deletion to be True or False
+    with tempfile.NamedTemporaryFile(suffix=".nc", delete=delete) as tmp:
         filename = tmp.name
         eds.save_to_stf2(
             path=filename,
