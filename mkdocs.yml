@@ -136,11 +136,13 @@ plugins:
           summary: true
 - llmstxt:
     full_output: llms-full.txt
+    markdown_description: "netCDF read and write for ensemble forecast time series"
     sections:
       Usage:
       - index.md
-      API:
-      - reference/api.md
+      # TODO: craft an api.md with important API not the dregs
+      # API:
+      # - reference/api.md
 - git-committers:
     enabled: !ENV [DEPLOY, false]
     repository: csiro-hydroinformatics/efts-io
