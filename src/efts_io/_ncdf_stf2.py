@@ -138,6 +138,7 @@ def write_nc_stf2(
         has_required_variables_xr,
         mandatory_varnames_xr,
         has_variable,
+        # exportable_to_stf2,
     )
 
     if not is_subset_required_xarray_dimensions(data):
@@ -154,6 +155,12 @@ def write_nc_stf2(
         raise ValueError(
             f"DataArray must have the following variables: {mandatory_varnames_xr}",
         )
+
+    # we may want to check this as well here.
+    # if not exportable_to_stf2(data):
+    #     raise ValueError(
+    #         "Unexpected condition in the input data array prevented export to STF2.",
+    #     )
 
     # Check that optional variables, if present, have the minimum attributes present.
     def _check_optional_var_attr(dataset: xr.Dataset, var_id: str) -> None:
@@ -173,6 +180,14 @@ def write_nc_stf2(
 
     # Retrieve arrays from expected variables in the input xarray dataarray `data`
     station_id = dataset[STATION_ID_VARNAME].values
+    if not np.issubdtype(station_id.dtype, np.integer):
+        # convert to integer if possible
+        try:
+            station_id = station_id.astype(np.int64)
+        except Exception as e:
+            raise TypeError(
+                "station_id values must be representable as integers to be stored in STF2.0 format, and we could not convert them all automatically.",
+            ) from e
     station_name = dataset[STATION_NAME_VARNAME].values
     sub_x_centroid = dataset[LON_VARNAME].values
     sub_y_centroid = dataset[LAT_VARNAME].values
