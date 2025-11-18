@@ -134,6 +134,13 @@ plugins:
           show_symbol_type_toc: true
           signature_crossrefs: true
           summary: true
+- llmstxt:
+    full_output: llms-full.txt
+    sections:
+      Usage:
+      - index.md
+      API:
+      - reference/api.md
 - git-committers:
     enabled: !ENV [DEPLOY, false]
     repository: csiro-hydroinformatics/efts-io
