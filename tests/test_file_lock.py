@@ -11,7 +11,7 @@ from efts_io._ncdf_stf2 import StfDataType, StfVariable
 from efts_io.wrapper import EftsDataSet, xr_efts
 
 
-def test_file_lock_released_on_validation_error():
+def test_file_lock_released_on_validation_error() -> None:
     """Test that no file is created when validation error occurs before write.
 
     This test verifies that when an error occurs in save_to_stf2 before
@@ -52,7 +52,7 @@ def test_file_lock_released_on_validation_error():
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
 
     # Use a filename that doesn't exist yet (don't create it with tempfile)
@@ -95,7 +95,7 @@ def test_file_lock_released_on_validation_error():
         assert "rain_obs" in ds.data.data_vars
 
 
-def test_file_lock_released_on_write_error():
+def test_file_lock_released_on_write_error() -> None:
     """Test that file lock is released when an error occurs during write.
 
     This test creates a situation where the netCDF file is opened but
@@ -141,7 +141,7 @@ def test_file_lock_released_on_write_error():
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -149,7 +149,7 @@ def test_file_lock_released_on_write_error():
 
         # First attempt: This should fail during write_nc_stf2
         # The file will be created and opened, but writing should fail
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="DataArray must have the following global attributes"):
             eds.save_to_stf2(
                 path=filename,
                 variable_name="rain_obs",
@@ -198,7 +198,7 @@ def test_file_lock_released_on_write_error():
                     "precision": "double",
                     "attributes": {},
                 },
-            }
+            },
         )
 
         # Second attempt: This should succeed without permission errors
@@ -220,7 +220,7 @@ def test_file_lock_released_on_write_error():
         assert "rain_obs" in ds.data.data_vars
 
 
-def test_file_lock_released_on_overflow_error():
+def test_file_lock_released_on_overflow_error() -> None:
     """Test that file lock is released when station ID overflow error occurs.
 
     This test verifies that after an OverflowError due to large station IDs,
@@ -264,7 +264,7 @@ def test_file_lock_released_on_overflow_error():
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
 
     with tempfile.NamedTemporaryFile(suffix=".nc", delete=False) as tmp:
@@ -321,7 +321,7 @@ def test_file_lock_released_on_overflow_error():
                     "precision": "double",
                     "attributes": {},
                 },
-            }
+            },
         )
 
         # Second attempt: Now try with valid station IDs
