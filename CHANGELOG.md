@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- insertion marker -->
+## [0.6.1](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.6.1) - 2025-11-18
+
+<small>[Compare with 0.6.0](https://github.com/csiro-hydroinformatics/efts-io/compare/0.6.0...0.6.1)</small>
+
+### Bug Fixes
+
+- cannot write an a priori suitable xarray to stf2 ([8f8720f](https://github.com/csiro-hydroinformatics/efts-io/commit/8f8720f9381ddf51e677bf18c6f6279358ccecc9) by J-M).
+
 ## [0.6.0](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.6.0) - 2025-10-20
 
 <small>[Compare with 0.5.0](https://github.com/csiro-hydroinformatics/efts-io/compare/0.5.0...0.6.0)</small>
