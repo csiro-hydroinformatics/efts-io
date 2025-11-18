@@ -206,252 +206,263 @@ def write_nc_stf2(
 
     # Create netcdf file
     ncfile = Dataset(out_nc_file, "w", format="NETCDF4")
-    # Global Attributes
-    # ncfile.description = "CCLIR forecasts"
-    ncfile.title = dataset.attrs.get(TITLE_ATTR_KEY, "")  # = nc_title
-    ncfile.institution = dataset.attrs.get(INSTITUTION_ATTR_KEY, "")  # = inst
-    ncfile.source = dataset.attrs.get(SOURCE_ATTR_KEY, "")  # = source
-    ncfile.catchment = dataset.attrs.get(CATCHMENT_ATTR_KEY, "")  # = catchment
-    ncfile.STF_convention_version = dataset.attrs.get(STF_CONVENTION_VERSION_ATTR_KEY, "")  # = stf_nc_vers
-    ncfile.STF_nc_spec = STF_2_0_URL  # we do not transfer the spec version, this code determines it.
-    ncfile.comment = dataset.attrs.get(COMMENT_ATTR_KEY, "")  # = comment
-    ncfile.history = dataset.attrs.get(HISTORY_ATTR_KEY, "")
-    # = "Created " + datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        # Global Attributes
+        # ncfile.description = "CCLIR forecasts"
+        ncfile.title = dataset.attrs.get(TITLE_ATTR_KEY, "")  # = nc_title
+        ncfile.institution = dataset.attrs.get(INSTITUTION_ATTR_KEY, "")  # = inst
+        ncfile.source = dataset.attrs.get(SOURCE_ATTR_KEY, "")  # = source
+        ncfile.catchment = dataset.attrs.get(CATCHMENT_ATTR_KEY, "")  # = catchment
+        ncfile.STF_convention_version = dataset.attrs.get(STF_CONVENTION_VERSION_ATTR_KEY, "")  # = stf_nc_vers
+        ncfile.STF_nc_spec = STF_2_0_URL  # we do not transfer the spec version, this code determines it.
+        ncfile.comment = dataset.attrs.get(COMMENT_ATTR_KEY, "")  # = comment
+        ncfile.history = dataset.attrs.get(HISTORY_ATTR_KEY, "")
+        # = "Created " + datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
-    #  station
-    # --------------------
-    ncfile.createDimension(STATION_DIMNAME, n_stations)
-    station_var = ncfile.createVariable(STATION_DIMNAME, intdata_type, (STATION_DIMNAME,), fill_value=-9999)
-    station_var[:] = station
+        #  station
+        # --------------------
+        ncfile.createDimension(STATION_DIMNAME, n_stations)
+        station_var = ncfile.createVariable(STATION_DIMNAME, intdata_type, (STATION_DIMNAME,), fill_value=-9999)
+        station_var[:] = station
 
-    #  station_id
+        #  station_id
 
-    # we check that station_id can be safely stored as int32
-    # I add this deliberately as a check to avoid possibly silent data corruption as observed in
-    # https://github.com/csiro-hydroinformatics/efts-io/issues/17
-    if intdata_type == "i4":
-        max_station_id = np.max(station_id)
-        min_station_id = np.min(station_id)
-        if not np.issubdtype(type(max_station_id), np.integer) or not np.issubdtype(type(min_station_id), np.integer):
-            raise TypeError("station_id values must be integers to be stored in STF2.0 format.")
-        if max_station_id > np.iinfo(np.int32).max or min_station_id < np.iinfo(np.int32).min:
-            raise OverflowError(
-                f"station_id values must be in the int32 range [{np.iinfo(np.int32).min}, {np.iinfo(np.int32).max}] to be stored in STF2.0 format.",
-            )
-
-    station_id_var = ncfile.createVariable(STATION_ID_VARNAME, intdata_type, (STATION_DIMNAME,), fill_value=-9999)
-    station_id_var.setncattr(LONG_NAME_ATTR_KEY, "station or node identification code")
-    station_id_var[:] = station_id
-
-    #  station_name
-    ncfile.createDimension(STR_LEN_DIMNAME, 30)
-    station_name_var = ncfile.createVariable(STATION_NAME_VARNAME, "c", (STATION_DIMNAME, STR_LEN_DIMNAME))
-    station_name_var.setncattr(LONG_NAME_ATTR_KEY, "station or node name")
-    for s_i, stn_name in enumerate(station_name):
-        char_stn_name = [" "] * 30  # 30 char length
-        stn_name_30 = stn_name[:30]
-        char_stn_name[: len(stn_name_30)] = stn_name_30
-        station_name_var[s_i, :] = char_stn_name
-
-    # additional station id e.g. BoM
-    # other_station_id_var = ncfile.createVariable("other_station_id", "c", (STATION_DIMNAME, STR_LEN_DIMNAME))
-    # other_station_id_var.setncattr(LONG_NAME_ATTR_KEY, "other station id e.g. BoM")
-    # for s_i, stn_name in enumerate(other_station_id):
-    #     char_stn_name = [" "] * 30  # 30 char length
-    #     stn_name_30 = stn_name[:30]
-    #     char_stn_name[: len(stn_name_30)] = stn_name_30
-    #     other_station_id_var[s_i, :] = char_stn_name
-    # coordinates, area
-    # --------------------
-    lat_var = ncfile.createVariable(LAT_VARNAME, "f", (STATION_DIMNAME,), fill_value=-9999)
-    lat_var.setncattr(LONG_NAME_ATTR_KEY, "latitude")
-    lat_var.setncattr(UNITS_ATTR_KEY, "degrees_north")
-    lat_var.setncattr(AXIS_ATTR_KEY, "y")
-    lat_var[:] = sub_y_centroid
-
-    lon_var = ncfile.createVariable(LON_VARNAME, "f", (STATION_DIMNAME,), fill_value=-9999)
-    lon_var.setncattr(LONG_NAME_ATTR_KEY, "longitude")
-    lon_var.setncattr(UNITS_ATTR_KEY, "degrees_east")
-    lon_var.setncattr(AXIS_ATTR_KEY, "x")
-    lon_var[:] = sub_x_centroid
-
-    def add_optional_variables(data: xr.DataArray, ncfile: Dataset, var_id: str) -> None:
-        if has_variable(data, var_id):
-            ncvar_type = "f"
-            xrvar = data[var_id]
-            opt_nc_var = ncfile.createVariable(var_id, ncvar_type, (STATION_DIMNAME,), fill_value=-9999)
-            opt_nc_var[:] = xrvar.values
-            for x in (STANDARD_NAME_ATTR_KEY, LONG_NAME_ATTR_KEY, UNITS_ATTR_KEY):
-                opt_nc_var.setncattr(x, xrvar.attrs[x])
-
-    for var_id in (AREA_VARNAME, X_VARNAME, Y_VARNAME, ELEVATION_VARNAME):
-        add_optional_variables(dataset, ncfile, var_id)
-
-    dimensions_order = (TIME_DIMNAME, ENS_MEMBER_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME)
-    # expand and reorder if necessary the dimensions of the array.
-    # In part see feature request https://github.com/csiro-hydroinformatics/efts-io/issues/14
-    data = make_ready_for_saving(data, dataset, dimensions_order)
-
-    # lead time
-    # ------------
-    ncfile.createDimension(LEAD_TIME_DIMNAME, len(data[LEAD_TIME_DIMNAME]))
-    lt_var = ncfile.createVariable(LEAD_TIME_DIMNAME, intdata_type, (LEAD_TIME_DIMNAME,), fill_value=-9999)
-    lt_var.setncattr(STANDARD_NAME_ATTR_KEY, "lead time")
-    lt_var.setncattr(LONG_NAME_ATTR_KEY, "forecast lead time")
-    lt_var.setncattr(UNITS_ATTR_KEY, "days since time")
-    lt_var.setncattr(AXIS_ATTR_KEY, "v")
-    lt_var[:] = data[LEAD_TIME_DIMNAME].values
-
-    # ensemble members
-    # ------------------
-    ncfile.createDimension(ENS_MEMBER_DIMNAME, len(data[REALISATION_DIMNAME]))
-    ens_mem_var = ncfile.createVariable(ENS_MEMBER_DIMNAME, intdata_type, (ENS_MEMBER_DIMNAME,), fill_value=-9999)
-    ens_mem_var.setncattr(STANDARD_NAME_ATTR_KEY, ENS_MEMBER_DIMNAME)
-    ens_mem_var.setncattr(LONG_NAME_ATTR_KEY, "ensemble member")
-    ens_mem_var.setncattr(UNITS_ATTR_KEY, "member id")
-    ens_mem_var.setncattr(AXIS_ATTR_KEY, "u")
-    ens_mem_var[:] = np.arange(1, len(data[REALISATION_DIMNAME]) + 1)
-
-    # time
-    # ------
-    ncfile.createDimension(TIME_DIMNAME, len(data[TIME_DIMNAME]))
-    time_var = ncfile.createVariable(TIME_DIMNAME, intdata_type, (TIME_DIMNAME,), fill_value=-9999)
-    time_var.setncattr(STANDARD_NAME_ATTR_KEY, TIME_DIMNAME)
-    time_var.setncattr(LONG_NAME_ATTR_KEY, TIME_DIMNAME)
-    time_var.setncattr(TIME_STANDARD_ATTR_KEY, "UTC+00:00")
-    time_var.setncattr(AXIS_ATTR_KEY, "t")
-
-    # time_units_str = "days since {} 00:00:00".format(data.attrs["fcast_date"])
-    axis_values, time_units_str, _ = _create_cf_time_axis(data, timestep_str)
-    time_var.setncattr(UNITS_ATTR_KEY, time_units_str)
-    time_var[:] = axis_values
-
-    # Borrowing from create_empty_stfnc.m
-    # Name Arrays
-    v_type = ["q", "pet", "rain", "swe", "tmin", "tmax", "tave"]
-    v_type_long = [
-        "streamflow",
-        "potential evapotranspiration",
-        "rainfall",
-        "snow water equivalent",
-        "minimum temperature",
-        "maximum temperature",
-        "average temperature",
-    ]
-    v_units = ["m3/s", "mm", "mm", "mm", "K", "K", "K"]
-    v_ttype = [3, 2, 2, 2, 5, 5, 5]
-    v_ttype_name = [
-        "averaged over the preceding interval",
-        "accumulated over the preceding interval",
-        "accumulated over the preceding interval",
-        "point value recorded in the preceding interval",
-        "point value recorded in the preceding interval",
-        "averaged over the preceding interval",
-    ]
-
-    d_type = [None] * 4
-    d_type_long = [None] * 4
-    d_type[0] = "der"
-    d_type_long[0] = "derived (from observations)"
-
-    if int(stf_nc_vers) == 1:
-        d_type[1] = "fcast"
-        d_type_long[1] = "forecast"
-    elif int(stf_nc_vers) == 2:  # noqa: PLR2004
-        d_type[1] = "fct"
-        d_type_long[1] = "forecast"
-    else:
-        raise ValueError("Version not recognised: Currently only version 1.X or 2.X are supported")
-
-    d_type[2] = "obs"
-    d_type_long[2] = "observed"
-    d_type[3] = "sim"
-    d_type_long[3] = "simulated"
-
-    # change var_type and data_type to python based index starting from 0
-    var_type = var_type - 1
-    data_type = data_type - 1
-    # print(f"data_type: {data_type}')
-    # Create prescribed variable names
-    if int(stf_nc_vers) == 1:
-        var_name_s = f"{v_type[var_type]}_{d_type[data_type]}"
-        var_name_l = f"{d_type_long[data_type]} {v_type_long[var_type]}"
-        if ens:
-            var_name_s = f"{var_name_s}_ens"
-            var_name_l = f"{var_name_l} ensemble"
-    else:
-        var_name_attr = d_type[data_type]
-        dat_type_description = d_type_long[data_type]
-        if data_type in [0, 2]:
-            # print("Obs")
-            var_name_s = f"{v_type[var_type]}_obs"
-            var_name_l = f"observed {v_type_long[var_type]}"
-        else:
-            # print("Sim")
-            var_name_s = f"{v_type[var_type]}_sim"
-            var_name_l = f"simulated {v_type_long[var_type]}"
-
-    qsim_var = ncfile.createVariable(
-        var_name_s,
-        "f",
-        dimensions_order,
-        fill_value=-9999,
-    )
-    qsim_var.setncattr(STANDARD_NAME_ATTR_KEY, var_name_s)
-    qsim_var.setncattr(LONG_NAME_ATTR_KEY, var_name_l)
-    qsim_var.setncattr(UNITS_ATTR_KEY, v_units[var_type])
-
-    qsim_var.setncattr(TYPE_ATTR_KEY, v_ttype[var_type])
-    qsim_var.setncattr(TYPE_DESCRIPTION_ATTR_KEY, v_ttype_name[var_type])
-    if int(stf_nc_vers) == 2:  # noqa: PLR2004
-        qsim_var.setncattr(DAT_TYPE_ATTR_KEY, var_name_attr)
-        qsim_var.setncattr(DAT_TYPE_DESCRIPTION_ATTR_KEY, dat_type_description)
-        qsim_var.setncattr(LOCATION_TYPE_ATTR_KEY, "Point")
-    else:
-        qsim_var.setncattr(LOCATION_TYPE_ATTR_KEY, "Point")
-
-    qsim_var[:, :, :, :] = data.values[:]
-
-    # Specify the quality variable
-    if data_qual is not None:
-        qu_var_name_s = f"{var_name_s}_qual"
-        if int(stf_nc_vers) == 1:
-            if data_type == 2:  # noqa: PLR2004
-                qsim_qual_var = ncfile.createVariable(
-                    qu_var_name_s,
-                    "f",
-                    (TIME_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME),
-                    fill_value=-1,
+        # we check that station_id can be safely stored as int32
+        # I add this deliberately as a check to avoid possibly silent data corruption as observed in
+        # https://github.com/csiro-hydroinformatics/efts-io/issues/17
+        if intdata_type == "i4":
+            max_station_id = np.max(station_id)
+            min_station_id = np.min(station_id)
+            if not np.issubdtype(type(max_station_id), np.integer) or not np.issubdtype(type(min_station_id), np.integer):
+                raise TypeError("station_id values must be integers to be stored in STF2.0 format.")
+            if max_station_id > np.iinfo(np.int32).max or min_station_id < np.iinfo(np.int32).min:
+                raise OverflowError(
+                    f"station_id values must be in the int32 range [{np.iinfo(np.int32).min}, {np.iinfo(np.int32).max}] to be stored in STF2.0 format.",
                 )
-                qsim_qual_var[:, :, :] = data_qual.values[:]
+
+        station_id_var = ncfile.createVariable(STATION_ID_VARNAME, intdata_type, (STATION_DIMNAME,), fill_value=-9999)
+        station_id_var.setncattr(LONG_NAME_ATTR_KEY, "station or node identification code")
+        station_id_var[:] = station_id
+
+        #  station_name
+        ncfile.createDimension(STR_LEN_DIMNAME, 30)
+        station_name_var = ncfile.createVariable(STATION_NAME_VARNAME, "c", (STATION_DIMNAME, STR_LEN_DIMNAME))
+        station_name_var.setncattr(LONG_NAME_ATTR_KEY, "station or node name")
+        for s_i, stn_name in enumerate(station_name):
+            char_stn_name = [" "] * 30  # 30 char length
+            stn_name_30 = stn_name[:30]
+            char_stn_name[: len(stn_name_30)] = stn_name_30
+            station_name_var[s_i, :] = char_stn_name
+
+        # additional station id e.g. BoM
+        # other_station_id_var = ncfile.createVariable("other_station_id", "c", (STATION_DIMNAME, STR_LEN_DIMNAME))
+        # other_station_id_var.setncattr(LONG_NAME_ATTR_KEY, "other station id e.g. BoM")
+        # for s_i, stn_name in enumerate(other_station_id):
+        #     char_stn_name = [" "] * 30  # 30 char length
+        #     stn_name_30 = stn_name[:30]
+        #     char_stn_name[: len(stn_name_30)] = stn_name_30
+        #     other_station_id_var[s_i, :] = char_stn_name
+        # coordinates, area
+        # --------------------
+        lat_var = ncfile.createVariable(LAT_VARNAME, "f", (STATION_DIMNAME,), fill_value=-9999)
+        lat_var.setncattr(LONG_NAME_ATTR_KEY, "latitude")
+        lat_var.setncattr(UNITS_ATTR_KEY, "degrees_north")
+        lat_var.setncattr(AXIS_ATTR_KEY, "y")
+        lat_var[:] = sub_y_centroid
+
+        lon_var = ncfile.createVariable(LON_VARNAME, "f", (STATION_DIMNAME,), fill_value=-9999)
+        lon_var.setncattr(LONG_NAME_ATTR_KEY, "longitude")
+        lon_var.setncattr(UNITS_ATTR_KEY, "degrees_east")
+        lon_var.setncattr(AXIS_ATTR_KEY, "x")
+        lon_var[:] = sub_x_centroid
+
+        def add_optional_variables(data: xr.DataArray, ncfile: Dataset, var_id: str) -> None:
+            if has_variable(data, var_id):
+                ncvar_type = "f"
+                xrvar = data[var_id]
+                opt_nc_var = ncfile.createVariable(var_id, ncvar_type, (STATION_DIMNAME,), fill_value=-9999)
+                opt_nc_var[:] = xrvar.values
+                for x in (STANDARD_NAME_ATTR_KEY, LONG_NAME_ATTR_KEY, UNITS_ATTR_KEY):
+                    opt_nc_var.setncattr(x, xrvar.attrs[x])
+
+        for var_id in (AREA_VARNAME, X_VARNAME, Y_VARNAME, ELEVATION_VARNAME):
+            add_optional_variables(dataset, ncfile, var_id)
+
+        dimensions_order = (TIME_DIMNAME, ENS_MEMBER_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME)
+        # expand and reorder if necessary the dimensions of the array.
+        # In part see feature request https://github.com/csiro-hydroinformatics/efts-io/issues/14
+        data = make_ready_for_saving(data, dataset, dimensions_order)
+
+        # lead time
+        # ------------
+        ncfile.createDimension(LEAD_TIME_DIMNAME, len(data[LEAD_TIME_DIMNAME]))
+        lt_var = ncfile.createVariable(LEAD_TIME_DIMNAME, intdata_type, (LEAD_TIME_DIMNAME,), fill_value=-9999)
+        lt_var.setncattr(STANDARD_NAME_ATTR_KEY, "lead time")
+        lt_var.setncattr(LONG_NAME_ATTR_KEY, "forecast lead time")
+        lt_var.setncattr(UNITS_ATTR_KEY, "days since time")
+        lt_var.setncattr(AXIS_ATTR_KEY, "v")
+        lt_var[:] = data[LEAD_TIME_DIMNAME].values
+
+        # ensemble members
+        # ------------------
+        ncfile.createDimension(ENS_MEMBER_DIMNAME, len(data[REALISATION_DIMNAME]))
+        ens_mem_var = ncfile.createVariable(ENS_MEMBER_DIMNAME, intdata_type, (ENS_MEMBER_DIMNAME,), fill_value=-9999)
+        ens_mem_var.setncattr(STANDARD_NAME_ATTR_KEY, ENS_MEMBER_DIMNAME)
+        ens_mem_var.setncattr(LONG_NAME_ATTR_KEY, "ensemble member")
+        ens_mem_var.setncattr(UNITS_ATTR_KEY, "member id")
+        ens_mem_var.setncattr(AXIS_ATTR_KEY, "u")
+        ens_mem_var[:] = np.arange(1, len(data[REALISATION_DIMNAME]) + 1)
+
+        # time
+        # ------
+        ncfile.createDimension(TIME_DIMNAME, len(data[TIME_DIMNAME]))
+        time_var = ncfile.createVariable(TIME_DIMNAME, intdata_type, (TIME_DIMNAME,), fill_value=-9999)
+        time_var.setncattr(STANDARD_NAME_ATTR_KEY, TIME_DIMNAME)
+        time_var.setncattr(LONG_NAME_ATTR_KEY, TIME_DIMNAME)
+        time_var.setncattr(TIME_STANDARD_ATTR_KEY, "UTC+00:00")
+        time_var.setncattr(AXIS_ATTR_KEY, "t")
+
+        # time_units_str = "days since {} 00:00:00".format(data.attrs["fcast_date"])
+        axis_values, time_units_str, _ = _create_cf_time_axis(data, timestep_str)
+        time_var.setncattr(UNITS_ATTR_KEY, time_units_str)
+        time_var[:] = axis_values
+
+        # Borrowing from create_empty_stfnc.m
+        # Name Arrays
+        v_type = ["q", "pet", "rain", "swe", "tmin", "tmax", "tave"]
+        v_type_long = [
+            "streamflow",
+            "potential evapotranspiration",
+            "rainfall",
+            "snow water equivalent",
+            "minimum temperature",
+            "maximum temperature",
+            "average temperature",
+        ]
+        v_units = ["m3/s", "mm", "mm", "mm", "K", "K", "K"]
+        v_ttype = [3, 2, 2, 2, 5, 5, 5]
+        v_ttype_name = [
+            "averaged over the preceding interval",
+            "accumulated over the preceding interval",
+            "accumulated over the preceding interval",
+            "point value recorded in the preceding interval",
+            "point value recorded in the preceding interval",
+            "averaged over the preceding interval",
+        ]
+
+        d_type = [None] * 4
+        d_type_long = [None] * 4
+        d_type[0] = "der"
+        d_type_long[0] = "derived (from observations)"
+
+        if int(stf_nc_vers) == 1:
+            d_type[1] = "fcast"
+            d_type_long[1] = "forecast"
+        elif int(stf_nc_vers) == 2:  # noqa: PLR2004
+            d_type[1] = "fct"
+            d_type_long[1] = "forecast"
+        else:
+            raise ValueError("Version not recognised: Currently only version 1.X or 2.X are supported")
+
+        d_type[2] = "obs"
+        d_type_long[2] = "observed"
+        d_type[3] = "sim"
+        d_type_long[3] = "simulated"
+
+        # change var_type and data_type to python based index starting from 0
+        var_type = var_type - 1
+        data_type = data_type - 1
+        # print(f"data_type: {data_type}')
+        # Create prescribed variable names
+        if int(stf_nc_vers) == 1:
+            var_name_s = f"{v_type[var_type]}_{d_type[data_type]}"
+            var_name_l = f"{d_type_long[data_type]} {v_type_long[var_type]}"
+            if ens:
+                var_name_s = f"{var_name_s}_ens"
+                var_name_l = f"{var_name_l} ensemble"
+        else:
+            var_name_attr = d_type[data_type]
+            dat_type_description = d_type_long[data_type]
+            if data_type in [0, 2]:
+                # print("Obs")
+                var_name_s = f"{v_type[var_type]}_obs"
+                var_name_l = f"observed {v_type_long[var_type]}"
+            else:
+                # print("Sim")
+                var_name_s = f"{v_type[var_type]}_sim"
+                var_name_l = f"simulated {v_type_long[var_type]}"
+
+        qsim_var = ncfile.createVariable(
+            var_name_s,
+            "f",
+            dimensions_order,
+            fill_value=-9999,
+        )
+        qsim_var.setncattr(STANDARD_NAME_ATTR_KEY, var_name_s)
+        qsim_var.setncattr(LONG_NAME_ATTR_KEY, var_name_l)
+        qsim_var.setncattr(UNITS_ATTR_KEY, v_units[var_type])
+
+        qsim_var.setncattr(TYPE_ATTR_KEY, v_ttype[var_type])
+        qsim_var.setncattr(TYPE_DESCRIPTION_ATTR_KEY, v_ttype_name[var_type])
+        if int(stf_nc_vers) == 2:  # noqa: PLR2004
+            qsim_var.setncattr(DAT_TYPE_ATTR_KEY, var_name_attr)
+            qsim_var.setncattr(DAT_TYPE_DESCRIPTION_ATTR_KEY, dat_type_description)
+            qsim_var.setncattr(LOCATION_TYPE_ATTR_KEY, "Point")
+        else:
+            qsim_var.setncattr(LOCATION_TYPE_ATTR_KEY, "Point")
+
+        qsim_var[:, :, :, :] = data.values[:]
+
+        # Specify the quality variable
+        if data_qual is not None:
+            qu_var_name_s = f"{var_name_s}_qual"
+            if int(stf_nc_vers) == 1:
+                if data_type == 2:  # noqa: PLR2004
+                    qsim_qual_var = ncfile.createVariable(
+                        qu_var_name_s,
+                        "f",
+                        (TIME_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME),
+                        fill_value=-1,
+                    )
+                    qsim_qual_var[:, :, :] = data_qual.values[:]
+                else:
+                    qsim_qual_var = ncfile.createVariable(
+                        qu_var_name_s,
+                        "f",
+                        (TIME_DIMNAME, STATION_DIMNAME),
+                        fill_value=-1,
+                    )
+                    qsim_qual_var[:, :] = data_qual.values[:]
             else:
                 qsim_qual_var = ncfile.createVariable(
                     qu_var_name_s,
                     "f",
-                    (TIME_DIMNAME, STATION_DIMNAME),
+                    (TIME_DIMNAME, ENS_MEMBER_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME),
                     fill_value=-1,
                 )
-                qsim_qual_var[:, :] = data_qual.values[:]
-        else:
-            qsim_qual_var = ncfile.createVariable(
-                qu_var_name_s,
-                "f",
-                (TIME_DIMNAME, ENS_MEMBER_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME),
-                fill_value=-1,
-            )
-            qsim_qual_var[:, :, :, :] = data_qual.values[:]
+                qsim_qual_var[:, :, :, :] = data_qual.values[:]
 
-        qu_var_name_l = f"{var_name_l} data quality"
+            qu_var_name_l = f"{var_name_l} data quality"
 
-        qsim_qual_var.setncattr(STANDARD_NAME_ATTR_KEY, qu_var_name_s)
-        qsim_qual_var.setncattr(LONG_NAME_ATTR_KEY, qu_var_name_l)
-        quality_code = data_qual.attrs.get("quality_code", "Quality codes")
+            qsim_qual_var.setncattr(STANDARD_NAME_ATTR_KEY, qu_var_name_s)
+            qsim_qual_var.setncattr(LONG_NAME_ATTR_KEY, qu_var_name_l)
+            quality_code = data_qual.attrs.get("quality_code", "Quality codes")
 
-        qsim_qual_var.setncattr(UNITS_ATTR_KEY, quality_code)
-        # Write data
+            qsim_qual_var.setncattr(UNITS_ATTR_KEY, quality_code)
+            # Write data
 
-    # close file
-    ncfile.close()
+    except Exception:
+        # If any error occurs, ensure we close the file and clean up
+        ncfile.close()
+        # Remove the partially written file to avoid leaving corrupted files
+        if os.path.exists(out_nc_file):
+            os.remove(out_nc_file)
+        # Re-raise the exception so the caller knows the operation failed
+        raise
+    else:
+        # Only close the file here if no exception occurred
+        # This prevents double-close in the exception handler
+        ncfile.close()
 
 
 def make_ready_for_saving(data: xr.DataArray, dataset: xr.Dataset, dimensions_order: tuple) -> xr.DataArray:
