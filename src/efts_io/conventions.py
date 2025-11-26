@@ -645,9 +645,12 @@ def exportable_to_stf2(data: MdDatasetsType) -> bool:
     required_attributes = has_required_xarray_global_attributes(data)
     required_variables = has_required_variables_xr(data)
     # Check that station_ids are not strings though:
-    if STATION_ID_DIMNAME in data:  # must be, but no harm in checking
-        station_ids = data[STATION_ID_DIMNAME].values
-        if not np.issubdtype(station_ids.dtype, np.integer):
-            return False
+    if STATION_ID_DIMNAME not in data:  # must be because of above checks, but no harm in checking
+        return False
+    station_ids = data[STATION_ID_DIMNAME].values
+    # it can be an object type of string or integer, so let's check:
+    supported_types = (np.integer, np.bytes_, np.str_)
+    if not issubclass(station_ids.dtype.type, supported_types):
+        return False
 
     return required_stf2_dimensions and required_attributes and required_variables

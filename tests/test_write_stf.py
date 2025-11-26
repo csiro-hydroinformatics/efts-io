@@ -192,3 +192,105 @@ def test_presave_with_invalid_dimensions():
     # data = create_data_array(data_dimensions, dataset)
     # with pytest.raises(ValueError):
     #     _ = make_ready_for_saving(data, dataset, stf_dimensions_order())
+
+
+# Testing `exportable_to_stf2`
+
+
+def create_valid_stf2_dataset():
+    """Create a dataset with all required dimensions, variables, and attributes for STF 2.0."""
+    dataset = sample_dataset(n_time=5, n_stations=2, n_lead_time=3, n_realisations=4)
+    
+    # Add required global attributes
+    dataset.attrs.update({
+        "title": "Test dataset",
+        "institution": "Test institution",
+        "source": "Test source",
+        "catchment": "Test catchment",
+        "comment": "Test comment",
+        "history": "Test history",
+    })
+    
+    return dataset
+
+
+def test_exportable_to_stf2_valid_dataset():
+    """Test that a valid dataset with all required components returns True."""
+    from efts_io.conventions import exportable_to_stf2
+    
+    dataset = create_valid_stf2_dataset()
+    assert exportable_to_stf2(dataset) is True
+
+
+def test_exportable_to_stf2_missing_dimensions():
+    """Test that a dataset with missing dimensions returns False."""
+    from efts_io.conventions import exportable_to_stf2
+    
+    dataset = create_valid_stf2_dataset()
+    # Remove a required dimension by creating a new dataset without it
+    dataset_missing_dim = dataset.drop_dims(LEAD_TIME_DIMNAME)
+    
+    assert exportable_to_stf2(dataset_missing_dim) is False
+
+
+def test_exportable_to_stf2_missing_global_attributes():
+    """Test that a dataset with missing global attributes returns False."""
+    from efts_io.conventions import exportable_to_stf2
+    
+    dataset = create_valid_stf2_dataset()
+    # Remove a required global attribute
+    del dataset.attrs["title"]
+    
+    assert exportable_to_stf2(dataset) is False
+
+
+def test_exportable_to_stf2_missing_variables():
+    """Test that a dataset with missing required variables returns False."""
+    from efts_io.conventions import exportable_to_stf2
+    
+    dataset = create_valid_stf2_dataset()
+    # Remove a required variable
+    dataset = dataset.drop_vars(LAT_VARNAME)
+    
+    assert exportable_to_stf2(dataset) is False
+
+
+def test_exportable_to_stf2_string_station_ids():
+    """Test that a dataset with string station_ids is supported."""
+    from efts_io.conventions import exportable_to_stf2
+    
+    # Create a dataset but keep the string station_ids (as created by sample_dataset)
+    dataset = sample_dataset(n_time=5, n_stations=2, n_lead_time=3, n_realisations=4)
+    dataset.attrs.update({
+        "title": "Test dataset",
+        "institution": "Test institution",
+        "source": "Test source",
+        "catchment": "Test catchment",
+        "comment": "Test comment",
+        "history": "Test history",
+    })
+    # check the test dataset station_ids are strings
+    assert np.issubdtype(dataset[STATION_ID_DIMNAME].values.dtype, np.str_) is True
+    assert exportable_to_stf2(dataset) is True
+
+
+def test_exportable_to_stf2_integer_station_ids():
+    """Test that a dataset with integer station_ids returns True."""
+    from efts_io.conventions import exportable_to_stf2
+    
+    dataset = sample_dataset(n_time=5, n_stations=2, n_lead_time=3, n_realisations=4)
+    
+    # Replace string station_ids with integers
+    dataset = dataset.assign_coords({STATION_ID_DIMNAME: [1, 2]})
+    
+    dataset.attrs.update({
+        "title": "Test dataset",
+        "institution": "Test institution",
+        "source": "Test source",
+        "catchment": "Test catchment",
+        "comment": "Test comment",
+        "history": "Test history",
+    })
+    
+    assert exportable_to_stf2(dataset) is True
+

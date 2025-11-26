@@ -126,8 +126,13 @@ def test_create_new_efts_future_station_ids():
             },
         }
     )
-    if w.writeable_to_stf2():
-        raise RuntimeError("This should not be flagged as writeable to STF2.0, station IDs are strings.")
+    # 2025-11 It has been decided to support transparent conversion of string station 
+    # IDs to integers on save for STF2.0. 
+    # It was otherwise confusing for users.
+    # besides it helps to promote the use of string station IDs in memory datasets.
+    assert w.writeable_to_stf2()
+    # if w.writeable_to_stf2():
+    #     raise RuntimeError("This should not be flagged as writeable to STF2.0, station IDs are strings.")
 
 
 def test_repro_issue_16():
