@@ -87,8 +87,8 @@ def load_from_stf2_file(file_path: str, time_zone_timestamps: bool) -> xr.Datase
 
     # work around https://jira.csiro.au/browse/WIRADA-635
     # lead_time can be a problem with xarray, so do not decode "times"
-    x = xr.open_dataset(file_path, decode_times=False)
-
+    # we also use mask_and_scale=False because of https://github.com/csiro-hydroinformatics/efts-io/issues/24
+    x = xr.open_dataset(file_path, decode_times=False, mask_and_scale=False)
     # replace the time and station names coordinates values
     # TODO This is probably not a long term solution for round-tripping a read/write or vice and versa
     decod = times.CFDatetimeCoder(use_cftime=True)
@@ -181,11 +181,19 @@ class EftsDataSet:
         self.ENS_MEMBER_DIMNAME = ENS_MEMBER_DIMNAME
         # self.identifiers_dimensions: list = []
         self.data: xr.Dataset
+        from pathlib import Path
+
+        if data is None:
+            raise ValueError("input cannot be None")
+        if isinstance(data, Path):
+            data = str(data)
         if isinstance(data, str):
             new_dataset = load_from_stf2_file(data, self.time_zone_timestamps)
             self.data = new_dataset
-        else:
+        elif isinstance(data, xr.Dataset):
             self.data = data
+        else:
+            raise TypeError(f"Unsupported type {type(data)}")
 
         self.stf2_int_datatype = "i4"  # default integer type for STF2 saving
 
@@ -275,8 +283,10 @@ class EftsDataSet:
         message: The message to append.
         timestamp: If not provided, the current UTC time is used.
         """
+        from datetime import UTC
+
         if timestamp is None:
-            timestamp = datetime.now(datetime.timezone.utc).isoformat()
+            timestamp = datetime.now(UTC).isoformat()
 
         current_history = self.data.attrs.get(HISTORY_ATTR_KEY, "")
         if current_history:

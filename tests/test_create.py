@@ -126,8 +126,8 @@ def test_create_new_efts_future_station_ids():
             },
         }
     )
-    # 2025-11 It has been decided to support transparent conversion of string station 
-    # IDs to integers on save for STF2.0. 
+    # 2025-11 It has been decided to support transparent conversion of string station
+    # IDs to integers on save for STF2.0.
     # It was otherwise confusing for users.
     # besides it helps to promote the use of string station IDs in memory datasets.
     assert w.writeable_to_stf2()
@@ -192,7 +192,7 @@ def _saving_to_stf2(station_ids, intdata_type="i4", delete=True):
     # create a temporary file
     import tempfile
 
-    # save to STF2.0 will clean up the file if write fails, 
+    # save to STF2.0 will clean up the file if write fails,
     # so in that case we should allow for deletion to be True or False
     with tempfile.NamedTemporaryFile(suffix=".nc", delete=delete) as tmp:
         filename = tmp.name

@@ -93,6 +93,7 @@ def _create_cf_time_axis(data: xr.DataArray, timestep_str: str) -> tuple[np.ndar
     units = f"{timestep_str} since {formatted_string_with_tz}"
     return axis, units, calendar
 
+
 def _validate_station_id_for_int32(station_id: np.ndarray, intdata_type: str) -> None:
     """Validate that station_id values can be safely stored as int32.
 
@@ -113,6 +114,7 @@ def _validate_station_id_for_int32(station_id: np.ndarray, intdata_type: str) ->
             raise OverflowError(
                 f"station_id values must be in the int32 range [{np.iinfo(np.int32).min}, {np.iinfo(np.int32).max}] to be stored in STF2.0 format.",
             )
+
 
 def write_nc_stf2(
     out_nc_file: str,
@@ -481,7 +483,8 @@ def write_nc_stf2(
         # This prevents double-close in the exception handler
         ncfile.close()
 
-def _get_stationid_data_types(stf_nc_vers: Any, d_type:np.ndarray, d_type_long:np.ndarray) -> None:
+
+def _get_stationid_data_types(stf_nc_vers: Any, d_type: np.ndarray, d_type_long: np.ndarray) -> None:
     if int(stf_nc_vers) == 1:
         d_type[1] = "fcast"
         d_type_long[1] = "forecast"
