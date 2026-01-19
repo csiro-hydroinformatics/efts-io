@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 <!-- insertion marker -->
+## [0.6.3](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.6.3) - 2026-01-19
+
+<small>[Compare with 0.6.2](https://github.com/csiro-hydroinformatics/efts-io/compare/0.6.2...0.6.3)</small>
+
+### Bug Fixes
+
+- int64 station_id were read by xarray as floats before conversion to string in memory, leading to station ids such as "1234.0" ([6137ae5](https://github.com/csiro-hydroinformatics/efts-io/commit/6137ae55238480de1a0543d51f8887a84e0331d6) by J-M).
+
 ## [0.6.2](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.6.2) - 2025-11-27
 
 <small>[Compare with 0.6.1](https://github.com/csiro-hydroinformatics/efts-io/compare/0.6.1...0.6.2)</small>
