@@ -29,3 +29,17 @@ pipx install efts-io
 
 See [contributing.md](./contributing.md) if you want to contribute. This project follows practices from a template and the page [copier-uv: Working on a project](https://pawamoy.github.io/copier-uv/work). Many thanks to [Timothée Mazzucotelli](https://pawamoy.github.io/) for sharing this template.
 
+## LLM context files
+
+Using LLMs for development is a best practice way to get started and explore. While LLMs **cannot code for you**, they can be helpful assistants. You must check, refactor, test, and vet any code any LLM generates for you - but they are helpful productivity tools. The following files will be useful as context for LLMs to build modelling workflows with the **efts-io** package.
+
+<!-- - [llms.txt](https://csiro-hydroinformatics.github.io/swift-py-doc/llms.txt): Links to what is included
+- [llms-ctx.txt](https://csiro-hydroinformatics.github.io/swift-py-doc/llms-ctx.txt): Programming API pages -->
+
+The following links should work from the [online HTML documentation](https://csiro-hydroinformatics.github.io/efts-io/) (but may not from README.md):
+
+- [llms.txt](./llms.txt): Links to what is included
+- [llms-ctx.txt](./llms-ctx.txt): Programming API pages
+
+These files follow the proposed [/llms.txt standard](https://llmstxt.org), and are produced with [mkdocs-llmstxt](https://pawamoy.github.io/mkdocs-llmstxt/).
+
