@@ -1,0 +1,14 @@
+# efts-io
+
+> Ensemble forecast time series
+
+netCDF read and write for ensemble forecast time series
+
+## Usage
+
+- [Overview](https://csiro-hydroinformatics.github.io/efts-io/index.md)
+
+## API
+
+- [API reference](https://csiro-hydroinformatics.github.io/efts-io/reference/api/index.md)
+
