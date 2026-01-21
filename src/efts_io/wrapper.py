@@ -417,19 +417,66 @@ class EftsDataSet:
                 varname = x["name"]
                 # TODO:
                 # _check_mandatory_keys(x)
-                self.data[varname] = xr.DataArray(
-                    name=varname,
-                    data=nan_full(dims_shape),
-                    coords=self.data.coords,
-                    dims=dims_names,
-                    attrs={
-                        LONG_NAME_ATTR_KEY: x["longname"],
-                        UNITS_ATTR_KEY: x[UNITS_ATTR_KEY],
-                        FILLVALUE_ATTR_KEY: x["missval"],
-                        "precision": x["precision"], # TODO: check whether this is still of use.
-                        **x["attributes"],
-                    },
-                )
+                self._new_variable_from_legacy_specs(dims_shape, dims_names, x, varname)
+
+    def _new_variable_from_legacy_specs(self, dim_shape:Tuple, dims_names:Iterable[str], x:dict[str,Any], varname:str) -> xr.DataArray:
+        """Create a new variable in the data set."""
+        data_coords = {dim: self.data.coords[dim] for dim in dims_names}
+        new_array = xr.DataArray(
+            name=varname,
+            data=nan_full(dim_shape),
+            coords=data_coords,
+            dims=dims_names,
+            attrs={
+                LONG_NAME_ATTR_KEY: x["longname"],
+                UNITS_ATTR_KEY: x[UNITS_ATTR_KEY],
+                FILLVALUE_ATTR_KEY: x["missval"],
+                "precision": x["precision"],  # TODO: check whether this is still of use.
+                **x["attributes"],
+            },
+        )
+        self.data[varname] = new_array
+        return new_array
+
+    def template_variable_attributes() -> dict[str, Any]:
+        """Return a template dictionary for variable attributes."""
+        from efts_io.conventions import _template_variable_attributes
+        return _template_variable_attributes()
+
+    def new_variable(self, varname:str, dim_names:Iterable[str], var_attributes:dict[str,Any], data:Optional[np.ndarray]=None) -> xr.DataArray:
+        """Create a new variable in the data set.
+
+        Args:
+            varname (str): Name of the new variable.
+            dim_names (Iterable[str]): Names of the dimensions for the new variable.
+            var_attributes (dict[str, Any]): Attributes for the new variable. Must include 'units' key.
+            data (Optional[np.ndarray], optional): Data for the new variable. If None, the variable is initialized with NaNs. Defaults to None.
+
+        Returns:
+            xr.DataArray: The newly created variable as an xarray DataArray.
+        """
+        if varname in self.data.variables:
+            raise ValueError(f"Variable '{varname}' already exists in the dataset.")
+        if UNITS_ATTR_KEY not in var_attributes:
+            raise ValueError(f"Variable attributes must include '{UNITS_ATTR_KEY}' key.")
+        dims_shape = tuple(self.data.sizes[dimname] for dimname in dim_names)
+        if data is not None:
+            if data.shape != dims_shape:
+                raise ValueError(f"Data shape {data.shape} does not match expected shape {dims_shape} for dimensions {dim_names}.")
+            data_array = data
+        else:
+            data_array = nan_full(dims_shape)
+        data_coords = {dim: self.data.coords[dim] for dim in dim_names}
+        new_array = xr.DataArray(
+            name=varname,
+            data=data_array,
+            coords=data_coords,
+            dims=dim_names,
+            attrs=var_attributes.copy(),
+        )
+        self.data[varname] = new_array
+        return new_array
+
 
     def get_all_series(
         self,

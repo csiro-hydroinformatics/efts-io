@@ -447,6 +447,16 @@ def _check_variable_attributes_obs(
     }
     return _check_attrs(variable, required_attributes, missing_attributes_messages, error_threshold=error_threshold)
 
+def _template_variable_attributes():  # noqa: ANN202
+    return {
+        LONG_NAME_ATTR_KEY: "",
+        UNITS_ATTR_KEY: "",
+        FILLVALUE_ATTR_KEY: -9999.0,
+        TYPE_ATTR_KEY: 0,
+        TYPE_DESCRIPTION_ATTR_KEY: "",
+        DAT_TYPE_ATTR_KEY: "",
+        LOCATION_TYPE_ATTR_KEY: "Point",
+    }
 
 def _check_variable_attributes_sim(
     variable: Any,
