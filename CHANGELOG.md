@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 <!-- insertion marker -->
+## [0.7.0](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.7.0) - 2026-01-21
+
+<small>[Compare with 0.6.4](https://github.com/csiro-hydroinformatics/efts-io/compare/0.6.4...0.7.0)</small>
+
+### Features
+
+- add a  and  methods to EftsDataSet ([9c394a3](https://github.com/csiro-hydroinformatics/efts-io/commit/9c394a3a5cc59512b4807da0f17f22b514203056) by J-M).
+
+### Bug Fixes
+
+- units of the in-memory data were not taken into account when writing to disk. ([a1882a5](https://github.com/csiro-hydroinformatics/efts-io/commit/a1882a57d06e21fb0d0c9f6d78c11ab63bcfc416) by J-M).
+
 ## [0.6.4](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.6.4) - 2026-01-21
 
 <small>[Compare with 0.6.3](https://github.com/csiro-hydroinformatics/efts-io/compare/0.6.3...0.6.4)</small>
