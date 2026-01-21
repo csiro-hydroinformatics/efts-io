@@ -535,3 +535,173 @@ def test_station_id_int32_preserved_on_read():
         # Clean up
         if os.path.exists(filename):
             os.remove(filename)
+
+
+def test_save_to_stf2_preserves_data_array_attributes():
+    """Test that save_to_stf2 correctly writes data array attributes to the NetCDF file.
+    
+    This test verifies that when a data variable is saved to STF2 format, the following
+    attributes are preserved in the output NetCDF file:
+    - UNITS_ATTR_KEY (compulsory)
+    - LONG_NAME_ATTR_KEY
+    - FILLVALUE_ATTR_KEY
+    - TYPE_ATTR_KEY
+    - TYPE_DESCRIPTION_ATTR_KEY
+    - DAT_TYPE_ATTR_KEY
+    - LOCATION_TYPE_ATTR_KEY
+    """
+    import tempfile
+    import os
+    import netCDF4 as nc
+    from efts_io.wrapper import EftsDataSet, xr_efts
+    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+    from efts_io.conventions import (
+        UNITS_ATTR_KEY,
+        LONG_NAME_ATTR_KEY,
+        FILLVALUE_ATTR_KEY,
+        TYPE_ATTR_KEY,
+        TYPE_DESCRIPTION_ATTR_KEY,
+        DAT_TYPE_ATTR_KEY,
+        LOCATION_TYPE_ATTR_KEY,
+    )
+
+    # Create test dataset
+    issue_times = pd.date_range("2023-01-01", periods=5, freq="D")
+    station_ids = [100, 200]
+    lead_times = np.arange(1, 4)
+
+    xr_ds = xr_efts(
+        issue_times=issue_times,
+        station_ids=station_ids,
+        lead_times=lead_times,
+        lead_time_tstep="hours",
+        ensemble_size=2,
+        station_names=["Station_A", "Station_B"],
+        nc_attributes={
+            "title": "Test dataset for attribute preservation",
+            "institution": "Test Institution",
+            "source": "Unit test",
+            "catchment": "Test_Catchment",
+            "comment": "Testing attribute preservation in save_to_stf2",
+            "history": "Created for unit testing",
+        },
+    )
+
+    eds = EftsDataSet(xr_ds)
+
+    # Define custom attributes for the data variable
+    custom_units = "mm/day"
+    custom_long_name = "Custom rainfall variable"
+    custom_fillvalue = -9999.0
+    custom_type = 2
+    custom_type_description = "accumulated over the preceding interval"
+    custom_dat_type = "obs"
+    custom_location_type = "Point"
+
+    # Create data variable with custom attributes
+    eds.create_data_variables(
+        {
+            "test_var": {
+                "name": "test_var",
+                "longname": custom_long_name,
+                "units": custom_units,
+                "dim_type": "4",
+                "missval": custom_fillvalue,
+                "precision": "double",
+                "attributes": {
+                    TYPE_ATTR_KEY: custom_type,
+                    TYPE_DESCRIPTION_ATTR_KEY: custom_type_description,
+                    DAT_TYPE_ATTR_KEY: custom_dat_type,
+                    LOCATION_TYPE_ATTR_KEY: custom_location_type,
+                },
+            },
+        }
+    )
+
+    # Check that the data variable has the correct attributes before saving
+    data_var = eds.data["test_var"]
+    assert data_var.attrs[UNITS_ATTR_KEY] == custom_units
+    assert data_var.attrs[LONG_NAME_ATTR_KEY] == custom_long_name
+    assert data_var.attrs[FILLVALUE_ATTR_KEY] == custom_fillvalue
+    assert data_var.attrs[TYPE_ATTR_KEY] == custom_type
+    assert data_var.attrs[TYPE_DESCRIPTION_ATTR_KEY] == custom_type_description
+    assert data_var.attrs[DAT_TYPE_ATTR_KEY] == custom_dat_type
+    assert data_var.attrs[LOCATION_TYPE_ATTR_KEY] == custom_location_type
+
+
+    # Populate with test data
+    eds.data["test_var"].loc[:, :, :, :] = np.random.rand(3, 2, 2, 5) * 10.0
+
+    # Save to STF2 file
+    with tempfile.NamedTemporaryFile(suffix=".nc", delete=False) as tmp:
+        filename = tmp.name
+
+    try:
+        eds.save_to_stf2(
+            path=filename,
+            variable_name="test_var",
+            var_type=StfVariable.RAINFALL,
+            data_type=StfDataType.OBSERVED,
+        )
+
+        # Read back the file with netCDF4 to check attributes
+        nc_ds = nc.Dataset(filename, "r")
+
+        # The variable name in the file follows STF conventions (e.g., "rain_obs")
+        # Need to find which variable was created
+        data_vars = [v for v in nc_ds.variables.keys() if not v.startswith(("time", "station", "lat", "lon", "lead_time", "ens_member", "area"))]
+        
+        # Should be exactly one data variable
+        assert len(data_vars) == 1, f"Expected 1 data variable, found {len(data_vars)}: {data_vars}"
+        
+        saved_var_name = data_vars[0]
+        saved_var = nc_ds.variables[saved_var_name]
+
+        # Verify compulsory attribute: UNITS_ATTR_KEY
+        assert UNITS_ATTR_KEY in saved_var.ncattrs(), f"Missing compulsory attribute: {UNITS_ATTR_KEY}"
+        assert saved_var.getncattr(UNITS_ATTR_KEY) == custom_units, (
+            f"Expected units '{custom_units}', got '{saved_var.getncattr(UNITS_ATTR_KEY)}'"
+        )
+
+        # Verify LONG_NAME_ATTR_KEY
+        assert LONG_NAME_ATTR_KEY in saved_var.ncattrs(), f"Missing attribute: {LONG_NAME_ATTR_KEY}"
+        assert saved_var.getncattr(LONG_NAME_ATTR_KEY) == custom_long_name, (
+            f"Expected long_name '{custom_long_name}', got '{saved_var.getncattr(LONG_NAME_ATTR_KEY)}'"
+        )
+
+        # Verify FILLVALUE_ATTR_KEY
+        assert FILLVALUE_ATTR_KEY in saved_var.ncattrs(), f"Missing attribute: {FILLVALUE_ATTR_KEY}"
+        assert saved_var.getncattr(FILLVALUE_ATTR_KEY) == custom_fillvalue, (
+            f"Expected _FillValue {custom_fillvalue}, got {saved_var.getncattr(FILLVALUE_ATTR_KEY)}"
+        )
+
+        # Verify TYPE_ATTR_KEY
+        assert TYPE_ATTR_KEY in saved_var.ncattrs(), f"Missing attribute: {TYPE_ATTR_KEY}"
+        assert saved_var.getncattr(TYPE_ATTR_KEY) == custom_type, (
+            f"Expected type {custom_type}, got {saved_var.getncattr(TYPE_ATTR_KEY)}"
+        )
+
+        # Verify TYPE_DESCRIPTION_ATTR_KEY
+        assert TYPE_DESCRIPTION_ATTR_KEY in saved_var.ncattrs(), f"Missing attribute: {TYPE_DESCRIPTION_ATTR_KEY}"
+        assert saved_var.getncattr(TYPE_DESCRIPTION_ATTR_KEY) == custom_type_description, (
+            f"Expected type_description '{custom_type_description}', got '{saved_var.getncattr(TYPE_DESCRIPTION_ATTR_KEY)}'"
+        )
+
+        # Verify DAT_TYPE_ATTR_KEY
+        assert DAT_TYPE_ATTR_KEY in saved_var.ncattrs(), f"Missing attribute: {DAT_TYPE_ATTR_KEY}"
+        assert saved_var.getncattr(DAT_TYPE_ATTR_KEY) == custom_dat_type, (
+            f"Expected dat_type '{custom_dat_type}', got '{saved_var.getncattr(DAT_TYPE_ATTR_KEY)}'"
+        )
+
+        # Verify LOCATION_TYPE_ATTR_KEY
+        assert LOCATION_TYPE_ATTR_KEY in saved_var.ncattrs(), f"Missing attribute: {LOCATION_TYPE_ATTR_KEY}"
+        assert saved_var.getncattr(LOCATION_TYPE_ATTR_KEY) == custom_location_type, (
+            f"Expected location_type '{custom_location_type}', got '{saved_var.getncattr(LOCATION_TYPE_ATTR_KEY)}'"
+        )
+
+        nc_ds.close()
+
+    finally:
+        # Clean up temporary file
+        if os.path.exists(filename):
+            os.remove(filename)
