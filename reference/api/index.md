@@ -42,9 +42,11 @@ Methods:
 - **`get_station_count`** – Return the number of stations in the data set.
 - **`get_stations_varname`** – Return the name of the variable that has the station identifiers.
 - **`get_time_dim`** – Return the time dimension variable as a vector of date-time stamps.
+- **`new_variable`** – Create a new variable in the data set.
 - **`put_lead_time_values`** – Set the values of the lead time dimension.
 - **`save_to_stf2`** – Save to file.
 - **`set_mandatory_global_attributes`** – Sets mandatory global attributes for an EFTS dataset.
+- **`template_variable_attributes`** – Return a template dictionary for variable attributes.
 - **`to_netcdf`** – Write the data set to a netCDF file.
 - **`writeable_to_stf2`** – Check if the dataset can be written to a netCDF file compliant with STF 2.0 specification.
 
@@ -235,19 +237,9 @@ def create_data_variables(self, data_var_def: Dict[str, Dict[str, Any]]) -> None
     ]:
         for x in vardefs:
             varname = x["name"]
-            self.data[varname] = xr.DataArray(
-                name=varname,
-                data=nan_full(dims_shape),
-                coords=self.data.coords,
-                dims=dims_names,
-                attrs={
-                    "longname": x["longname"],
-                    UNITS_ATTR_KEY: x[UNITS_ATTR_KEY],
-                    "missval": x["missval"],
-                    "precision": x["precision"],
-                    **x["attributes"],
-                },
-            )
+            # TODO:
+            # _check_mandatory_keys(x)
+            self._new_variable_from_legacy_specs(dims_shape, dims_names, x, varname)
 ```
 
 ### get_all_series
@@ -507,6 +499,68 @@ def get_time_dim(self) -> np.ndarray:
     return self.data.time.values  # but loosing attributes.
 ```
 
+### new_variable
+
+```
+new_variable(
+    varname: str,
+    dim_names: Iterable[str],
+    var_attributes: dict[str, Any],
+    data: Optional[ndarray] = None,
+) -> DataArray
+```
+
+Create a new variable in the data set.
+
+Parameters:
+
+- **`varname`** (`str`) – Name of the new variable.
+- **`dim_names`** (`Iterable[str]`) – Names of the dimensions for the new variable.
+- **`var_attributes`** (`dict[str, Any]`) – Attributes for the new variable. Must include 'units' key.
+- **`data`** (`Optional[ndarray]`, default: `None` ) – Data for the new variable. If None, the variable is initialized with NaNs. Defaults to None.
+
+Returns:
+
+- `DataArray` – xr.DataArray: The newly created variable as an xarray DataArray.
+
+Source code in `src/efts_io/wrapper.py`
+
+```
+def new_variable(self, varname:str, dim_names:Iterable[str], var_attributes:dict[str,Any], data:Optional[np.ndarray]=None) -> xr.DataArray:
+    """Create a new variable in the data set.
+
+    Args:
+        varname (str): Name of the new variable.
+        dim_names (Iterable[str]): Names of the dimensions for the new variable.
+        var_attributes (dict[str, Any]): Attributes for the new variable. Must include 'units' key.
+        data (Optional[np.ndarray], optional): Data for the new variable. If None, the variable is initialized with NaNs. Defaults to None.
+
+    Returns:
+        xr.DataArray: The newly created variable as an xarray DataArray.
+    """
+    if varname in self.data.variables:
+        raise ValueError(f"Variable '{varname}' already exists in the dataset.")
+    if UNITS_ATTR_KEY not in var_attributes:
+        raise ValueError(f"Variable attributes must include '{UNITS_ATTR_KEY}' key.")
+    dims_shape = tuple(self.data.sizes[dimname] for dimname in dim_names)
+    if data is not None:
+        if data.shape != dims_shape:
+            raise ValueError(f"Data shape {data.shape} does not match expected shape {dims_shape} for dimensions {dim_names}.")
+        data_array = data
+    else:
+        data_array = nan_full(dims_shape)
+    data_coords = {dim: self.data.coords[dim] for dim in dim_names}
+    new_array = xr.DataArray(
+        name=varname,
+        data=data_array,
+        coords=data_coords,
+        dims=dim_names,
+        attrs=var_attributes.copy(),
+    )
+    self.data[varname] = new_array
+    return new_array
+```
+
 ### put_lead_time_values
 
 ```
@@ -563,6 +617,10 @@ def save_to_stf2(
     #    d = self.data
     else:
         raise TypeError(f"Unsupported data type {type(self.data)}")
+
+    if UNITS_ATTR_KEY not in d.attrs:
+        raise ValueError(f"DataArray variable '{d.name}' must have '{UNITS_ATTR_KEY}' attribute defined.")
+
     write_nc_stf2(
         out_nc_file=path,  # : str,
         dataset=self.data,
@@ -620,6 +678,23 @@ def set_mandatory_global_attributes(
         self.history = history
     self.stf_convention_version = "2.0"
     self.stf_nc_spec = STF_2_0_URL
+```
+
+### template_variable_attributes
+
+```
+template_variable_attributes() -> dict[str, Any]
+```
+
+Return a template dictionary for variable attributes.
+
+Source code in `src/efts_io/wrapper.py`
+
+```
+def template_variable_attributes() -> dict[str, Any]:
+    """Return a template dictionary for variable attributes."""
+    from efts_io.conventions import _template_variable_attributes
+    return _template_variable_attributes()
 ```
 
 ### to_netcdf
