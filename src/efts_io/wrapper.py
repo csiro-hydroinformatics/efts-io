@@ -16,6 +16,7 @@ from efts_io.conventions import (
     CATCHMENT_ATTR_KEY,
     COMMENT_ATTR_KEY,
     ENS_MEMBER_DIMNAME,
+    FILLVALUE_ATTR_KEY,
     HISTORY_ATTR_KEY,
     INSTITUTION_ATTR_KEY,
     LAT_VARNAME,
@@ -371,6 +372,10 @@ class EftsDataSet:
         #    d = self.data
         else:
             raise TypeError(f"Unsupported data type {type(self.data)}")
+
+        if UNITS_ATTR_KEY not in d.attrs:
+            raise ValueError(f"DataArray variable '{d.name}' must have '{UNITS_ATTR_KEY}' attribute defined.")
+
         write_nc_stf2(
             out_nc_file=path,  # : str,
             dataset=self.data,
@@ -410,16 +415,18 @@ class EftsDataSet:
         ]:
             for x in vardefs:
                 varname = x["name"]
+                # TODO:
+                # _check_mandatory_keys(x)
                 self.data[varname] = xr.DataArray(
                     name=varname,
                     data=nan_full(dims_shape),
                     coords=self.data.coords,
                     dims=dims_names,
                     attrs={
-                        "longname": x["longname"],
+                        LONG_NAME_ATTR_KEY: x["longname"],
                         UNITS_ATTR_KEY: x[UNITS_ATTR_KEY],
-                        "missval": x["missval"],
-                        "precision": x["precision"],
+                        FILLVALUE_ATTR_KEY: x["missval"],
+                        "precision": x["precision"], # TODO: check whether this is still of use.
                         **x["attributes"],
                     },
                 )

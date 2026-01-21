@@ -14,6 +14,7 @@ import xarray as xr
 from efts_io.conventions import (
     DAT_TYPE_ATTR_KEY,
     DAT_TYPE_DESCRIPTION_ATTR_KEY,
+    FILLVALUE_ATTR_KEY,
     LAT_VARNAME,
     LOCATION_TYPE_ATTR_KEY,
     LON_VARNAME,
@@ -365,7 +366,7 @@ def write_nc_stf2(
             "maximum temperature",
             "average temperature",
         ]
-        v_units = ["m3/s", "mm", "mm", "mm", "K", "K", "K"]
+        # v_units = ["m3/s", "mm", "mm", "mm", "K", "K", "K"]
         v_ttype = [3, 2, 2, 2, 5, 5, 5]
         v_ttype_name = [
             "averaged over the preceding interval",
@@ -411,24 +412,37 @@ def write_nc_stf2(
                 var_name_s = f"{v_type[var_type]}_sim"
                 var_name_l = f"simulated {v_type_long[var_type]}"
 
+        # Use data attributes where available
+        data_attrs = data.attrs
+        # we definitely want units to be present
+        if UNITS_ATTR_KEY not in data_attrs:
+            raise ValueError(f"DataArray variable '{data.name}' must have '{UNITS_ATTR_KEY}' attribute defined.")  # noqa: TRY301
+        attr_units = data_attrs[UNITS_ATTR_KEY]
+
+        attr_long_name = data_attrs.get(LONG_NAME_ATTR_KEY, var_name_l)
+        attr_fillvalue = data_attrs.get(FILLVALUE_ATTR_KEY, -9999.0)
+        attr_data_type = int(data_attrs.get(TYPE_ATTR_KEY, v_ttype[var_type]))
+        attr_type_description = data_attrs.get(TYPE_DESCRIPTION_ATTR_KEY, v_ttype_name[attr_data_type])
+        attr_dat_type = data_attrs.get(DAT_TYPE_ATTR_KEY, var_name_attr)
+        attr_location_type = data_attrs.get(LOCATION_TYPE_ATTR_KEY, "Point")
+
         qsim_var = ncfile.createVariable(
             var_name_s,
             "f",
             dimensions_order,
-            fill_value=-9999,
+            fill_value=attr_fillvalue,
         )
-        qsim_var.setncattr(STANDARD_NAME_ATTR_KEY, var_name_s)
-        qsim_var.setncattr(LONG_NAME_ATTR_KEY, var_name_l)
-        qsim_var.setncattr(UNITS_ATTR_KEY, v_units[var_type])
 
-        qsim_var.setncattr(TYPE_ATTR_KEY, v_ttype[var_type])
-        qsim_var.setncattr(TYPE_DESCRIPTION_ATTR_KEY, v_ttype_name[var_type])
+        qsim_var.setncattr(STANDARD_NAME_ATTR_KEY, var_name_s)
+        qsim_var.setncattr(LONG_NAME_ATTR_KEY, attr_long_name)
+        qsim_var.setncattr(UNITS_ATTR_KEY, attr_units)
+
+        qsim_var.setncattr(TYPE_ATTR_KEY, attr_data_type)
+        qsim_var.setncattr(TYPE_DESCRIPTION_ATTR_KEY, attr_type_description)
+        qsim_var.setncattr(LOCATION_TYPE_ATTR_KEY, attr_location_type)
         if int(stf_nc_vers) == 2:  # noqa: PLR2004
-            qsim_var.setncattr(DAT_TYPE_ATTR_KEY, var_name_attr)
+            qsim_var.setncattr(DAT_TYPE_ATTR_KEY, attr_dat_type)
             qsim_var.setncattr(DAT_TYPE_DESCRIPTION_ATTR_KEY, dat_type_description)
-            qsim_var.setncattr(LOCATION_TYPE_ATTR_KEY, "Point")
-        else:
-            qsim_var.setncattr(LOCATION_TYPE_ATTR_KEY, "Point")
 
         qsim_var[:, :, :, :] = data.values[:]
 
