@@ -150,6 +150,10 @@ def load_from_stf2_file(file_path: str, time_zone_timestamps: bool) -> xr.Datase
     )
     return new_dataset
 
+def template_variable_attributes() -> dict[str, Any]:
+    """Return a template dictionary for variable attributes."""
+    from efts_io.conventions import _template_variable_attributes
+    return _template_variable_attributes()
 
 class EftsDataSet:
     """Convenience class for access to a Ensemble Forecast Time Series in netCDF file."""
@@ -438,18 +442,13 @@ class EftsDataSet:
         self.data[varname] = new_array
         return new_array
 
-    def template_variable_attributes() -> dict[str, Any]:
-        """Return a template dictionary for variable attributes."""
-        from efts_io.conventions import _template_variable_attributes
-        return _template_variable_attributes()
-
     def new_variable(self, varname:str, dim_names:Iterable[str], var_attributes:dict[str,Any], data:Optional[np.ndarray]=None) -> xr.DataArray:
         """Create a new variable in the data set.
 
         Args:
             varname (str): Name of the new variable.
             dim_names (Iterable[str]): Names of the dimensions for the new variable.
-            var_attributes (dict[str, Any]): Attributes for the new variable. Must include 'units' key.
+            var_attributes (dict[str, Any]): Attributes for the new variable. Must include 'units' key. See `template_variable_attributes`
             data (Optional[np.ndarray], optional): Data for the new variable. If None, the variable is initialized with NaNs. Defaults to None.
 
         Returns:
@@ -459,6 +458,10 @@ class EftsDataSet:
             raise ValueError(f"Variable '{varname}' already exists in the dataset.")
         if UNITS_ATTR_KEY not in var_attributes:
             raise ValueError(f"Variable attributes must include '{UNITS_ATTR_KEY}' key.")
+        known_dimnames = self.get_dim_names()
+        unknown_dims = [x for x in dim_names if x not in set(known_dimnames)]
+        if unknown_dims:
+            raise ValueError(f"Unknown dimension names: {unknown_dims}; must be one of {known_dimnames}.")
         dims_shape = tuple(self.data.sizes[dimname] for dimname in dim_names)
         if data is not None:
             if data.shape != dims_shape:
@@ -809,7 +812,8 @@ def xr_efts(
     # Check that station ids are unique:
     if len(set(station_ids)) != len(station_ids):
         raise ValueError("Station names must be unique.")
-    # I learned today that xarray 2025.7.1 can accept pandas datetimeindex as coordinates
+    # I learned today that xarray 2025.7.1 can now accept pandas datetimeindex as coordinates
+    # for backward compatibility with older xarray versions, we convert to list here.
     # See https://github.com/csiro-hydroinformatics/efts-io/issues/13, in the future may change design.
     if isinstance(issue_times, pd.DatetimeIndex):
         # This will convert each item to a tstamp such as
@@ -880,6 +884,36 @@ def xr_efts(
     }
     return d
 
+def create_mandatory_global_attributes(
+    title: str,
+    institution: str,
+    catchment: str,
+    source: str,
+    comment: str,
+    history: Optional[str] = None,
+) -> Dict[str, str]:
+    """Create a dictionary of mandatory global attributes for an EFTS dataset.
+
+    Args:
+        title (str): Title of the dataset.
+        institution (str): Institution responsible for the dataset.
+        catchment (str): Catchment area description.
+        source (str): Source of the data.
+        comment (str): Additional comments about the dataset.
+        history (Optional[str], optional): History of the dataset. If None, a default history message is created. Defaults to None.
+
+    Returns:
+        Dict[str, str]: A dictionary containing the mandatory global attributes.
+    """
+    d = _stf2_mandatory_global_attributes(
+        title=title,
+        institution=institution,
+        catchment=catchment,
+        source=source,
+        comment=comment,
+        history=history or f"Created on {pd.Timestamp.now(tz='UTC').isoformat()}",
+    )
+    return d
 
 def _stf2_mandatory_global_attributes(
     title: str = "not provided",
