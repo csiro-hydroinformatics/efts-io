@@ -6,4 +6,4 @@ title: API reference
 
 ## API reference for `efts-io`
 
-::: efts_io.wrapper
+Browse the API reference in the navigation menu.

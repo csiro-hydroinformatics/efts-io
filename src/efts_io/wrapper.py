@@ -913,7 +913,7 @@ def create_mandatory_global_attributes(
         comment=comment,
         history=history or f"Created on {pd.Timestamp.now(tz='UTC').isoformat()}",
     )
-    return d
+    return d  # noqa: RET504
 
 def _stf2_mandatory_global_attributes(
     title: str = "not provided",
