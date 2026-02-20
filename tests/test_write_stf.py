@@ -705,3 +705,186 @@ def test_save_to_stf2_preserves_data_array_attributes():
         # Clean up temporary file
         if os.path.exists(filename):
             os.remove(filename)
+
+
+def _verify_time_attributes_preservation(timezone_str: str):
+    """Helper function to test that time coordinate attributes and timezone are preserved when writing to STF2.
+    
+    Args:
+        timezone_str: Timezone string (e.g., "UTC", "US/Eastern", "Australia/Sydney")
+    
+    This function verifies:
+    1. In-memory xarray dataset with specified timezone timestamps can be saved
+    2. The time_standard attribute is written correctly
+    3. The time units string includes proper timezone offset
+    4. Time values remain consistent when read back
+    """
+    import tempfile
+    import os
+    import netCDF4 as nc
+    from efts_io.wrapper import EftsDataSet, xr_efts
+    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+    from efts_io.conventions import TIME_STANDARD_ATTR_KEY, UNITS_ATTR_KEY
+
+    # Create test dataset with explicit timezone timestamps
+    # Using daily timesteps with distinct dates
+    issue_times = pd.date_range("2024-01-15", periods=7, freq="D", tz=timezone_str)
+    station_ids = [1001, 2002]
+    lead_times = np.arange(1, 4)
+
+    xr_ds = xr_efts(
+        issue_times=issue_times,
+        station_ids=station_ids,
+        lead_times=lead_times,
+        lead_time_tstep="days",
+        ensemble_size=1,
+        station_names=["Site_Alpha", "Site_Beta"],
+        nc_attributes={
+            "title": f"Test dataset for {timezone_str} timezone preservation",
+            "institution": "Test Lab",
+            "source": "Unit test",
+            "catchment": "Test Basin",
+            "comment": f"Testing {timezone_str} timezone in time attributes",
+            "history": "Created for timezone testing",
+        },
+    )
+
+    # Verify the input dataset has the specified timezone
+    first_time = xr_ds.time.values[0]
+    assert isinstance(first_time, pd.Timestamp), f"Expected time coordinate to be Timestamp, got {type(first_time)}"
+    
+    eds = EftsDataSet(xr_ds)
+    
+    # Create a simple data variable
+    eds.create_data_variables(
+        {
+            "temp_obs": {
+                "name": "temp_obs",
+                "longname": "Temperature",
+                "units": "degC",
+                "dim_type": "4",
+                "missval": np.nan,
+                "precision": "double",
+                "attributes": {},
+            },
+        }
+    )
+    
+    # Populate with test data
+    eds.data["temp_obs"].loc[:, :, :, :] = np.random.rand(3, 2, 1, 7) * 20.0 + 10.0
+
+    # Save to STF2 file
+    with tempfile.NamedTemporaryFile(suffix=".nc", delete=False) as tmp:
+        filename = tmp.name
+
+    try:
+        eds.save_to_stf2(
+            path=filename,
+            variable_name="temp_obs",
+            var_type=StfVariable.MAXIMUM_TEMPERATURE,
+            data_type=StfDataType.OBSERVED,
+            timestep="days",
+        )
+
+        # Read back with netCDF4 to check time attributes
+        nc_ds = nc.Dataset(filename, "r")
+        
+        time_var = nc_ds.variables["time"]
+        
+        # Verify time_standard attribute exists
+        assert TIME_STANDARD_ATTR_KEY in time_var.ncattrs(), (
+            f"Missing {TIME_STANDARD_ATTR_KEY} attribute on time variable"
+        )
+        time_standard = time_var.getncattr(TIME_STANDARD_ATTR_KEY)
+        assert "UTC" in time_standard, (
+            f"Expected UTC in time_standard attribute, got '{time_standard}'"
+        )
+        
+        # Verify time units string contains timezone offset
+        assert UNITS_ATTR_KEY in time_var.ncattrs(), (
+            f"Missing {UNITS_ATTR_KEY} attribute on time variable"
+        )
+        time_units = time_var.getncattr(UNITS_ATTR_KEY)
+        # Check for timezone offset in the units string (e.g., +0000, +00:00, +1000, +10:00)
+        assert any(tz_marker in time_units for tz_marker in ["+", "-"]), (
+            f"Expected timezone offset in time units, got '{time_units}'"
+        )
+        
+        # Verify the time units follow expected format (e.g., "days since YYYY-MM-DD HH:MM:SS +0000")
+        assert time_units.startswith("days since"), (
+            f"Expected time units to start with 'days since', got '{time_units}'"
+        )
+        
+        # Read time values and verify they are integers (encoded as offset from origin)
+        time_values = time_var[:]
+        assert len(time_values) == 7, f"Expected 7 time values, got {len(time_values)}"
+        assert np.issubdtype(time_values.dtype, np.integer), (
+            f"Expected integer time values, got {time_values.dtype}"
+        )
+        
+        # Verify time values are sequential (daily step = 1 day offset)
+        time_diffs = np.diff(time_values)
+        assert np.all(time_diffs == 1), (
+            f"Expected daily increments of 1, got {time_diffs}"
+        )
+        
+        nc_ds.close()
+        
+        # Also verify that EftsDataSet can read it back correctly
+        eds_read = EftsDataSet(filename)
+        time_coords_read = eds_read.data.time.values
+        
+        # Check we got the same number of timesteps
+        assert len(time_coords_read) == 7, (
+            f"Expected 7 time coordinates after reading, got {len(time_coords_read)}"
+        )
+        
+        # Verify time coordinate values are datetime-like
+        assert hasattr(time_coords_read[0], "year"), (
+            "Time coordinates should be datetime-like objects"
+        )
+        
+        # Verify that the time axis matches exactly what was saved
+        # Convert both to pandas Timestamps for comparison (handling timezone differences)
+        original_times = pd.to_datetime(issue_times)
+        read_back_times = pd.to_datetime(time_coords_read)
+        
+        # Convert to UTC for comparison if needed (normalize timezone info)
+        if original_times.tz is not None:
+            original_times = original_times.tz_convert("UTC")
+        if read_back_times.tz is not None:
+            read_back_times = read_back_times.tz_convert("UTC")
+        else:
+            # If read_back is timezone-naive, localize to UTC for comparison
+            read_back_times = read_back_times.tz_localize("UTC")
+        
+        # Check that all timestamps match exactly
+        for i, (orig, read) in enumerate(zip(original_times, read_back_times)):
+            assert orig == read, (
+                f"Time coordinate mismatch at index {i}: "
+                f"original={orig}, read_back={read}"
+            )
+
+    finally:
+        # Clean up temporary file
+        if os.path.exists(filename):
+            os.remove(filename)
+
+
+def test_time_attributes_and_utc_timezone_preserved():
+    """Test that time coordinate attributes and UTC timezone are preserved when writing to STF2.
+    
+    This test verifies that timestamps in UTC timezone are correctly preserved through
+    the save/load cycle to STF2 format.
+    """
+    _verify_time_attributes_preservation("UTC")
+
+
+def test_time_attributes_and_sydney_timezone_preserved():
+    """Test that time coordinate attributes and Australia/Sydney timezone are preserved when writing to STF2.
+    
+    This test verifies that timestamps in Australian Eastern Standard Time (Sydney) are correctly
+    preserved through the save/load cycle to STF2 format. The timezone offset will vary depending
+    on whether daylight saving time is in effect.
+    """
+    _verify_time_attributes_preservation("Australia/Sydney")

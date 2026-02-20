@@ -7,6 +7,7 @@ import pandas as pd
 
 from efts_io.dimensions import create_time_info, create_timestamps
 from efts_io.wrapper import EftsDataSet
+from efts_io.conventions import LOCATION_TYPE_ATTR_KEY, TYPE_ATTR_KEY, TYPE_DESCRIPTION_ATTR_KEY, UNITS_ATTR_KEY
 
 pkg_dir = os.path.join(os.path.dirname(__file__), "..")
 
