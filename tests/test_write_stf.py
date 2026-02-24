@@ -1,3 +1,4 @@
+from os import read
 from typing import Iterable
 import pytest
 import numpy as np
@@ -25,12 +26,13 @@ def sample_dataset(
     n_stations=2,
     n_lead_time=3,
     n_realisations=4,
+    time_zone=None,
 ):
     """Create a sample dataset with all required coordinates."""
     stations_nbs = np.arange(n_stations)
     ds = xr.Dataset(
         coords={
-            TIME_DIMNAME: pd.date_range("2023-01-01", periods=n_time),
+            TIME_DIMNAME: pd.date_range("2023-01-01", periods=n_time, tz=time_zone),
             STATION_ID_DIMNAME: [f"station_{i}" for i in range(n_stations)],
             LEAD_TIME_DIMNAME: list(range(n_lead_time)),
             REALISATION_DIMNAME: list(range(n_realisations)),
@@ -197,9 +199,9 @@ def test_presave_with_invalid_dimensions():
 # Testing `exportable_to_stf2`
 
 
-def create_valid_stf2_dataset():
+def create_valid_stf2_dataset(time_zone=None):
     """Create a dataset with all required dimensions, variables, and attributes for STF 2.0."""
-    dataset = sample_dataset(n_time=5, n_stations=2, n_lead_time=3, n_realisations=4)
+    dataset = sample_dataset(n_time=5, n_stations=2, n_lead_time=3, n_realisations=4, time_zone=time_zone)
 
     # Add required global attributes
     dataset.attrs.update(
@@ -222,6 +224,15 @@ def test_exportable_to_stf2_valid_dataset():
 
     dataset = create_valid_stf2_dataset()
     assert exportable_to_stf2(dataset) is True
+    dataset = create_valid_stf2_dataset(time_zone="UTC+01:00")
+    assert exportable_to_stf2(dataset) is True
+    dataset = create_valid_stf2_dataset(time_zone="UTC+09:30")
+    assert exportable_to_stf2(dataset) is True
+    dataset = create_valid_stf2_dataset(time_zone="Australia/Sydney")
+    assert exportable_to_stf2(dataset) is False, (
+        "Currently, exportable_to_stf2 does not support timezone-aware timestamps. "
+        "This test confirms that datasets with timezone-aware time coordinates are not considered exportable."
+    )
 
 
 def test_exportable_to_stf2_missing_dimensions():
@@ -301,6 +312,19 @@ def test_exportable_to_stf2_integer_station_ids():
     assert exportable_to_stf2(dataset) is True
 
 
+def _temporary_named_file():
+    """Create a temporary file, using RAM disk (/dev/shm) on Linux for faster tests."""
+    import platform
+    import tempfile
+    import os
+    
+    # Use RAM disk on Linux if available
+    if platform.system() == "Linux" and os.path.exists("/dev/shm"):
+        return tempfile.NamedTemporaryFile(suffix=".nc", delete=False, dir="/dev/shm")
+    else:
+        return tempfile.NamedTemporaryFile(suffix=".nc", delete=False)
+    
+
 def test_station_id_int64_preserved_on_read():
     """Test that int64 station_id values are not converted to float64 when reading from STF2 files.
 
@@ -366,7 +390,7 @@ def test_station_id_int64_preserved_on_read():
     eds.data["rain_obs"].loc[1, station_ids[0], :, issue_times[0]] = np.nan  # introduce a missing value
 
     # 2. Save to STF2 file
-    with tempfile.NamedTemporaryFile(suffix=".nc", delete=False) as tmp:
+    with _temporary_named_file() as tmp:
         filename = tmp.name
 
     try:
@@ -483,7 +507,7 @@ def test_station_id_int32_preserved_on_read():
     eds.data["flow_obs"].loc[1, station_ids[0], :, issue_times[0]] = np.nan  # introduce a missing value
 
     # Save to STF2 file
-    with tempfile.NamedTemporaryFile(suffix=".nc", delete=False) as tmp:
+    with _temporary_named_file() as tmp:
         filename = tmp.name
 
     try:
@@ -633,7 +657,7 @@ def test_save_to_stf2_preserves_data_array_attributes():
     eds.data["test_var"].loc[:, :, :, :] = np.random.rand(3, 2, 2, 5) * 10.0
 
     # Save to STF2 file
-    with tempfile.NamedTemporaryFile(suffix=".nc", delete=False) as tmp:
+    with _temporary_named_file() as tmp:
         filename = tmp.name
 
     try:
@@ -774,7 +798,7 @@ def _verify_time_attributes_preservation(timezone_str: str):
     eds.data["temp_obs"].loc[:, :, :, :] = np.random.rand(3, 2, 1, 7) * 20.0 + 10.0
 
     # Save to STF2 file
-    with tempfile.NamedTemporaryFile(suffix=".nc", delete=False) as tmp:
+    with _temporary_named_file() as tmp:
         filename = tmp.name
 
     try:
@@ -849,15 +873,20 @@ def _verify_time_attributes_preservation(timezone_str: str):
         original_times = pd.to_datetime(issue_times)
         read_back_times = pd.to_datetime(time_coords_read)
         
-        # Convert to UTC for comparison if needed (normalize timezone info)
-        if original_times.tz is not None:
-            original_times = original_times.tz_convert("UTC")
-        if read_back_times.tz is not None:
-            read_back_times = read_back_times.tz_convert("UTC")
-        else:
-            # If read_back is timezone-naive, localize to UTC for comparison
-            read_back_times = read_back_times.tz_localize("UTC")
+        # # Convert to UTC for comparison if needed (normalize timezone info)
+        # if original_times.tz is not None:
+        #     original_times = original_times.tz_convert("UTC")
+        # if read_back_times.tz is not None:
+        #     read_back_times = read_back_times.tz_convert("UTC")
+        # else:
+        #     # If read_back is timezone-naive, localize to UTC for comparison
+        #     read_back_times = read_back_times.tz_localize("UTC")
         
+        # time zones are identical:
+        assert original_times[0].tz == read_back_times[0].tz, (
+            f"Timezone mismatch: original={original_times[0].tz}, read_back={read_back_times[0].tz}"
+        )
+
         # Check that all timestamps match exactly
         for i, (orig, read) in enumerate(zip(original_times, read_back_times)):
             assert orig == read, (
@@ -879,12 +908,498 @@ def test_time_attributes_and_utc_timezone_preserved():
     """
     _verify_time_attributes_preservation("UTC")
 
+def test_time_attributes_and_utc_plus1_timezone_preserved():
+    """Test that time coordinate attributes and UTC+01:00 timezone are preserved when writing to STF2.
+    """
+    _verify_time_attributes_preservation("UTC+01:00")
+
+
+def test_time_attributes_and_utc_minus1_timezone_preserved():
+    """Test that time coordinate attributes and UTC-01:00 timezone are preserved when writing to STF2.
+    """
+    _verify_time_attributes_preservation("UTC-01:00")
+
 
 def test_time_attributes_and_sydney_timezone_preserved():
-    """Test that time coordinate attributes and Australia/Sydney timezone are preserved when writing to STF2.
+    """Test that writing EFTS data with daylight saving timezone raises an exception.
     
-    This test verifies that timestamps in Australian Eastern Standard Time (Sydney) are correctly
-    preserved through the save/load cycle to STF2 format. The timezone offset will vary depending
-    on whether daylight saving time is in effect.
+    This test verifies that attempting to save data with a timezone that observes daylight
+    saving time (like Australia/Sydney) raises an appropriate exception. This is part of
+    test-driven development - the feature to handle DST has not yet been implemented.
+    
+    Background: The timezone offset can vary depending on whether daylight saving time is
+    in effect, which complicates the time encoding in NetCDF files.
     """
-    _verify_time_attributes_preservation("Australia/Sydney")
+    with pytest.raises((ValueError, NotImplementedError)) as exc_info:
+        _verify_time_attributes_preservation("Australia/Sydney")
+    
+    # Verify the exception message mentions daylight saving or timezone
+    error_msg = str(exc_info.value).lower()
+    assert any(keyword in error_msg for keyword in ["daylight", "dst", "timezone", "time zone"]), (
+        f"Expected exception message to mention daylight saving or timezone issues, got: {exc_info.value}"
+    )
+
+
+# ============================================================================
+# Comprehensive Timezone Test Suite
+# ============================================================================
+# This section provides systematic test coverage for timezone handling in STF2
+# file I/O operations. Tests are organized into groups by timezone category.
+# ============================================================================
+
+# Timezone test constants - organized by category
+FIXED_OFFSET_POSITIVE = [
+    "UTC+02:00",
+    "UTC+03:00",
+    "UTC+04:00",
+    "UTC+05:00",
+    "UTC+05:30",  # India - non-hour offset
+    "UTC+05:45",  # Nepal - 45-minute offset
+    "UTC+06:00",
+    "UTC+07:00",
+    "UTC+08:00",
+    "UTC+09:00",
+    "UTC+09:30",  # Australia/Adelaide - non-hour offset
+    "UTC+10:00",
+    "UTC+11:00",
+    "UTC+12:00",
+    "UTC+13:00",
+    "UTC+14:00",  # Line Islands - edge case (maximum offset)
+]
+
+FIXED_OFFSET_NEGATIVE = [
+    "UTC-02:00",
+    "UTC-03:00",
+    "UTC-04:00",
+    "UTC-05:00",
+    "UTC-06:00",
+    "UTC-07:00",
+    "UTC-08:00",
+    "UTC-09:00",
+    "UTC-10:00",
+    "UTC-11:00",
+    "UTC-12:00",  # Baker Island - edge case (minimum offset)
+]
+
+UTC_ALIASES = [
+    "UTC",
+    "GMT",
+    "Etc/UTC",
+]
+
+DST_TIMEZONES = [
+    "US/Eastern",
+    "US/Pacific",
+    "US/Central",
+    "US/Mountain",
+    "Europe/London",
+    "Europe/Paris",
+    "Europe/Berlin",
+    "Europe/Rome",
+    "Australia/Sydney",
+    "Australia/Melbourne",
+    "Asia/Jerusalem",
+    "America/New_York",
+    "America/Los_Angeles",
+]
+
+
+@pytest.mark.parametrize("timezone_str", FIXED_OFFSET_POSITIVE + FIXED_OFFSET_NEGATIVE)
+def test_fixed_offset_timezones_preserved(timezone_str):
+    """Test that fixed UTC offset timezones are correctly preserved through save/load cycle.
+    
+    This test verifies that timezones with fixed offsets (no DST) are handled correctly:
+    - Positive offsets (UTC+HH:MM)
+    - Negative offsets (UTC-HH:MM)
+    - Non-hour offsets (e.g., UTC+05:30, UTC+05:45, UTC+09:30)
+    - Edge cases (UTC+14:00, UTC-12:00)
+    
+    All these should work with the current implementation since they have constant offsets.
+    """
+    _verify_time_attributes_preservation(timezone_str)
+
+
+@pytest.mark.parametrize("timezone_str", UTC_ALIASES)
+def test_utc_alias_timezones_preserved(timezone_str):
+    """Test that UTC alias timezones produce equivalent results.
+    
+    This test verifies that different representations of UTC (UTC, GMT, Etc/UTC)
+    all produce identical behavior when saving and loading STF2 files.
+    """
+    _verify_time_attributes_preservation(timezone_str)
+
+
+@pytest.mark.xfail(reason="DST timezones not yet supported - variable offset incompatible with NetCDF time encoding")
+@pytest.mark.parametrize("timezone_str", DST_TIMEZONES)
+def test_dst_timezones_raise_appropriate_error(timezone_str):
+    """Test that DST timezones fail with descriptive error messages.
+    
+    This test documents expected behavior for timezones that observe daylight saving time.
+    These timezones have variable offsets depending on the date, which is incompatible
+    with NetCDF's static "time since ORIGIN +OFFSET" encoding format.
+    
+    Expected behavior: Raise ValueError or NotImplementedError with a message mentioning
+    "daylight", "dst", or "timezone".
+    
+    This is marked as xfail (expected failure) as part of test-driven development.
+    When DST support is implemented, these tests should be updated accordingly.
+    """
+    with pytest.raises((ValueError, NotImplementedError)) as exc_info:
+        _verify_time_attributes_preservation(timezone_str)
+    
+    # Verify the exception message is descriptive
+    error_msg = str(exc_info.value).lower()
+    assert any(keyword in error_msg for keyword in ["daylight", "dst", "timezone", "time zone"]), (
+        f"Expected exception message to mention daylight saving or timezone issues, got: {exc_info.value}"
+    )
+
+
+def test_timezone_naive_timestamps_localized_to_utc():
+    """Test that timezone-naive timestamps are interpreted as UTC.
+    
+    This test verifies the default behavior when creating datasets with timezone-naive
+    pandas timestamps. The expected behavior is that they are localized to UTC.
+    """
+    import tempfile
+    import os
+    import netCDF4 as nc
+    from efts_io.wrapper import EftsDataSet, xr_efts
+    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+    from efts_io.conventions import TIME_STANDARD_ATTR_KEY, UNITS_ATTR_KEY
+
+    # Create test dataset with timezone-naive timestamps (no tz parameter)
+    issue_times = pd.date_range("2024-02-15", periods=5, freq="D")  # No tz - naive
+    station_ids = [301, 302]
+    lead_times = np.arange(1, 4)
+
+    # Verify timestamps are indeed timezone-naive
+    assert issue_times.tz is None, "Test setup error: timestamps should be timezone-naive"
+
+    xr_ds = xr_efts(
+        issue_times=issue_times,
+        station_ids=station_ids,
+        lead_times=lead_times,
+        lead_time_tstep="days",
+        ensemble_size=1,
+        station_names=["Site_Gamma", "Site_Delta"],
+        nc_attributes={
+            "title": "Test dataset for timezone-naive timestamps",
+            "institution": "Test Lab",
+            "source": "Unit test",
+            "catchment": "Test Basin",
+            "comment": "Testing timezone-naive timestamp handling",
+            "history": "Created for timezone-naive testing",
+        },
+    )
+
+    eds = EftsDataSet(xr_ds)
+    
+    eds.create_data_variables(
+        {
+            "precip_obs": {
+                "name": "precip_obs",
+                "longname": "Precipitation",
+                "units": "mm",
+                "dim_type": "4",
+                "missval": np.nan,
+                "precision": "double",
+                "attributes": {},
+            },
+        }
+    )
+    
+    eds.data["precip_obs"].loc[:, :, :, :] = np.random.rand(3, 2, 1, 5) * 25.0
+
+    with _temporary_named_file() as tmp:
+        filename = tmp.name
+
+    try:
+        eds.save_to_stf2(
+            path=filename,
+            variable_name="precip_obs",
+            var_type=StfVariable.RAINFALL,
+            data_type=StfDataType.OBSERVED,
+            timestep="days",
+        )
+
+        # Read back and verify UTC is assumed
+        nc_ds = nc.Dataset(filename, "r")
+        time_var = nc_ds.variables["time"]
+        
+        time_standard = time_var.getncattr(TIME_STANDARD_ATTR_KEY)
+        assert "UTC" in time_standard, f"Expected UTC in time_standard, got '{time_standard}'"
+        
+        time_units = time_var.getncattr(UNITS_ATTR_KEY)
+        # Should contain +00:00 or +0000 indicating UTC
+        assert "+00" in time_units or "+0000" in time_units, (
+            f"Expected UTC offset in time units, got '{time_units}'"
+        )
+        
+        nc_ds.close()
+        
+        # Verify EftsDataSet can read it back
+        eds_read = EftsDataSet(filename)
+        time_coords = eds_read.data.time.values
+        
+        assert len(time_coords) == 5, f"Expected 5 time coordinates, got {len(time_coords)}"
+
+    finally:
+        if os.path.exists(filename):
+            os.remove(filename)
+
+
+def test_invalid_timezone_string_raises_error():
+    """Test that invalid timezone strings raise appropriate errors.
+    
+    This test verifies error handling for malformed or non-existent timezone strings.
+    """
+    import tempfile
+    import os
+    from efts_io.wrapper import EftsDataSet, xr_efts
+    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+
+    invalid_timezones = [
+        "Invalid/Timezone",
+        "NotAPlace/NotACity",
+        "UTC+99:99",  # Malformed offset
+        "GMT+25",  # Out of range
+    ]
+
+    for invalid_tz in invalid_timezones:
+        # Create dataset with invalid timezone - this should fail during dataset creation
+        # or during save_to_stf2 operation
+        try:
+            issue_times = pd.date_range("2024-03-01", periods=3, freq="D", tz=invalid_tz)
+            # If we get here, pandas accepted it (shouldn't happen for truly invalid TZ)
+            # but it should still fail during save
+            
+            xr_ds = xr_efts(
+                issue_times=issue_times,
+                station_ids=[501],
+                lead_times=[1, 2],
+                lead_time_tstep="hours",
+                ensemble_size=1,
+                station_names=["Test_Station"],
+                nc_attributes={
+                    "title": "Test",
+                    "institution": "Test",
+                    "source": "Test",
+                    "catchment": "Test",
+                    "comment": "Test",
+                    "history": "Test",
+                },
+            )
+            
+            eds = EftsDataSet(xr_ds)
+            eds.create_data_variables(
+                {
+                    "test_var": {
+                        "name": "test_var",
+                        "longname": "Test",
+                        "units": "mm",
+                        "dim_type": "4",
+                        "missval": np.nan,
+                        "precision": "double",
+                        "attributes": {},
+                    },
+                }
+            )
+            eds.data["test_var"].loc[:, :, :, :] = 1.0
+            
+            with _temporary_named_file() as tmp:
+                filename = tmp.name
+            
+            try:
+                with pytest.raises((ValueError, KeyError, Exception)):
+                    eds.save_to_stf2(
+                        path=filename,
+                        variable_name="test_var",
+                        var_type=StfVariable.RAINFALL,
+                        data_type=StfDataType.OBSERVED,
+                    )
+            finally:
+                if os.path.exists(filename):
+                    os.remove(filename)
+                    
+        except (ValueError, KeyError, Exception):
+            # Expected - pandas or pytz rejected the timezone string during date_range creation
+            pass
+
+
+def test_extreme_valid_offsets_preserved():
+    """Test that extreme but valid UTC offsets are correctly handled.
+    
+    This test verifies the edge cases of the valid timezone offset range:
+    - UTC+14:00 (Line Islands, Kiribati) - maximum valid offset
+    - UTC-12:00 (Baker Island, Howland Island) - minimum valid offset
+    """
+    extreme_offsets = ["UTC+14:00", "UTC-12:00"]
+    
+    for offset in extreme_offsets:
+        _verify_time_attributes_preservation(offset)
+
+
+def test_roundtrip_precision_with_hourly_timestep():
+    """Test timestamp precision preservation with hourly timestep.
+    
+    This test verifies that timestamps are exactly preserved through the save/load
+    cycle when using hourly timestep (not just daily).
+    """
+    import tempfile
+    import os
+    from efts_io.wrapper import EftsDataSet, xr_efts
+    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+
+    # Create hourly timestamps
+    issue_times = pd.date_range("2024-04-10 00:00", periods=24, freq="H", tz="UTC+05:00")
+    station_ids = [601]
+    lead_times = np.arange(1, 3)
+
+    xr_ds = xr_efts(
+        issue_times=issue_times,
+        station_ids=station_ids,
+        lead_times=lead_times,
+        lead_time_tstep="hours",
+        ensemble_size=1,
+        station_names=["Hourly_Station"],
+        nc_attributes={
+            "title": "Hourly timestep test",
+            "institution": "Test",
+            "source": "Unit test",
+            "catchment": "Test",
+            "comment": "Testing hourly precision",
+            "history": "Created for hourly timestep testing",
+        },
+    )
+
+    eds = EftsDataSet(xr_ds)
+    eds.create_data_variables(
+        {
+            "flow_hourly": {
+                "name": "flow_hourly",
+                "longname": "Hourly Flow",
+                "units": "m^3/s",
+                "dim_type": "4",
+                "missval": np.nan,
+                "precision": "double",
+                "attributes": {},
+            },
+        }
+    )
+    
+    eds.data["flow_hourly"].loc[:, :, :, :] = np.random.rand(2, 1, 1, 24) * 50.0
+
+    with _temporary_named_file() as tmp:
+        filename = tmp.name
+
+    try:
+        eds.save_to_stf2(
+            path=filename,
+            variable_name="flow_hourly",
+            var_type=StfVariable.STREAMFLOW,
+            data_type=StfDataType.OBSERVED,
+            timestep="hours",
+        )
+
+        # Read back and verify timestamps
+        eds_read = EftsDataSet(filename)
+        time_coords_read = eds_read.data.time.values
+        
+        assert len(time_coords_read) == 24, f"Expected 24 hourly timestamps, got {len(time_coords_read)}"
+        
+        # Convert to pandas for comparison
+        original_times = pd.to_datetime(issue_times)
+        read_back_times = pd.to_datetime(time_coords_read)
+        
+        # Verify each timestamp matches
+        for i, (orig, read) in enumerate(zip(original_times, read_back_times)):
+            assert orig == read, (
+                f"Timestamp mismatch at index {i}: original={orig}, read_back={read}"
+            )
+
+    finally:
+        if os.path.exists(filename):
+            os.remove(filename)
+
+
+def test_roundtrip_precision_with_minute_timestep():
+    """Test timestamp precision preservation with minute timestep.
+    
+    This test verifies that timestamps are exactly preserved with even finer
+    temporal resolution (minutes).
+    """
+    import tempfile
+    import os
+    from efts_io.wrapper import EftsDataSet, xr_efts
+    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+
+    # Create minute-resolution timestamps
+    issue_times = pd.date_range("2024-05-15 12:00", periods=60, freq="T", tz="UTC-07:00")
+    station_ids = [701]
+    lead_times = np.arange(1, 3)
+
+    xr_ds = xr_efts(
+        issue_times=issue_times,
+        station_ids=station_ids,
+        lead_times=lead_times,
+        lead_time_tstep="minutes",
+        ensemble_size=1,
+        station_names=["Minute_Station"],
+        nc_attributes={
+            "title": "Minute timestep test",
+            "institution": "Test",
+            "source": "Unit test",
+            "catchment": "Test",
+            "comment": "Testing minute precision",
+            "history": "Created for minute timestep testing",
+        },
+    )
+
+    eds = EftsDataSet(xr_ds)
+    eds.create_data_variables(
+        {
+            "level_minute": {
+                "name": "level_minute",
+                "longname": "Water Level (minute resolution)",
+                "units": "m",
+                "dim_type": "4",
+                "missval": np.nan,
+                "precision": "double",
+                "attributes": {},
+            },
+        }
+    )
+    
+    eds.data["level_minute"].loc[:, :, :, :] = np.random.rand(2, 1, 1, 60) * 10.0
+
+    with _temporary_named_file() as tmp:
+        filename = tmp.name
+
+    try:
+        eds.save_to_stf2(
+            path=filename,
+            variable_name="level_minute",
+            var_type=StfVariable.WATER_LEVEL,
+            data_type=StfDataType.OBSERVED,
+            timestep="minutes",
+        )
+
+        # Read back and verify timestamps
+        eds_read = EftsDataSet(filename)
+        time_coords_read = eds_read.data.time.values
+        
+        assert len(time_coords_read) == 60, f"Expected 60 minute timestamps, got {len(time_coords_read)}"
+        
+        # Convert to pandas for comparison
+        original_times = pd.to_datetime(issue_times)
+        read_back_times = pd.to_datetime(time_coords_read)
+        
+        # Verify minute-level precision
+        for i, (orig, read) in enumerate(zip(original_times, read_back_times)):
+            assert orig == read, (
+                f"Timestamp mismatch at minute {i}: original={orig}, read_back={read}"
+            )
+
+    finally:
+        if os.path.exists(filename):
+            os.remove(filename)

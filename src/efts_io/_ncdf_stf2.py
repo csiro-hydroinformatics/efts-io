@@ -27,6 +27,8 @@ from efts_io.conventions import (
     AttributesErrorLevel,
     check_optional_variable_attributes,
     convert_to_datetime64_utc,
+    detect_timezone_info,
+    validate_fixed_offset_timezone,
     has_required_xarray_global_attributes,
 )
 
@@ -49,16 +51,28 @@ class StfDataType(Enum):
     SIMULATED = 4
 
 
-def _create_cf_time_axis(data: xr.DataArray, timestep_str: str) -> tuple[np.ndarray, str, str]:
+def _create_cf_time_axis(data: xr.DataArray, timestep_str: str) -> tuple[np.ndarray, str, str, str]:
     """Create a CF-compliant time axis for the given xarray DataArray.
 
+    This function detects the timezone from the input data and preserves it in the
+    time axis encoding. Only fixed-offset timezones (no daylight saving time) are
+    supported by the STF2 NetCDF format.
+
     Args:
-        data (xr.DataArray): The input data array.
-        timestep_str (str): The time step string (e.g., "days").
+        data (xr.DataArray): The input data array with time coordinate.
+        timestep_str (str): The time step string (e.g., "days", "hours").
 
     Returns:
-        tuple[np.ndarray, str, str]: A tuple containing the encoded time axis,
-        the units string, and the calendar string.
+        tuple[np.ndarray, str, str, str]: A tuple containing:
+            - encoded time axis values
+            - units string with timezone
+            - calendar string
+            - timezone offset string (e.g., "+10:00", "-05:00", "+00:00")
+
+    Raises:
+        ValueError: If time array is empty.
+        TypeError: If time values are not convertible to timestamps.
+        NotImplementedError: If timezone observes daylight saving time (DST).
     """
     from xarray.coding import times  # noqa: I001
     from efts_io.conventions import TIME_DIMNAME
@@ -72,16 +86,30 @@ def _create_cf_time_axis(data: xr.DataArray, timestep_str: str) -> tuple[np.ndar
         raise TypeError(
             f"Expected data[TIME_DIMNAME] to be of a type convertible to pd.Timestamp, got {type(origin)} instead.",
         )
-    origin = convert_to_datetime64_utc(origin)
-    dtimes = [convert_to_datetime64_utc(x) for x in tt]
+
+    # Detect timezone from original timestamps (Phase 1 utility)
+    tz_string, offset_string = detect_timezone_info(tt)
+
+    # Validate that timezone is fixed-offset (no DST)
+    # This will raise NotImplementedError for DST timezones
+    origin_ts = pd.Timestamp(origin)
+    tz_string, offset_string = validate_fixed_offset_timezone(tz_string, origin_ts)
+
+    # Preserve original timezone instead of converting to UTC
+    # If timezone-naive, treat as UTC (already handled by detect_timezone_info)
+    if origin_ts.tz is None:
+        # Localize to UTC if naive (detect_timezone_info returns "UTC" for naive)
+        origin_ts = origin_ts.tz_localize("UTC")
+        dtimes = [pd.Timestamp(x).tz_localize("UTC") for x in tt]
+    else:
+        # Keep original timezone
+        dtimes = [pd.Timestamp(x) for x in tt]
+
     # NOTE: this is not quite what is suggested by the STF convention in the example string.
     # The below is closer to the the 8601 specifications, however we use space not 'T' for date/time separator
     # https://docs.digi.com/resources/documentation/digidocs/90001488-13/reference/r_iso_8601_date_format.htm
-    iso_8601_origin = pd.Timestamp(origin).tz_localize("UTC")
-    formatted_string = iso_8601_origin.strftime("%Y-%m-%d %H:%M:%S")
-    timezone_offset = iso_8601_origin.strftime("%z")
-    formatted_timezone_offset = f"{timezone_offset[:3]}:{timezone_offset[3:]}"
-    formatted_string_with_tz = f"{formatted_string}{formatted_timezone_offset}"
+    formatted_string = origin_ts.strftime("%Y-%m-%d %H:%M:%S")
+    formatted_string_with_tz = f"{formatted_string}{offset_string}"
 
     axis, units, calendar = times.encode_cf_datetime(
         dates=dtimes,  #: 'T_DuckArray',
@@ -90,9 +118,9 @@ def _create_cf_time_axis(data: xr.DataArray, timestep_str: str) -> tuple[np.ndar
         dtype=None,  #: 'np.dtype | None' = None,
     )  # -> 'tuple[T_DuckArray, str, str]'
     # override times.encode_cf_datetime, which is varying
-    # depending on the imput unit string and may not have the time zone, or a T separator.
+    # depending on the input unit string and may not have the time zone, or a T separator.
     units = f"{timestep_str} since {formatted_string_with_tz}"
-    return axis, units, calendar
+    return axis, units, calendar, offset_string
 
 
 def _validate_station_id_for_int32(station_id: np.ndarray, intdata_type: str) -> None:
@@ -346,11 +374,12 @@ def write_nc_stf2(
         time_var = ncfile.createVariable(TIME_DIMNAME, intdata_type, (TIME_DIMNAME,), fill_value=-9999)
         time_var.setncattr(STANDARD_NAME_ATTR_KEY, TIME_DIMNAME)
         time_var.setncattr(LONG_NAME_ATTR_KEY, TIME_DIMNAME)
-        time_var.setncattr(TIME_STANDARD_ATTR_KEY, "UTC+00:00")
-        time_var.setncattr(AXIS_ATTR_KEY, "t")
 
         # time_units_str = "days since {} 00:00:00".format(data.attrs["fcast_date"])
-        axis_values, time_units_str, _ = _create_cf_time_axis(data, timestep_str)
+        axis_values, time_units_str, _, timezone_offset = _create_cf_time_axis(data, timestep_str)
+        # Use dynamic timezone offset instead of hardcoded "UTC+00:00"
+        time_var.setncattr(TIME_STANDARD_ATTR_KEY, f"UTC{timezone_offset}")
+        time_var.setncattr(AXIS_ATTR_KEY, "t")
         time_var.setncattr(UNITS_ATTR_KEY, time_units_str)
         time_var[:] = axis_values
 

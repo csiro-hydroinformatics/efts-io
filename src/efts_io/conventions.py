@@ -641,6 +641,317 @@ def convert_to_datetime64_utc(x: ConvertibleToTimestamp) -> np.datetime64:
     return x.to_datetime64()
 
 
+def detect_timezone_info(timestamps: Union[pd.DatetimeIndex, Iterable[ConvertibleToTimestamp], ConvertibleToTimestamp]) -> tuple[str, str]:
+    """Detect timezone information from timestamps.
+
+    This function extracts timezone information from various timestamp representations
+    and returns both the timezone string and the formatted UTC offset.
+
+    Args:
+        timestamps: Timestamps as DatetimeIndex, iterable of timestamps, or single timestamp
+
+    Returns:
+        Tuple of (timezone_string, utc_offset_string) where:
+        - timezone_string: Original timezone name (e.g., "UTC", "UTC+10:00", "America/New_York")
+        - utc_offset_string: Formatted offset string (e.g., "+00:00", "+10:00", "-05:00")
+
+    Note:
+        Timezone-naive timestamps are treated as UTC and return ("UTC", "+00:00").
+        UTC aliases (UTC, GMT, Etc/UTC) are normalized to ("UTC", "+00:00").
+
+    Raises:
+        ValueError: If timestamps is an empty collection
+        TypeError: If timestamps type cannot be processed
+
+    Examples:
+        >>> import pandas as pd
+        >>> timestamps = pd.date_range("2024-01-01", periods=3, tz="UTC+10:00")
+        >>> detect_timezone_info(timestamps)
+        ('UTC+10:00', '+10:00')
+
+        >>> timestamps = pd.date_range("2024-01-01", periods=3)  # naive
+        >>> detect_timezone_info(timestamps)
+        ('UTC', '+00:00')
+    """
+    # Extract a sample timestamp to detect timezone
+    sample_ts = None
+    tz = None
+
+    if isinstance(timestamps, pd.DatetimeIndex):
+        if len(timestamps) == 0:
+            raise ValueError("Cannot detect timezone from empty DatetimeIndex")
+        sample_ts = timestamps[0]
+        tz = timestamps.tz
+    elif isinstance(timestamps, (list, tuple)):
+        if len(timestamps) == 0:
+            raise ValueError("Cannot detect timezone from empty list/tuple")
+        sample_item = timestamps[0]
+        if isinstance(sample_item, pd.Timestamp):
+            sample_ts = sample_item
+            tz = sample_item.tz
+        else:
+            # Convert to Timestamp to check timezone
+            sample_ts = pd.Timestamp(sample_item)
+            tz = sample_ts.tz
+    elif isinstance(timestamps, pd.Timestamp):
+        sample_ts = timestamps
+        tz = timestamps.tz
+    elif isinstance(timestamps, (str, datetime, np.datetime64)):
+        sample_ts = pd.Timestamp(timestamps)
+        tz = sample_ts.tz
+    else:
+        raise TypeError(f"Cannot detect timezone from type {type(timestamps)}")
+
+    # Handle timezone-naive case
+    if tz is None:
+        return ("UTC", "+00:00")
+
+    # Get timezone string
+    tz_string = str(tz)
+
+    # Normalize UTC aliases
+    if tz_string in ["UTC", "GMT", "Etc/UTC"]:
+        return ("UTC", "+00:00")
+
+    # Get UTC offset from the sample timestamp
+    # Ensure sample_ts is timezone-aware
+    if sample_ts.tz is None:
+        sample_ts = sample_ts.tz_localize(tz)
+
+    # Get the offset
+    offset = sample_ts.utcoffset()
+    if offset is None:
+        # This shouldn't happen if tz is not None, but handle it
+        return (tz_string, "+00:00")
+
+    # Convert to seconds and format as +HH:MM or -HH:MM
+    total_seconds = int(offset.total_seconds())
+    sign = "+" if total_seconds >= 0 else "-"
+    abs_seconds = abs(total_seconds)
+    hours = abs_seconds // 3600
+    minutes = (abs_seconds % 3600) // 60
+    offset_string = f"{sign}{hours:02d}:{minutes:02d}"
+
+    return (tz_string, offset_string)
+
+
+def validate_fixed_offset_timezone(timezone_string: str, sample_timestamp: Optional[pd.Timestamp] = None) -> tuple[str, str]:
+    """Validate that a timezone has a fixed UTC offset (no daylight saving time).
+
+    This function checks if a timezone has daylight saving time (DST) transitions.
+    NetCDF's CF time encoding format requires a fixed UTC offset in the format
+    "time_units since ORIGIN +OFFSET", which cannot handle variable offsets.
+
+    Args:
+        timezone_string: Timezone name (e.g., "UTC", "UTC+10:00", "US/Eastern", "Australia/Sydney")
+        sample_timestamp: Optional timestamp in the timezone for extracting offset.
+                         If None, uses current time.
+
+    Returns:
+        Tuple of (normalized_timezone_string, utc_offset_string) for valid fixed-offset timezones
+
+    Raises:
+        NotImplementedError: If timezone observes daylight saving time (DST)
+        ValueError: If timezone string is invalid or cannot be parsed
+
+    Examples:
+        >>> validate_fixed_offset_timezone("UTC")
+        ('UTC', '+00:00')
+
+        >>> validate_fixed_offset_timezone("UTC+10:00")
+        ('UTC+10:00', '+10:00')
+
+        >>> validate_fixed_offset_timezone("US/Eastern")  # doctest: +SKIP
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Timezones with daylight saving time (DST) are not supported...
+    """
+    # Normalize UTC aliases first
+    if timezone_string in ["UTC", "GMT", "Etc/UTC"]:
+        return ("UTC", "+00:00")
+
+    # Try to parse the timezone
+    tz = None
+    try:
+        # Try to use zoneinfo (Python 3.9+) to check for DST transitions
+        try:
+            from zoneinfo import ZoneInfo
+            tz = ZoneInfo(timezone_string)
+        except (ImportError, ModuleNotFoundError):
+            # Fall back to using dateutil or pytz
+            try:
+                from dateutil import tz as dateutil_tz
+                tz = dateutil_tz.gettz(timezone_string)
+            except ImportError:
+                # Last resort: try pytz
+                import pytz
+                tz = pytz.timezone(timezone_string)
+
+        if tz is None:
+            raise ValueError(f"Invalid timezone string: {timezone_string}")
+
+    except (ValueError, KeyError, OSError) as e:
+        # If we can't parse it as a named timezone, it might be a fixed offset like "UTC+10:00"
+        # Try to create a timestamp with this timezone
+        try:
+            if sample_timestamp is None:
+                sample_timestamp = pd.Timestamp("2024-01-01")
+            ts = sample_timestamp.tz_localize(timezone_string)
+            # If successful, extract the offset
+            offset = ts.utcoffset()
+            if offset is not None:
+                total_seconds = int(offset.total_seconds())
+                sign = "+" if total_seconds >= 0 else "-"
+                abs_seconds = abs(total_seconds)
+                hours = abs_seconds // 3600
+                minutes = (abs_seconds % 3600) // 60
+                offset_string = f"{sign}{hours:02d}:{minutes:02d}"
+                return (timezone_string, offset_string)
+        except (ValueError, TypeError, KeyError):
+            # Could not parse as fixed offset either
+            pass
+        raise ValueError(f"Could not parse timezone string '{timezone_string}': {e}") from e
+
+    # Check if the timezone has DST transitions
+    # We check offsets at different times of the year (winter and summer)
+    # to detect if they differ
+    if sample_timestamp is None:
+        # Use two dates: one in winter (January) and one in summer (July)
+        winter_date = pd.Timestamp("2024-01-15 12:00:00")
+        summer_date = pd.Timestamp("2024-07-15 12:00:00")
+    else:
+        # Use the provided sample and a date 6 months later
+        winter_date = sample_timestamp
+        summer_date = sample_timestamp + pd.DateOffset(months=6)
+
+    # Localize these dates to the timezone and check offsets
+    try:
+        winter_ts = winter_date.tz_localize(tz)
+        summer_ts = summer_date.tz_localize(tz)
+
+        winter_offset = winter_ts.utcoffset()
+        summer_offset = summer_ts.utcoffset()
+
+        if winter_offset != summer_offset:
+            # Different offsets indicate DST
+            raise NotImplementedError(
+                f"Timezones with daylight saving time (DST) are not supported. "
+                f"The timezone '{timezone_string}' has varying UTC offsets "
+                f"(e.g., {winter_offset} in winter vs {summer_offset} in summer), "
+                f"which is incompatible with NetCDF's static time encoding format "
+                f"'time_units since ORIGIN +OFFSET'. "
+                f"Please convert your data to a fixed UTC offset timezone "
+                f"(e.g., 'UTC+10:00' or 'UTC-05:00') before saving to STF2 format.",
+            )
+
+    except NotImplementedError:
+        # Re-raise NotImplementedError for DST
+        raise
+    except (ValueError, TypeError, KeyError, AttributeError) as e:
+        raise ValueError(f"Error checking timezone '{timezone_string}': {e}") from e
+
+    # Fixed offset timezone - extract the offset
+    offset = winter_offset
+    total_seconds = int(offset.total_seconds())
+    sign = "+" if total_seconds >= 0 else "-"
+    abs_seconds = abs(total_seconds)
+    hours = abs_seconds // 3600
+    minutes = (abs_seconds % 3600) // 60
+    offset_string = f"{sign}{hours:02d}:{minutes:02d}"
+
+    return (timezone_string, offset_string)
+
+
+def extract_utc_offset_string(timestamps_or_tz: Union[pd.DatetimeIndex, pd.Timestamp, str, Any]) -> str:
+    """Extract UTC offset string from timestamps or timezone object.
+
+    This is a utility function that extracts the UTC offset from timezone-aware
+    timestamps or a timezone object and formats it consistently as "+HH:MM" or "-HH:MM".
+
+    Args:
+        timestamps_or_tz: Can be:
+            - pd.DatetimeIndex (timezone-aware)
+            - pd.Timestamp (timezone-aware)
+            - Timezone string (e.g., "UTC+10:00", "US/Eastern")
+            - Timezone object (from zoneinfo, pytz, dateutil)
+
+    Returns:
+        Formatted UTC offset string (e.g., "+00:00", "+10:00", "-05:00")
+
+    Raises:
+        ValueError: If input is timezone-naive or offset cannot be determined
+        TypeError: If input type is not supported
+
+    Examples:
+        >>> import pandas as pd
+        >>> timestamps = pd.date_range("2024-01-01", periods=3, tz="UTC+10:00")
+        >>> extract_utc_offset_string(timestamps)
+        '+10:00'
+
+        >>> ts = pd.Timestamp("2024-01-01", tz="UTC-05:00")
+        >>> extract_utc_offset_string(ts)
+        '-05:00'
+
+        >>> extract_utc_offset_string("UTC+05:30")
+        '+05:30'
+
+    Note:
+        For timezones with DST, the offset will be based on the specific timestamp provided.
+        For timezone strings without a specific timestamp, a sample date is used.
+    """
+    offset = None
+    sample_ts = None
+
+    # Handle different input types
+    if isinstance(timestamps_or_tz, pd.DatetimeIndex):
+        if len(timestamps_or_tz) == 0:
+            raise ValueError("Cannot extract offset from empty DatetimeIndex")
+        if timestamps_or_tz.tz is None:
+            raise ValueError("DatetimeIndex is timezone-naive, cannot extract UTC offset")
+        sample_ts = timestamps_or_tz[0]
+        offset = sample_ts.utcoffset()
+
+    elif isinstance(timestamps_or_tz, pd.Timestamp):
+        if timestamps_or_tz.tz is None:
+            raise ValueError("Timestamp is timezone-naive, cannot extract UTC offset")
+        sample_ts = timestamps_or_tz
+        offset = sample_ts.utcoffset()
+
+    elif isinstance(timestamps_or_tz, str):
+        # It's a timezone string, try to parse it and get the offset
+        try:
+            # Use detect_timezone_info to handle this
+            _, offset_string = detect_timezone_info(pd.Timestamp("2024-01-15", tz=timestamps_or_tz))
+            return offset_string
+        except Exception as e:
+            raise ValueError(f"Could not extract offset from timezone string '{timestamps_or_tz}': {e}") from e
+
+    else:
+        # Assume it's a timezone object (zoneinfo.ZoneInfo, pytz.timezone, dateutil.tz)
+        # Try to create a timestamp with this timezone
+        try:
+            sample_ts = pd.Timestamp("2024-01-15").tz_localize(timestamps_or_tz)
+            offset = sample_ts.utcoffset()
+        except Exception as e:
+            raise TypeError(
+                f"Cannot extract UTC offset from type {type(timestamps_or_tz)}. "
+                f"Expected pd.DatetimeIndex, pd.Timestamp, timezone string, or timezone object. "
+                f"Error: {e}",
+            ) from e
+
+    # Format the offset
+    if offset is None:
+        raise ValueError("Could not determine UTC offset from input")
+
+    total_seconds = int(offset.total_seconds())
+    sign = "+" if total_seconds >= 0 else "-"
+    abs_seconds = abs(total_seconds)
+    hours = abs_seconds // 3600
+    minutes = (abs_seconds % 3600) // 60
+
+    return f"{sign}{hours:02d}:{minutes:02d}"
+
+
 def exportable_to_stf2(data: MdDatasetsType) -> bool:
     """Check if the dataset can be written to a netCDF file compliant with STF 2.0 specification.
 
