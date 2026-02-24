@@ -431,7 +431,11 @@ class EftsDataSet:
                 self._new_variable_from_legacy_specs(dims_shape, dims_names, x, varname)
 
     def _new_variable_from_legacy_specs(
-        self, dim_shape: Tuple, dims_names: Iterable[str], x: dict[str, Any], varname: str,
+        self,
+        dim_shape: Tuple,
+        dims_names: Iterable[str],
+        x: dict[str, Any],
+        varname: str,
     ) -> xr.DataArray:
         """Create a new variable in the data set."""
         data_coords = {dim: self.data.coords[dim] for dim in dims_names}
@@ -452,7 +456,11 @@ class EftsDataSet:
         return new_array
 
     def new_variable(
-        self, varname: str, dim_names: Iterable[str], var_attributes: dict[str, Any], data: Optional[np.ndarray] = None,
+        self,
+        varname: str,
+        dim_names: Iterable[str],
+        var_attributes: dict[str, Any],
+        data: Optional[np.ndarray] = None,
     ) -> xr.DataArray:
         """Create a new variable in the data set.
 
