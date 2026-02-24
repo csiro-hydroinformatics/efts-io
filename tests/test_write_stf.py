@@ -539,7 +539,7 @@ def test_station_id_int32_preserved_on_read():
 
 def test_save_to_stf2_preserves_data_array_attributes():
     """Test that save_to_stf2 correctly writes data array attributes to the NetCDF file.
-    
+
     This test verifies that when a data variable is saved to STF2 format, the following
     attributes are preserved in the output NetCDF file:
     - UNITS_ATTR_KEY (compulsory)
@@ -628,7 +628,6 @@ def test_save_to_stf2_preserves_data_array_attributes():
     assert data_var.attrs[DAT_TYPE_ATTR_KEY] == custom_dat_type
     assert data_var.attrs[LOCATION_TYPE_ATTR_KEY] == custom_location_type
 
-
     # Populate with test data
     eds.data["test_var"].loc[:, :, :, :] = np.random.rand(3, 2, 2, 5) * 10.0
 
@@ -649,11 +648,15 @@ def test_save_to_stf2_preserves_data_array_attributes():
 
         # The variable name in the file follows STF conventions (e.g., "rain_obs")
         # Need to find which variable was created
-        data_vars = [v for v in nc_ds.variables.keys() if not v.startswith(("time", "station", "lat", "lon", "lead_time", "ens_member", "area"))]
-        
+        data_vars = [
+            v
+            for v in nc_ds.variables.keys()
+            if not v.startswith(("time", "station", "lat", "lon", "lead_time", "ens_member", "area"))
+        ]
+
         # Should be exactly one data variable
         assert len(data_vars) == 1, f"Expected 1 data variable, found {len(data_vars)}: {data_vars}"
-        
+
         saved_var_name = data_vars[0]
         saved_var = nc_ds.variables[saved_var_name]
 
@@ -709,10 +712,10 @@ def test_save_to_stf2_preserves_data_array_attributes():
 
 def _verify_time_attributes_preservation(timezone_str: str):
     """Helper function to test that time coordinate attributes and timezone are preserved when writing to STF2.
-    
+
     Args:
         timezone_str: Timezone string (e.g., "UTC", "US/Eastern", "Australia/Sydney")
-    
+
     This function verifies:
     1. In-memory xarray dataset with specified timezone timestamps can be saved
     2. The time_standard attribute is written correctly
@@ -752,9 +755,9 @@ def _verify_time_attributes_preservation(timezone_str: str):
     # Verify the input dataset has the specified timezone
     first_time = xr_ds.time.values[0]
     assert isinstance(first_time, pd.Timestamp), f"Expected time coordinate to be Timestamp, got {type(first_time)}"
-    
+
     eds = EftsDataSet(xr_ds)
-    
+
     # Create a simple data variable
     eds.create_data_variables(
         {
@@ -769,7 +772,7 @@ def _verify_time_attributes_preservation(timezone_str: str):
             },
         }
     )
-    
+
     # Populate with test data
     eds.data["temp_obs"].loc[:, :, :, :] = np.random.rand(3, 2, 1, 7) * 20.0 + 10.0
 
@@ -788,67 +791,55 @@ def _verify_time_attributes_preservation(timezone_str: str):
 
         # Read back with netCDF4 to check time attributes
         nc_ds = nc.Dataset(filename, "r")
-        
+
         time_var = nc_ds.variables["time"]
-        
+
         # Verify time_standard attribute exists
         assert TIME_STANDARD_ATTR_KEY in time_var.ncattrs(), (
             f"Missing {TIME_STANDARD_ATTR_KEY} attribute on time variable"
         )
         time_standard = time_var.getncattr(TIME_STANDARD_ATTR_KEY)
-        assert "UTC" in time_standard, (
-            f"Expected UTC in time_standard attribute, got '{time_standard}'"
-        )
-        
+        assert "UTC" in time_standard, f"Expected UTC in time_standard attribute, got '{time_standard}'"
+
         # Verify time units string contains timezone offset
-        assert UNITS_ATTR_KEY in time_var.ncattrs(), (
-            f"Missing {UNITS_ATTR_KEY} attribute on time variable"
-        )
+        assert UNITS_ATTR_KEY in time_var.ncattrs(), f"Missing {UNITS_ATTR_KEY} attribute on time variable"
         time_units = time_var.getncattr(UNITS_ATTR_KEY)
         # Check for timezone offset in the units string (e.g., +0000, +00:00, +1000, +10:00)
         assert any(tz_marker in time_units for tz_marker in ["+", "-"]), (
             f"Expected timezone offset in time units, got '{time_units}'"
         )
-        
+
         # Verify the time units follow expected format (e.g., "days since YYYY-MM-DD HH:MM:SS +0000")
         assert time_units.startswith("days since"), (
             f"Expected time units to start with 'days since', got '{time_units}'"
         )
-        
+
         # Read time values and verify they are integers (encoded as offset from origin)
         time_values = time_var[:]
         assert len(time_values) == 7, f"Expected 7 time values, got {len(time_values)}"
-        assert np.issubdtype(time_values.dtype, np.integer), (
-            f"Expected integer time values, got {time_values.dtype}"
-        )
-        
+        assert np.issubdtype(time_values.dtype, np.integer), f"Expected integer time values, got {time_values.dtype}"
+
         # Verify time values are sequential (daily step = 1 day offset)
         time_diffs = np.diff(time_values)
-        assert np.all(time_diffs == 1), (
-            f"Expected daily increments of 1, got {time_diffs}"
-        )
-        
+        assert np.all(time_diffs == 1), f"Expected daily increments of 1, got {time_diffs}"
+
         nc_ds.close()
-        
+
         # Also verify that EftsDataSet can read it back correctly
         eds_read = EftsDataSet(filename)
         time_coords_read = eds_read.data.time.values
-        
+
         # Check we got the same number of timesteps
-        assert len(time_coords_read) == 7, (
-            f"Expected 7 time coordinates after reading, got {len(time_coords_read)}"
-        )
-        
+        assert len(time_coords_read) == 7, f"Expected 7 time coordinates after reading, got {len(time_coords_read)}"
+
         # Verify time coordinate values are datetime-like
-        assert hasattr(time_coords_read[0], "year"), (
-            "Time coordinates should be datetime-like objects"
-        )
-        
+        assert hasattr(time_coords_read[0], "year"), "Time coordinates should be datetime-like objects"
+
         # Verify that the time axis matches exactly what was saved
         # Convert both to pandas Timestamps for comparison (handling timezone differences)
         original_times = pd.to_datetime(issue_times)
         read_back_times = pd.to_datetime(time_coords_read)
-        
+
         # Convert to UTC for comparison if needed (normalize timezone info)
         if original_times.tz is not None:
             original_times = original_times.tz_convert("UTC")
@@ -857,13 +848,10 @@ def _verify_time_attributes_preservation(timezone_str: str):
         else:
             # If read_back is timezone-naive, localize to UTC for comparison
             read_back_times = read_back_times.tz_localize("UTC")
-        
+
         # Check that all timestamps match exactly
         for i, (orig, read) in enumerate(zip(original_times, read_back_times)):
-            assert orig == read, (
-                f"Time coordinate mismatch at index {i}: "
-                f"original={orig}, read_back={read}"
-            )
+            assert orig == read, f"Time coordinate mismatch at index {i}: original={orig}, read_back={read}"
 
     finally:
         # Clean up temporary file
@@ -873,7 +861,7 @@ def _verify_time_attributes_preservation(timezone_str: str):
 
 def test_time_attributes_and_utc_timezone_preserved():
     """Test that time coordinate attributes and UTC timezone are preserved when writing to STF2.
-    
+
     This test verifies that timestamps in UTC timezone are correctly preserved through
     the save/load cycle to STF2 format.
     """
@@ -882,9 +870,109 @@ def test_time_attributes_and_utc_timezone_preserved():
 
 def test_time_attributes_and_sydney_timezone_preserved():
     """Test that time coordinate attributes and Australia/Sydney timezone are preserved when writing to STF2.
-    
+
     This test verifies that timestamps in Australian Eastern Standard Time (Sydney) are correctly
     preserved through the save/load cycle to STF2 format. The timezone offset will vary depending
     on whether daylight saving time is in effect.
     """
     _verify_time_attributes_preservation("Australia/Sydney")
+
+
+def test_single_station_single_ensemble_single_leadtime():
+    """Test that files with single-element dimensions load correctly.
+
+    Reproduces an issue where 0-dimensional arrays (scalars) were returned
+    when there was only one station/ensemble/lead_time, causing xarray coordinate
+    creation to fail with: "dimensions must have the same length as the number
+    of data dimensions, ndim=0".
+
+    The fix uses np.atleast_1d() to ensure coordinate arrays are always 1D.
+    """
+    import tempfile
+    import os
+    from efts_io.wrapper import EftsDataSet, xr_efts, load_from_stf2_file
+    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+
+    # Create test data with single station, single ensemble, single lead time
+    issue_times = pd.date_range("2023-06-01", periods=10, freq="D")
+    station_ids = ["17"]  # Single station - this triggers the bug
+    lead_times = [1]  # Single lead time
+    ensemble_size = 1  # Single ensemble member
+
+    xr_ds = xr_efts(
+        issue_times=issue_times,
+        station_ids=station_ids,
+        lead_times=lead_times,
+        lead_time_tstep="hours",
+        ensemble_size=ensemble_size,
+        station_names=["Single Station"],
+        nc_attributes={
+            "title": "Test dataset for single-element dimensions",
+            "institution": "Test",
+            "source": "Unit test",
+            "catchment": "Test catchment",
+            "comment": "Testing single station/ensemble/lead_time",
+            "history": "Created for testing",
+        },
+    )
+
+    eds = EftsDataSet(xr_ds)
+
+    # Add a data variable
+    eds.create_data_variables(
+        {
+            "flow_obs": {
+                "name": "flow_obs",
+                "longname": "Observed streamflow",
+                "units": "m^3/s",
+                "dim_type": "4",
+                "missval": np.nan,
+                "precision": "double",
+                "attributes": {},
+            },
+        }
+    )
+
+    # Populate with test data - shape is (lead_time, station, realisation, time)
+    eds.data["flow_obs"].loc[:, :, :, :] = np.random.rand(1, 1, 1, 10) * 50.0
+
+    # Save to STF2 file
+    with tempfile.NamedTemporaryFile(suffix=".nc", delete=False) as tmp:
+        filename = tmp.name
+
+    try:
+        eds.save_to_stf2(
+            path=filename,
+            variable_name="flow_obs",
+            var_type=StfVariable.STREAMFLOW,
+            data_type=StfDataType.OBSERVED,
+        )
+
+        # This is where the bug would occur - loading a file with single-element dimensions
+        loaded_ds = load_from_stf2_file(filename, time_zone_timestamps=True)
+
+        # Verify dimensions are correct
+        assert STATION_ID_DIMNAME in loaded_ds.dims
+        assert REALISATION_DIMNAME in loaded_ds.dims
+        assert LEAD_TIME_DIMNAME in loaded_ds.dims
+        assert TIME_DIMNAME in loaded_ds.dims
+
+        # Verify dimension sizes
+        assert loaded_ds.sizes[STATION_ID_DIMNAME] == 1
+        assert loaded_ds.sizes[REALISATION_DIMNAME] == 1
+        assert loaded_ds.sizes[LEAD_TIME_DIMNAME] == 1
+        assert loaded_ds.sizes[TIME_DIMNAME] == 10
+
+        # Verify station_id coordinate is correct
+        station_ids_loaded = loaded_ds.coords[STATION_ID_DIMNAME].values
+        assert len(station_ids_loaded) == 1
+        assert station_ids_loaded[0] == "17"
+
+        # Also test via EftsDataSet constructor
+        eds_read = EftsDataSet(filename)
+        assert eds_read.data.sizes[STATION_ID_DIMNAME] == 1
+        assert eds_read.data.coords[STATION_ID_DIMNAME].values[0] == "17"
+
+    finally:
+        if os.path.exists(filename):
+            os.remove(filename)

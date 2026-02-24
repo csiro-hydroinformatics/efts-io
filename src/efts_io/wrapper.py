@@ -104,7 +104,11 @@ def load_from_stf2_file(file_path: str, time_zone_timestamps: bool) -> xr.Datase
     # stat_coords = x.coords[self.STATION_DIMNAME]
     # see the use of astype later on in variable transfer, following line not needed.
     # station_names = byte_stations_to_str(x[STATION_NAME_VARNAME].values).astype(np.str_)
-    station_ids_strings = x[STATION_ID_VARNAME].values.astype(np.str_)
+    # Use np.atleast_1d to handle the case where there's only one station/ensemble/lead_time,
+    # which would otherwise result in a 0-dimensional array that xarray cannot use as a coordinate.
+    station_ids_strings = np.atleast_1d(x[STATION_ID_VARNAME].values.astype(np.str_))
+    ens_member_values = np.atleast_1d(x[ENS_MEMBER_DIMNAME].values)
+    lead_time_values = np.atleast_1d(x[LEAD_TIME_DIMNAME].values)
     # x = x.assign_coords(
     #     {TIME_DIMNAME: time_coords, self.STATION_DIMNAME: station_names},
     # )
@@ -112,8 +116,8 @@ def load_from_stf2_file(file_path: str, time_zone_timestamps: bool) -> xr.Datase
     # Create a new dataset with the desired structure
     new_dataset = xr.Dataset(
         coords={
-            REALISATION_DIMNAME: (REALISATION_DIMNAME, x[ENS_MEMBER_DIMNAME].values),
-            LEAD_TIME_DIMNAME: (LEAD_TIME_DIMNAME, x[LEAD_TIME_DIMNAME].values),
+            REALISATION_DIMNAME: (REALISATION_DIMNAME, ens_member_values),
+            LEAD_TIME_DIMNAME: (LEAD_TIME_DIMNAME, lead_time_values),
             STATION_ID_DIMNAME: (STATION_ID_DIMNAME, station_ids_strings),
             TIME_DIMNAME: (TIME_DIMNAME, time_coords),
         },
@@ -150,10 +154,13 @@ def load_from_stf2_file(file_path: str, time_zone_timestamps: bool) -> xr.Datase
     )
     return new_dataset
 
+
 def template_variable_attributes() -> dict[str, Any]:
     """Return a template dictionary for variable attributes."""
     from efts_io.conventions import _template_variable_attributes
+
     return _template_variable_attributes()
+
 
 class EftsDataSet:
     """Convenience class for access to a Ensemble Forecast Time Series in netCDF file."""
@@ -423,7 +430,9 @@ class EftsDataSet:
                 # _check_mandatory_keys(x)
                 self._new_variable_from_legacy_specs(dims_shape, dims_names, x, varname)
 
-    def _new_variable_from_legacy_specs(self, dim_shape:Tuple, dims_names:Iterable[str], x:dict[str,Any], varname:str) -> xr.DataArray:
+    def _new_variable_from_legacy_specs(
+        self, dim_shape: Tuple, dims_names: Iterable[str], x: dict[str, Any], varname: str,
+    ) -> xr.DataArray:
         """Create a new variable in the data set."""
         data_coords = {dim: self.data.coords[dim] for dim in dims_names}
         new_array = xr.DataArray(
@@ -442,7 +451,9 @@ class EftsDataSet:
         self.data[varname] = new_array
         return new_array
 
-    def new_variable(self, varname:str, dim_names:Iterable[str], var_attributes:dict[str,Any], data:Optional[np.ndarray]=None) -> xr.DataArray:
+    def new_variable(
+        self, varname: str, dim_names: Iterable[str], var_attributes: dict[str, Any], data: Optional[np.ndarray] = None,
+    ) -> xr.DataArray:
         """Create a new variable in the data set.
 
         Args:
@@ -465,7 +476,9 @@ class EftsDataSet:
         dims_shape = tuple(self.data.sizes[dimname] for dimname in dim_names)
         if data is not None:
             if data.shape != dims_shape:
-                raise ValueError(f"Data shape {data.shape} does not match expected shape {dims_shape} for dimensions {dim_names}.")
+                raise ValueError(
+                    f"Data shape {data.shape} does not match expected shape {dims_shape} for dimensions {dim_names}.",
+                )
             data_array = data
         else:
             data_array = nan_full(dims_shape)
@@ -479,7 +492,6 @@ class EftsDataSet:
         )
         self.data[varname] = new_array
         return new_array
-
 
     def get_all_series(
         self,
@@ -884,6 +896,7 @@ def xr_efts(
     }
     return d
 
+
 def create_mandatory_global_attributes(
     title: str,
     institution: str,
@@ -914,6 +927,7 @@ def create_mandatory_global_attributes(
         history=history or f"Created on {pd.Timestamp.now(tz='UTC').isoformat()}",
     )
     return d  # noqa: RET504
+
 
 def _stf2_mandatory_global_attributes(
     title: str = "not provided",
