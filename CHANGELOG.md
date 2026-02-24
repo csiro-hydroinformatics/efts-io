@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 <!-- insertion marker -->
+## [0.7.1](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.7.1) - 2026-02-24
+
+<small>[Compare with 0.7.0](https://github.com/csiro-hydroinformatics/efts-io/compare/0.7.0...0.7.1)</small>
+
+### Bug Fixes
+
+- files with single station_id can now be read. ([5fd3ba4](https://github.com/csiro-hydroinformatics/efts-io/commit/5fd3ba4c546796b9232a4e11c64fb630dcf858e4) by J-M).
+
 ## [0.7.0](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.7.0) - 2026-01-21
 
 <small>[Compare with 0.6.4](https://github.com/csiro-hydroinformatics/efts-io/compare/0.6.4...0.7.0)</small>
