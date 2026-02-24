@@ -26,7 +26,6 @@ from efts_io.conventions import (
     TYPES_CONVERTIBLE_TO_TIMESTAMP,
     AttributesErrorLevel,
     check_optional_variable_attributes,
-    convert_to_datetime64_utc,
     detect_timezone_info,
     validate_fixed_offset_timezone,
     has_required_xarray_global_attributes,

@@ -445,5 +445,3 @@ class TestExtractUtcOffsetString:
             # Get offset from detect_timezone_info
             _, offset2 = detect_timezone_info(timestamps)
             assert offset1 == offset2, f"Inconsistent results for {tz_str}"
-
-

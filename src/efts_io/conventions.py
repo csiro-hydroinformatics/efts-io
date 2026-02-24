@@ -447,6 +447,7 @@ def _check_variable_attributes_obs(
     }
     return _check_attrs(variable, required_attributes, missing_attributes_messages, error_threshold=error_threshold)
 
+
 def _template_variable_attributes():  # noqa: ANN202
     return {
         LONG_NAME_ATTR_KEY: "",
@@ -457,6 +458,7 @@ def _template_variable_attributes():  # noqa: ANN202
         DAT_TYPE_ATTR_KEY: "",
         LOCATION_TYPE_ATTR_KEY: "Point",
     }
+
 
 def _check_variable_attributes_sim(
     variable: Any,
@@ -641,7 +643,9 @@ def convert_to_datetime64_utc(x: ConvertibleToTimestamp) -> np.datetime64:
     return x.to_datetime64()
 
 
-def detect_timezone_info(timestamps: Union[pd.DatetimeIndex, Iterable[ConvertibleToTimestamp], ConvertibleToTimestamp]) -> tuple[str, str]:
+def detect_timezone_info(
+    timestamps: Union[pd.DatetimeIndex, Iterable[ConvertibleToTimestamp], ConvertibleToTimestamp],
+) -> tuple[str, str]:
     """Detect timezone information from timestamps.
 
     This function extracts timezone information from various timestamp representations
@@ -735,7 +739,9 @@ def detect_timezone_info(timestamps: Union[pd.DatetimeIndex, Iterable[Convertibl
     return (tz_string, offset_string)
 
 
-def validate_fixed_offset_timezone(timezone_string: str, sample_timestamp: Optional[pd.Timestamp] = None) -> tuple[str, str]:
+def validate_fixed_offset_timezone(
+    timezone_string: str, sample_timestamp: Optional[pd.Timestamp] = None
+) -> tuple[str, str]:
     """Validate that a timezone has a fixed UTC offset (no daylight saving time).
 
     This function checks if a timezone has daylight saving time (DST) transitions.
@@ -776,15 +782,18 @@ def validate_fixed_offset_timezone(timezone_string: str, sample_timestamp: Optio
         # Try to use zoneinfo (Python 3.9+) to check for DST transitions
         try:
             from zoneinfo import ZoneInfo
+
             tz = ZoneInfo(timezone_string)
         except (ImportError, ModuleNotFoundError):
             # Fall back to using dateutil or pytz
             try:
                 from dateutil import tz as dateutil_tz
+
                 tz = dateutil_tz.gettz(timezone_string)
             except ImportError:
                 # Last resort: try pytz
                 import pytz
+
                 tz = pytz.timezone(timezone_string)
 
         if tz is None:
