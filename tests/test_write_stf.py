@@ -1384,3 +1384,103 @@ def test_roundtrip_precision_with_minute_timestep():
     finally:
         if os.path.exists(filename):
             os.remove(filename)
+
+
+def test_single_station_single_ensemble_single_leadtime():
+    """Test that files with single-element dimensions load correctly.
+
+    Reproduces an issue where 0-dimensional arrays (scalars) were returned
+    when there was only one station/ensemble/lead_time, causing xarray coordinate
+    creation to fail with: "dimensions must have the same length as the number
+    of data dimensions, ndim=0".
+
+    The fix uses np.atleast_1d() to ensure coordinate arrays are always 1D.
+    """
+    import tempfile
+    import os
+    from efts_io.wrapper import EftsDataSet, xr_efts, load_from_stf2_file
+    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+
+    # Create test data with single station, single ensemble, single lead time
+    issue_times = pd.date_range("2023-06-01", periods=10, freq="D")
+    station_ids = ["17"]  # Single station - this triggers the bug
+    lead_times = [1]  # Single lead time
+    ensemble_size = 1  # Single ensemble member
+
+    xr_ds = xr_efts(
+        issue_times=issue_times,
+        station_ids=station_ids,
+        lead_times=lead_times,
+        lead_time_tstep="hours",
+        ensemble_size=ensemble_size,
+        station_names=["Single Station"],
+        nc_attributes={
+            "title": "Test dataset for single-element dimensions",
+            "institution": "Test",
+            "source": "Unit test",
+            "catchment": "Test catchment",
+            "comment": "Testing single station/ensemble/lead_time",
+            "history": "Created for testing",
+        },
+    )
+
+    eds = EftsDataSet(xr_ds)
+
+    # Add a data variable
+    eds.create_data_variables(
+        {
+            "flow_obs": {
+                "name": "flow_obs",
+                "longname": "Observed streamflow",
+                "units": "m^3/s",
+                "dim_type": "4",
+                "missval": np.nan,
+                "precision": "double",
+                "attributes": {},
+            },
+        }
+    )
+
+    # Populate with test data - shape is (lead_time, station, realisation, time)
+    eds.data["flow_obs"].loc[:, :, :, :] = np.random.rand(1, 1, 1, 10) * 50.0
+
+    # Save to STF2 file
+    with tempfile.NamedTemporaryFile(suffix=".nc", delete=False) as tmp:
+        filename = tmp.name
+
+    try:
+        eds.save_to_stf2(
+            path=filename,
+            variable_name="flow_obs",
+            var_type=StfVariable.STREAMFLOW,
+            data_type=StfDataType.OBSERVED,
+        )
+
+        # This is where the bug would occur - loading a file with single-element dimensions
+        loaded_ds = load_from_stf2_file(filename, time_zone_timestamps=True)
+
+        # Verify dimensions are correct
+        assert STATION_ID_DIMNAME in loaded_ds.dims
+        assert REALISATION_DIMNAME in loaded_ds.dims
+        assert LEAD_TIME_DIMNAME in loaded_ds.dims
+        assert TIME_DIMNAME in loaded_ds.dims
+
+        # Verify dimension sizes
+        assert loaded_ds.sizes[STATION_ID_DIMNAME] == 1
+        assert loaded_ds.sizes[REALISATION_DIMNAME] == 1
+        assert loaded_ds.sizes[LEAD_TIME_DIMNAME] == 1
+        assert loaded_ds.sizes[TIME_DIMNAME] == 10
+
+        # Verify station_id coordinate is correct
+        station_ids_loaded = loaded_ds.coords[STATION_ID_DIMNAME].values
+        assert len(station_ids_loaded) == 1
+        assert station_ids_loaded[0] == "17"
+
+        # Also test via EftsDataSet constructor
+        eds_read = EftsDataSet(filename)
+        assert eds_read.data.sizes[STATION_ID_DIMNAME] == 1
+        assert eds_read.data.coords[STATION_ID_DIMNAME].values[0] == "17"
+
+    finally:
+        if os.path.exists(filename):
+            os.remove(filename)

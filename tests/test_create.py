@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from efts_io._ncdf_stf2 import StfDataType, StfVariable
-from efts_io.wrapper import EftsDataSet, xr_efts
+from efts_io.wrapper import EftsDataSet, template_variable_attributes, xr_efts
 
 
 def test_create_new_efts_stf2():
@@ -317,7 +317,7 @@ def test_new_variable():
         )
 
     # Test 7: Use template attributes as starting point
-    template_attrs = EftsDataSet.template_variable_attributes()
+    template_attrs = template_variable_attributes()
     template_attrs["units"] = "m3/s"
     template_attrs["long_name"] = "Streamflow"
     new_var_4 = eds.new_variable(
