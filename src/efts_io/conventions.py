@@ -740,7 +740,8 @@ def detect_timezone_info(
 
 
 def validate_fixed_offset_timezone(
-    timezone_string: str, sample_timestamp: Optional[pd.Timestamp] = None
+    timezone_string: str,
+    sample_timestamp: Optional[pd.Timestamp] = None,
 ) -> tuple[str, str]:
     """Validate that a timezone has a fixed UTC offset (no daylight saving time).
 
