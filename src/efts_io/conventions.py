@@ -686,7 +686,7 @@ def detect_timezone_info(
             raise ValueError("Cannot detect timezone from empty DatetimeIndex")
         sample_ts = timestamps[0]
         tz = timestamps.tz
-    elif isinstance(timestamps, (list, tuple)):
+    elif isinstance(timestamps, (list, tuple, np.ndarray)):
         if len(timestamps) == 0:
             raise ValueError("Cannot detect timezone from empty list/tuple")
         sample_item = timestamps[0]
@@ -703,6 +703,24 @@ def detect_timezone_info(
     elif isinstance(timestamps, (str, datetime, np.datetime64)):
         sample_ts = pd.Timestamp(timestamps)
         tz = sample_ts.tz
+    elif isinstance(timestamps, xr.DataArray):
+        # Handle xarray DataArray - extract the underlying index or values
+        if len(timestamps) == 0:
+            raise ValueError("Cannot detect timezone from empty DataArray")
+        # Try to get pandas index which preserves timezone info
+        try:
+            idx = timestamps.to_index()
+            if isinstance(idx, pd.DatetimeIndex):
+                sample_ts = idx[0]
+                tz = idx.tz
+            else:
+                # Fallback: convert first value to Timestamp
+                sample_ts = pd.Timestamp(timestamps.values[0])
+                tz = sample_ts.tz
+        except (AttributeError, TypeError):
+            # Fallback: convert first value to Timestamp
+            sample_ts = pd.Timestamp(timestamps.values[0])
+            tz = sample_ts.tz
     else:
         raise TypeError(f"Cannot detect timezone from type {type(timestamps)}")
 
@@ -785,8 +803,9 @@ def validate_fixed_offset_timezone(
             from zoneinfo import ZoneInfo
 
             tz = ZoneInfo(timezone_string)
-        except (ImportError, ModuleNotFoundError):
+        except (ImportError, ModuleNotFoundError, KeyError):
             # Fall back to using dateutil or pytz
+            # KeyError is raised when ZoneInfo can't find the timezone (e.g., for fixed offset strings like "UTC-08:00")
             try:
                 from dateutil import tz as dateutil_tz
 
@@ -798,15 +817,19 @@ def validate_fixed_offset_timezone(
                 tz = pytz.timezone(timezone_string)
 
         if tz is None:
-            raise ValueError(f"Invalid timezone string: {timezone_string}")
+            raise ValueError(f"Invalid timezone string: {timezone_string}")  # noqa: TRY301
 
     except (ValueError, KeyError, OSError) as e:
         # If we can't parse it as a named timezone, it might be a fixed offset like "UTC+10:00"
         # Try to create a timestamp with this timezone
         try:
             if sample_timestamp is None:
-                sample_timestamp = pd.Timestamp("2024-01-01")
-            ts = sample_timestamp.tz_localize(timezone_string)
+                ts = pd.Timestamp("2024-01-01").tz_localize(timezone_string)
+            elif sample_timestamp.tz is not None:
+                # Already tz-aware, use directly
+                ts = sample_timestamp
+            else:
+                ts = sample_timestamp.tz_localize(timezone_string)
             # If successful, extract the offset
             offset = ts.utcoffset()
             if offset is not None:
@@ -827,24 +850,25 @@ def validate_fixed_offset_timezone(
     # to detect if they differ
     if sample_timestamp is None:
         # Use two dates: one in winter (January) and one in summer (July)
-        winter_date = pd.Timestamp("2024-01-15 12:00:00")
-        summer_date = pd.Timestamp("2024-07-15 12:00:00")
+        winter_ts = pd.Timestamp("2024-01-15 12:00:00").tz_localize(tz)
+        summer_ts = pd.Timestamp("2024-07-15 12:00:00").tz_localize(tz)
+    elif sample_timestamp.tz is not None:
+        # sample_timestamp is already tz-aware, use directly
+        winter_ts = sample_timestamp
+        summer_ts = sample_timestamp + pd.DateOffset(months=6)
     else:
-        # Use the provided sample and a date 6 months later
-        winter_date = sample_timestamp
-        summer_date = sample_timestamp + pd.DateOffset(months=6)
+        # sample_timestamp is tz-naive, localize it
+        winter_ts = sample_timestamp.tz_localize(tz)
+        summer_ts = (sample_timestamp + pd.DateOffset(months=6)).tz_localize(tz)
 
-    # Localize these dates to the timezone and check offsets
+    # Check offsets for DST
     try:
-        winter_ts = winter_date.tz_localize(tz)
-        summer_ts = summer_date.tz_localize(tz)
-
         winter_offset = winter_ts.utcoffset()
         summer_offset = summer_ts.utcoffset()
 
         if winter_offset != summer_offset:
             # Different offsets indicate DST
-            raise NotImplementedError(
+            raise NotImplementedError(  # noqa: TRY301
                 f"Timezones with daylight saving time (DST) are not supported. "
                 f"The timezone '{timezone_string}' has varying UTC offsets "
                 f"(e.g., {winter_offset} in winter vs {summer_offset} in summer), "
@@ -932,22 +956,35 @@ def extract_utc_offset_string(timestamps_or_tz: Union[pd.DatetimeIndex, pd.Times
         try:
             # Use detect_timezone_info to handle this
             _, offset_string = detect_timezone_info(pd.Timestamp("2024-01-15", tz=timestamps_or_tz))
-            return offset_string
+            return offset_string  # noqa: TRY300
         except Exception as e:
             raise ValueError(f"Could not extract offset from timezone string '{timestamps_or_tz}': {e}") from e
 
     else:
-        # Assume it's a timezone object (zoneinfo.ZoneInfo, pytz.timezone, dateutil.tz)
-        # Try to create a timestamp with this timezone
-        try:
-            sample_ts = pd.Timestamp("2024-01-15").tz_localize(timestamps_or_tz)
-            offset = sample_ts.utcoffset()
-        except Exception as e:
+        from datetime import (
+            timezone,  # Note: I need to import. if I test isinstance for datetime.timezone, it throws an error. Weird.
+        )
+
+        from dateutil import tz as dateutil_tz
+        from zoneinfo import ZoneInfo
+
+        # test whether it's one of the timezone object (zoneinfo.ZoneInfo, pytz.timezone, dateutil.tz)
+        if isinstance(timestamps_or_tz, (ZoneInfo, dateutil_tz.tzfile, dateutil_tz.tzoffset, timezone)):
+            # Try to create a timestamp with this timezone
+            try:
+                sample_ts = pd.Timestamp("2024-01-15").tz_localize(timestamps_or_tz)
+                offset = sample_ts.utcoffset()
+            except Exception as e:
+                raise TypeError(
+                    f"Cannot extract UTC offset from type {type(timestamps_or_tz)}. "
+                    f"Expected pd.DatetimeIndex, pd.Timestamp, timezone string, or timezone object. "
+                    f"Error: {e}",
+                ) from e
+        else:
             raise TypeError(
                 f"Cannot extract UTC offset from type {type(timestamps_or_tz)}. "
-                f"Expected pd.DatetimeIndex, pd.Timestamp, timezone string, or timezone object. "
-                f"Error: {e}",
-            ) from e
+                f"Expected pd.DatetimeIndex, pd.Timestamp, timezone string, or timezone object, but got {type(timestamps_or_tz)}.",
+            )
 
     # Format the offset
     if offset is None:
@@ -983,5 +1020,28 @@ def exportable_to_stf2(data: MdDatasetsType) -> bool:
     supported_types = (np.integer, np.bytes_, np.str_)
     if not issubclass(station_ids.dtype.type, supported_types):
         return False
+
+    if TIME_DIMNAME not in data.coords:
+        raise ValueError(
+            f"Time dimension '{TIME_DIMNAME}' is required for STF 2.0 export, but not found in the dataset coordinates.",
+        )
+    # Check that the time dimension, if present, has a fixed-offset timezone (no DST)
+    time_values = data[
+        TIME_DIMNAME
+    ]  # NOT .values, otherwise you may get integer values oddly enough. https://github.com/csiro-hydroinformatics/efts-io/issues/31#issuecomment-3981232548
+    if len(time_values) > 0:
+        try:
+            # Detect timezone information from the time values
+            tz_string, _ = detect_timezone_info(time_values)
+            # Validate that the timezone doesn't have daylight saving time
+            # Use .item() to extract scalar value from 0-d DataArray
+            sample_ts = pd.Timestamp(time_values[0].item())
+            validate_fixed_offset_timezone(tz_string, sample_ts)
+        except NotImplementedError:
+            # Timezone has DST, not supported for STF2 export
+            return False
+        except (ValueError, TypeError):
+            # Error parsing timezone or timestamps - consider as not exportable
+            return False
 
     return required_stf2_dimensions and required_attributes and required_variables

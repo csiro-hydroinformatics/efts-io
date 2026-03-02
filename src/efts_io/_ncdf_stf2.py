@@ -99,10 +99,6 @@ def _create_cf_time_axis(data: xr.DataArray, timestep_str: str) -> tuple[np.ndar
     if origin_ts.tz is None:
         # Localize to UTC if naive (detect_timezone_info returns "UTC" for naive)
         origin_ts = origin_ts.tz_localize("UTC")
-        dtimes = [pd.Timestamp(x).tz_localize("UTC") for x in tt]
-    else:
-        # Keep original timezone
-        dtimes = [pd.Timestamp(x) for x in tt]
 
     # NOTE: this is not quite what is suggested by the STF convention in the example string.
     # The below is closer to the the 8601 specifications, however we use space not 'T' for date/time separator
@@ -110,12 +106,24 @@ def _create_cf_time_axis(data: xr.DataArray, timestep_str: str) -> tuple[np.ndar
     formatted_string = origin_ts.strftime("%Y-%m-%d %H:%M:%S")
     formatted_string_with_tz = f"{formatted_string}{offset_string}"
 
+    # xarray's encode_cf_datetime expects timezone-naive datetime values.
+    # Convert timestamps to UTC and strip timezone info for encoding.
+    # The timezone is preserved in the units string (e.g., "days since 2024-01-15 00:00:00-11:00"),
+    # so when reading back, the decoder can correctly interpret the values.
+    dtimes_utc_naive = np.array(
+        [
+            pd.Timestamp(x).tz_convert("UTC").tz_localize(None) if pd.Timestamp(x).tz is not None else pd.Timestamp(x)
+            for x in tt
+        ],
+        dtype="datetime64[ns]",
+    )
+
     axis, units, calendar = times.encode_cf_datetime(
-        dates=dtimes,  #: 'T_DuckArray',
-        units=f"{timestep_str} since {formatted_string_with_tz}",  #: 'str | None' = None,
-        calendar=None,  #: 'str | None' = None,
-        dtype=None,  #: 'np.dtype | None' = None,
-    )  # -> 'tuple[T_DuckArray, str, str]'
+        dates=dtimes_utc_naive,
+        units=f"{timestep_str} since {formatted_string_with_tz}",
+        calendar=None,
+        dtype=None,
+    )
     # override times.encode_cf_datetime, which is varying
     # depending on the input unit string and may not have the time zone, or a T separator.
     units = f"{timestep_str} since {formatted_string_with_tz}"

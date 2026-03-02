@@ -13,13 +13,14 @@ def test_create_cf_time_axis_valid_input():
     data = xr.DataArray(np.random.rand(5), dims=["time"], coords={"time": dates})
 
     # Test with a valid time step
-    result, units, calendar = _create_cf_time_axis(data, "days")
+    axis, units, calendar, offset_string = _create_cf_time_axis(data, "days")
 
     # Check if the result is a numpy array
-    assert isinstance(result, np.ndarray)
-    assert len(result) == 5
+    assert isinstance(axis, np.ndarray)
+    assert len(axis) == 5
     assert units == "days since 2023-01-01 00:00:00+00:00"
     assert calendar == "proleptic_gregorian"
+    assert offset_string == "+00:00"
 
 
 def test_create_cf_time_axis_empty_data():

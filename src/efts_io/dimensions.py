@@ -293,7 +293,12 @@ def create_time_info(
 
 
 def _cftime_to_pdtstamp(t: pd.Timestamp, tz_str: Optional[str]) -> pd.Timestamp:
-    return pd.Timestamp(t.isoformat(), tz=tz_str)
+    # cftime decoder returns UTC times as naive timestamps.
+    # First localize to UTC, then convert to target timezone.
+    ts_utc = pd.Timestamp(t.isoformat()).tz_localize("UTC")
+    if tz_str is not None:
+        return ts_utc.tz_convert(tz_str)
+    return ts_utc
 
 
 _as_tstamps = np.vectorize(_cftime_to_pdtstamp)

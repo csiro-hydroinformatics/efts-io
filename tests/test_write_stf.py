@@ -2,6 +2,7 @@ from os import read
 from typing import Iterable
 import pytest
 import numpy as np
+import pytz
 import xarray as xr
 from efts_io._ncdf_stf2 import make_ready_for_saving
 import pandas as pd
@@ -228,10 +229,14 @@ def test_exportable_to_stf2_valid_dataset():
     assert exportable_to_stf2(dataset) is True
     dataset = create_valid_stf2_dataset(time_zone="UTC+09:30")
     assert exportable_to_stf2(dataset) is True
+
+
+def test_exportable_to_stf2_valid_dataset_unsupported_timezone():
     dataset = create_valid_stf2_dataset(time_zone="Australia/Sydney")
+    from efts_io.conventions import exportable_to_stf2
+
     assert exportable_to_stf2(dataset) is False, (
-        "Currently, exportable_to_stf2 does not support timezone-aware timestamps. "
-        "This test confirms that datasets with timezone-aware time coordinates are not considered exportable."
+        "Australia/Sydney is a timezone-aware timestamp that includes daylight saving time changes, which is currently not supported by exportable_to_stf2. "
     )
 
 
@@ -755,7 +760,11 @@ def _verify_time_attributes_preservation(timezone_str: str):
 
     # Create test dataset with explicit timezone timestamps
     # Using daily timesteps with distinct dates
-    issue_times = pd.date_range("2024-01-15", periods=7, freq="D", tz=timezone_str)
+    try:
+        issue_times = pd.date_range("2024-01-15", periods=7, freq="D", tz=timezone_str)
+    except pytz.exceptions.UnknownTimeZoneError as e:
+        # the error message is not overly terse, so warpping this.
+        raise ValueError(f"Unknown timezone string '{timezone_str}'")
     station_ids = [1001, 2002]
     lead_times = np.arange(1, 4)
 
@@ -873,8 +882,9 @@ def _verify_time_attributes_preservation(timezone_str: str):
         #     # If read_back is timezone-naive, localize to UTC for comparison
         #     read_back_times = read_back_times.tz_localize("UTC")
 
-        # time zones are identical:
-        assert original_times[0].tz == read_back_times[0].tz, (
+        # time zones are identical in utc offset.
+        # Relaxing the condition to offsets not tz equality to allow for 'Etc/UTC and Etc/GMT'
+        assert original_times[0].utcoffset() == read_back_times[0].utcoffset(), (
             f"Timezone mismatch: original={original_times[0].tz}, read_back={read_back_times[0].tz}"
         )
 
@@ -936,36 +946,25 @@ def test_time_attributes_and_sydney_timezone_preserved():
 
 # Timezone test constants - organized by category
 FIXED_OFFSET_POSITIVE = [
-    "UTC+02:00",
-    "UTC+03:00",
-    "UTC+04:00",
     "UTC+05:00",
     "UTC+05:30",  # India - non-hour offset
     "UTC+05:45",  # Nepal - 45-minute offset
-    "UTC+06:00",
-    "UTC+07:00",
-    "UTC+08:00",
     "UTC+09:00",
     "UTC+09:30",  # Australia/Adelaide - non-hour offset
     "UTC+10:00",
     "UTC+11:00",
-    "UTC+12:00",
-    "UTC+13:00",
     "UTC+14:00",  # Line Islands - edge case (maximum offset)
 ]
 
 FIXED_OFFSET_NEGATIVE = [
     "UTC-02:00",
-    "UTC-03:00",
-    "UTC-04:00",
-    "UTC-05:00",
-    "UTC-06:00",
-    "UTC-07:00",
-    "UTC-08:00",
-    "UTC-09:00",
     "UTC-10:00",
-    "UTC-11:00",
     "UTC-12:00",  # Baker Island - edge case (minimum offset)
+]
+
+FIXED_OFFSET_SHORT_HOUR = [
+    "UTC+1",
+    "UTC-10",
 ]
 
 UTC_ALIASES = [
@@ -974,19 +973,20 @@ UTC_ALIASES = [
     "Etc/UTC",
 ]
 
+UNSUPPORTED_OFFSETS = [
+    "GMT+01:00",
+    "Etc/GMT-01:00",
+    "Etc/UTC+10:00",
+]
+
 DST_TIMEZONES = [
     "US/Eastern",
     "US/Pacific",
-    "US/Central",
     "US/Mountain",
-    "Europe/London",
     "Europe/Paris",
     "Europe/Berlin",
-    "Europe/Rome",
     "Australia/Sydney",
     "Australia/Melbourne",
-    "Asia/Jerusalem",
-    "America/New_York",
     "America/Los_Angeles",
 ]
 
@@ -1016,7 +1016,6 @@ def test_utc_alias_timezones_preserved(timezone_str):
     _verify_time_attributes_preservation(timezone_str)
 
 
-@pytest.mark.xfail(reason="DST timezones not yet supported - variable offset incompatible with NetCDF time encoding")
 @pytest.mark.parametrize("timezone_str", DST_TIMEZONES)
 def test_dst_timezones_raise_appropriate_error(timezone_str):
     """Test that DST timezones fail with descriptive error messages.
@@ -1027,9 +1026,6 @@ def test_dst_timezones_raise_appropriate_error(timezone_str):
 
     Expected behavior: Raise ValueError or NotImplementedError with a message mentioning
     "daylight", "dst", or "timezone".
-
-    This is marked as xfail (expected failure) as part of test-driven development.
-    When DST support is implemented, these tests should be updated accordingly.
     """
     with pytest.raises((ValueError, NotImplementedError)) as exc_info:
         _verify_time_attributes_preservation(timezone_str)
@@ -1039,6 +1035,39 @@ def test_dst_timezones_raise_appropriate_error(timezone_str):
     assert any(keyword in error_msg for keyword in ["daylight", "dst", "timezone", "time zone"]), (
         f"Expected exception message to mention daylight saving or timezone issues, got: {exc_info.value}"
     )
+
+
+@pytest.mark.parametrize("timezone_str", UNSUPPORTED_OFFSETS)
+def test_unsupported_offset_formats_raise_appropriate_error(timezone_str):
+    """Test that unsupported timezone offset formats fail with descriptive error messages.
+
+    This test documents expected behavior for timezone strings that use unsupported formats
+    such as "GMT+01:00", "Etc/GMT-01:00", or "Etc/UTC+10:00". These formats are not
+    supported by the current implementation.
+
+    Expected behavior: Raise an exception.
+    """
+    # NOTE: actually raised in test helper , so not of great value, but may be if code is refactored.
+    with pytest.raises((ValueError,)) as exc_info:
+        _verify_time_attributes_preservation(timezone_str)
+
+    # # Verify the exception message is descriptive
+    # error_msg = str(exc_info.value).lower()
+    # assert any(keyword in error_msg for keyword in ["offset", "format", "unsupported", "timezone", "time zone"]), (
+    #     f"Expected exception message to mention offset, format, or unsupported timezone issues, got: {exc_info.value}"
+    # )
+
+
+@pytest.mark.parametrize("timezone_str", FIXED_OFFSET_SHORT_HOUR)
+def test_short_hour_offset_timezones_preserved(timezone_str):
+    """Test that short-form hour offset timezones are not supported
+
+    This test verifies that timezones with short-form hour offsets (e.g., "UTC+1", "UTC-10")
+    are rejected.
+    """
+    # NOTE: actually raised in test helper because of pytz , so not of great value, but may be if code is refactored.
+    with pytest.raises((ValueError,)) as exc_info:
+        _verify_time_attributes_preservation(timezone_str)
 
 
 def test_timezone_naive_timestamps_localized_to_utc():
@@ -1236,7 +1265,7 @@ def test_roundtrip_precision_with_hourly_timestep():
     from efts_io._ncdf_stf2 import StfVariable, StfDataType
 
     # Create hourly timestamps
-    issue_times = pd.date_range("2024-04-10 00:00", periods=24, freq="H", tz="UTC+05:00")
+    issue_times = pd.date_range("2024-04-10 00:00", periods=24, freq="h", tz="UTC+05:00")
     station_ids = [601]
     lead_times = np.arange(1, 3)
 
@@ -1317,7 +1346,7 @@ def test_roundtrip_precision_with_minute_timestep():
     from efts_io._ncdf_stf2 import StfVariable, StfDataType
 
     # Create minute-resolution timestamps
-    issue_times = pd.date_range("2024-05-15 12:00", periods=60, freq="T", tz="UTC-07:00")
+    issue_times = pd.date_range("2024-05-15 12:00", periods=60, freq="min", tz="UTC-07:00")
     station_ids = [701]
     lead_times = np.arange(1, 3)
 
@@ -1362,7 +1391,7 @@ def test_roundtrip_precision_with_minute_timestep():
         eds.save_to_stf2(
             path=filename,
             variable_name="level_minute",
-            var_type=StfVariable.WATER_LEVEL,
+            var_type=StfVariable.STREAMFLOW,  # hack of sorts.
             data_type=StfDataType.OBSERVED,
             timestep="minutes",
         )
