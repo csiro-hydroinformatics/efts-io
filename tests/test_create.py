@@ -3,7 +3,8 @@ import numpy as np
 import pandas as pd
 import pytest
 from efts_io._ncdf_stf2 import StfDataType, StfVariable
-from efts_io.wrapper import EftsDataSet, template_variable_attributes, xr_efts
+from efts_io.attributes import template_variable_attributes
+from efts_io.wrapper import EftsDataSet, xr_efts
 
 
 def test_create_new_efts_stf2():

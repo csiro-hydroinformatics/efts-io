@@ -1,35 +1,28 @@
-"""Management of netCDF attributes."""
+"""Management of netCDF attributes.
 
-#' Create variable attribute definition
-#'
-#' Create variable attribute definition
-#'
-#' @param type A data type identifier, as a coded description.
-#' @param type_description description of this data type identifier.
-#' @param location_type a character, type of location, e.g. 'Point'
-#' @param dat_type a character, the type of data stored in this variable
-#' @param dat_type_description a character, human readable description of the data stored in this variable
-#' @export
-#' @return a list of attributes, describing the type of variable stored
-#' @examples
-#' va = create_var_attribute_definition(type=2L,
-#'   type_description='accumulated over the preceding interval', location_type='Point')
-#' vdef = create_variable_definition(name='rain_sim',
-#'   longname='Rainfall ensemble forecast derived from some prediction',
-#'   units='mm', missval=-9999.0, precision='double',
-#'   var_attribute=va)
-#'
+This module provides user-friendly classes and functions for creating
+STF 2.0 compliant metadata attributes for netCDF variables.
+"""
+
+from typing import Any, Optional
+
 from efts_io.conventions import (
     CATCHMENT_ATTR_KEY,
     COMMENT_ATTR_KEY,
     DAT_TYPE_ATTR_KEY,
     DAT_TYPE_DESCRIPTION_ATTR_KEY,
+    FILLVALUE_ATTR_KEY,
     INSTITUTION_ATTR_KEY,
     LOCATION_TYPE_ATTR_KEY,
+    LONG_NAME_ATTR_KEY,
     SOURCE_ATTR_KEY,
     TITLE_ATTR_KEY,
     TYPE_ATTR_KEY,
     TYPE_DESCRIPTION_ATTR_KEY,
+    UNITS_ATTR_KEY,
+    DataOriginType,
+    LocationType,
+    TimeSeriesType,
 )
 
 
@@ -40,13 +33,262 @@ def create_var_attribute_definition(
     dat_type_description: str = "AWAP data interpolated from observations",
     location_type: str = "Point",
 ) -> dict[str, str]:
-    """Create variable attribute definition."""
+    """Create variable attribute definition (legacy function).
+
+    .. deprecated::
+        This function is maintained for backward compatibility.
+        For new code, use :func:`create_variable_attributes` with the type-safe enumerations
+        (:class:`TimeSeriesType`, :class:`DataOriginType`, :class:`LocationType`) instead.
+
+    Args:
+        data_type_code: Numeric code for time series type (1-5, 11-15)
+        type_description: Description of the aggregation type
+        dat_type: String code for data origin ("obs", "der", "sim", "fct")
+        dat_type_description: Description of the data
+        location_type: "Point" or "Area"
+
+    Returns:
+        Dictionary of type-related attributes
+
+    Example:
+        >>> # Old way (still works but not recommended)
+        >>> attrs = create_var_attribute_definition(
+        ...     data_type_code=2,
+        ...     type_description='accumulated over the preceding interval',
+        ...     dat_type='obs'
+        ... )
+        >>>
+        >>> # New recommended way
+        >>> from efts_io.attributes import create_variable_attributes, TimeSeriesType, DataOriginType
+        >>> attrs = create_variable_attributes(
+        ...     long_name="observed rainfall",
+        ...     units="mm",
+        ...     time_series_type=TimeSeriesType.ACCUMULATED,
+        ...     data_origin=DataOriginType.OBSERVED,
+        ...     data_description="gauge measurements"
+        ... )
+    """
     return {
         TYPE_ATTR_KEY: str(data_type_code),
         TYPE_DESCRIPTION_ATTR_KEY: type_description,
         DAT_TYPE_ATTR_KEY: dat_type,
         DAT_TYPE_DESCRIPTION_ATTR_KEY: dat_type_description,
         LOCATION_TYPE_ATTR_KEY: location_type,
+    }
+
+
+def create_variable_attributes(
+    long_name: str,
+    units: str,
+    time_series_type: TimeSeriesType,
+    data_origin: DataOriginType,
+    data_description: str,
+    location_type: LocationType = LocationType.POINT,
+    fill_value: float = -9999.0,
+) -> dict[str, Any]:
+    """Create variable attributes for STF 2.0 compliant netCDF files.
+
+    This is the recommended function for creating metadata attributes for data variables.
+    It uses type-safe enumerations to ensure attributes conform to STF 2.0 conventions
+    without requiring users to remember numeric codes or string identifiers.
+
+    Args:
+        long_name: Human-readable name for the variable (e.g., "observed rainfall")
+        units: Units of measurement (e.g., "mm", "m3/s", "°C")
+        time_series_type: How the data is aggregated/sampled (use TimeSeriesType enum)
+        data_origin: How the data was obtained (use DataOriginType enum)
+        data_description: Detailed description of the data (e.g., "AWAP data interpolated from observations")
+        location_type: Whether data is point or area measurement (default: POINT)
+        fill_value: Value used for missing data (default: -9999.0)
+
+    Returns:
+        Dictionary of attributes ready to use with xarray DataArray or EftsDataSet.new_variable()
+
+    Example:
+        >>> from efts_io.attributes import (
+        ...     create_variable_attributes,
+        ...     TimeSeriesType,
+        ...     DataOriginType,
+        ...     LocationType
+        ... )
+        >>> attrs = create_variable_attributes(
+        ...     long_name="observed rainfall",
+        ...     units="mm",
+        ...     time_series_type=TimeSeriesType.ACCUMULATED,
+        ...     data_origin=DataOriginType.OBSERVED,
+        ...     data_description="gauge measurements from station network",
+        ...     location_type=LocationType.POINT
+        ... )
+        >>> attrs['type']
+        2
+        >>> attrs['type_description']
+        'accumulated over the preceding interval'
+        >>> attrs['dat_type']
+        'obs'
+
+    See Also:
+        - TimeSeriesType: Enumeration of valid time series aggregation types
+        - DataOriginType: Enumeration of valid data origin types
+        - LocationType: Enumeration of valid location types
+        - template_variable_attributes: For getting an empty template dictionary
+    """
+    return {
+        LONG_NAME_ATTR_KEY: long_name,
+        UNITS_ATTR_KEY: units,
+        FILLVALUE_ATTR_KEY: fill_value,
+        TYPE_ATTR_KEY: time_series_type.code,
+        TYPE_DESCRIPTION_ATTR_KEY: time_series_type.description,
+        DAT_TYPE_ATTR_KEY: data_origin.code,
+        DAT_TYPE_DESCRIPTION_ATTR_KEY: data_description,
+        LOCATION_TYPE_ATTR_KEY: location_type.value,
+    }
+
+
+def template_variable_attributes(
+    time_series_type: Optional["TimeSeriesType"] = None,
+    data_origin: Optional["DataOriginType"] = None,
+    location_type: Optional["LocationType"] = None,
+    fill_value: float = -9999.0,
+) -> dict[str, Any]:
+    """Create a template dictionary for variable attributes.
+
+    This function provides a starting point for creating variable attributes
+    that comply with STF 2.0 conventions. For the recommended type-safe approach,
+    use the enumerations from efts_io.attributes.
+
+    Args:
+        time_series_type: TimeSeriesType enum or None (pre-fills type info if provided)
+        data_origin: DataOriginType enum or None (pre-fills data origin if provided)
+        location_type: LocationType enum or None (defaults to POINT)
+        fill_value: Value for missing data (default: -9999.0)
+
+    Returns:
+        Dictionary with all required attribute keys
+
+    Example:
+        >>> from efts_io import EftsDataSet
+        >>> from efts_io.attributes import TimeSeriesType, DataOriginType
+        >>>
+        >>> # Using type-safe enums (recommended)
+        >>> attrs = template_variable_attributes(
+        ...     time_series_type=TimeSeriesType.ACCUMULATED,
+        ...     data_origin=DataOriginType.OBSERVED
+        ... )
+        >>> attrs['long_name'] = "observed rainfall"
+        >>> attrs['units'] = "mm"
+        >>>
+        >>> # Or get a blank template
+        >>> attrs = template_variable_attributes()
+
+    Note:
+        For complete attribute creation in one call, use:
+        `from efts_io.attributes import create_variable_attributes`
+
+    See Also:
+        - efts_io.attributes.create_variable_attributes: Type-safe attribute creation
+        - efts_io.attributes.TimeSeriesType: Valid time series aggregation types
+        - efts_io.attributes.DataOriginType: Valid data origin types
+        - efts_io.attributes.LocationType: Valid location types
+    """
+    from efts_io.attributes import LocationType
+
+    if location_type is None:
+        location_type = LocationType.POINT
+
+    return _create_template_variable_attributes(
+        time_series_type=time_series_type,
+        data_origin=data_origin,
+        location_type=location_type,
+        fill_value=fill_value,
+    )
+
+
+def _create_template_variable_attributes(
+    time_series_type: TimeSeriesType | None = None,
+    data_origin: DataOriginType | None = None,
+    location_type: LocationType = LocationType.POINT,
+    fill_value: float = -9999.0,
+) -> dict[str, Any]:
+    """Create a template dictionary for variable attributes with optional pre-filled values.
+
+    This function provides a starting point for creating variable attributes.
+    You can specify the type information upfront, then fill in the remaining fields.
+
+    Args:
+        time_series_type: Optional TimeSeriesType to pre-fill (default: None, leaves empty)
+        data_origin: Optional DataOriginType to pre-fill (default: None, leaves empty)
+        location_type: LocationType to use (default: POINT)
+        fill_value: Value for missing data (default: -9999.0)
+
+    Returns:
+        Dictionary with all required attribute keys, some pre-filled based on arguments
+
+    Example:
+        >>> from efts_io.attributes import template_variable_attributes, TimeSeriesType, DataOriginType
+        >>>
+        >>> # Get a blank template
+        >>> attrs = template_variable_attributes()
+        >>> attrs['long_name'] = "my variable"
+        >>> attrs['units'] = "mm"
+        >>>
+        >>> # Get a partially filled template
+        >>> attrs = template_variable_attributes(
+        ...     time_series_type=TimeSeriesType.ACCUMULATED,
+        ...     data_origin=DataOriginType.OBSERVED
+        ... )
+        >>> attrs['type']
+        2
+        >>> attrs['long_name'] = "observed rainfall"
+        >>> attrs['units'] = "mm"
+
+    See Also:
+        - create_variable_attributes: For creating complete attributes in one call
+        - TimeSeriesType: Enumeration of valid time series types
+        - DataOriginType: Enumeration of valid data origin types
+    """
+    if time_series_type is not None and data_origin is not None:
+        return {
+            LONG_NAME_ATTR_KEY: "",
+            UNITS_ATTR_KEY: "",
+            FILLVALUE_ATTR_KEY: fill_value,
+            TYPE_ATTR_KEY: time_series_type.code,
+            TYPE_DESCRIPTION_ATTR_KEY: time_series_type.description,
+            DAT_TYPE_ATTR_KEY: data_origin.code,
+            DAT_TYPE_DESCRIPTION_ATTR_KEY: "",
+            LOCATION_TYPE_ATTR_KEY: location_type.value,
+        }
+    if time_series_type is not None:
+        return {
+            LONG_NAME_ATTR_KEY: "",
+            UNITS_ATTR_KEY: "",
+            FILLVALUE_ATTR_KEY: fill_value,
+            TYPE_ATTR_KEY: time_series_type.code,
+            TYPE_DESCRIPTION_ATTR_KEY: time_series_type.description,
+            DAT_TYPE_ATTR_KEY: "",
+            DAT_TYPE_DESCRIPTION_ATTR_KEY: "",
+            LOCATION_TYPE_ATTR_KEY: location_type.value,
+        }
+    if data_origin is not None:
+        return {
+            LONG_NAME_ATTR_KEY: "",
+            UNITS_ATTR_KEY: "",
+            FILLVALUE_ATTR_KEY: fill_value,
+            TYPE_ATTR_KEY: 0,
+            TYPE_DESCRIPTION_ATTR_KEY: "",
+            DAT_TYPE_ATTR_KEY: data_origin.code,
+            DAT_TYPE_DESCRIPTION_ATTR_KEY: "",
+            LOCATION_TYPE_ATTR_KEY: location_type.value,
+        }
+    # Return a completely blank template
+    return {
+        LONG_NAME_ATTR_KEY: "",
+        UNITS_ATTR_KEY: "",
+        FILLVALUE_ATTR_KEY: fill_value,
+        TYPE_ATTR_KEY: 0,
+        TYPE_DESCRIPTION_ATTR_KEY: "",
+        DAT_TYPE_ATTR_KEY: "",
+        DAT_TYPE_DESCRIPTION_ATTR_KEY: "",
+        LOCATION_TYPE_ATTR_KEY: location_type.value,
     }
 
 

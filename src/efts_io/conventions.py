@@ -448,18 +448,6 @@ def _check_variable_attributes_obs(
     return _check_attrs(variable, required_attributes, missing_attributes_messages, error_threshold=error_threshold)
 
 
-def _template_variable_attributes():  # noqa: ANN202
-    return {
-        LONG_NAME_ATTR_KEY: "",
-        UNITS_ATTR_KEY: "",
-        FILLVALUE_ATTR_KEY: -9999.0,
-        TYPE_ATTR_KEY: 0,
-        TYPE_DESCRIPTION_ATTR_KEY: "",
-        DAT_TYPE_ATTR_KEY: "",
-        LOCATION_TYPE_ATTR_KEY: "Point",
-    }
-
-
 def _check_variable_attributes_sim(
     variable: Any,
     error_threshold: AttributesErrorLevel = AttributesErrorLevel.NONE,
@@ -1045,3 +1033,178 @@ def exportable_to_stf2(data: MdDatasetsType) -> bool:
             return False
 
     return required_stf2_dimensions and required_attributes and required_variables
+
+
+class TimeSeriesType(Enum):
+    """Type of time series aggregation according to STF 2.0 conventions.
+
+    This enumeration defines how time series data is aggregated or sampled,
+    following the STF (Standard Time Format) 2.0 conventions for water forecasting netCDF files.
+
+    Attributes:
+        INSTANTANEOUS: Data recorded at a specific instant (e.g., stage height)
+        ACCUMULATED: Data accumulated over the preceding time interval (e.g., rainfall)
+        AVERAGED: Data averaged over the preceding time interval (e.g., flow, average temp)
+        ACCUMULATED_FORECAST: Data accumulated since start of forecast (e.g., cumulative flow)
+        POINT_IN_INTERVAL: Point value recorded in the preceding interval (e.g., max/min temperature)
+        CLIMATOLOGY_INSTANTANEOUS: Climatology of instantaneous data
+        CLIMATOLOGY_ACCUMULATED: Climatology of accumulated data
+        CLIMATOLOGY_AVERAGED: Climatology of averaged data
+        CLIMATOLOGY_ACCUMULATED_FORECAST: Climatology of forecast-accumulated data
+        CLIMATOLOGY_POINT: Climatology of point-in-interval data
+
+    Example:
+        >>> from efts_io.attributes import TimeSeriesType
+        >>> ts_type = TimeSeriesType.ACCUMULATED
+        >>> ts_type.code
+        2
+        >>> ts_type.description
+        'accumulated over the preceding interval'
+    """
+
+    INSTANTANEOUS = (1, "instantaneous data")
+    ACCUMULATED = (2, "accumulated over the preceding interval")
+    AVERAGED = (3, "averaged over the preceding interval")
+    ACCUMULATED_FORECAST = (4, "accumulated since start of forecast")
+    POINT_IN_INTERVAL = (5, "point value recorded in the preceding interval")
+    CLIMATOLOGY_INSTANTANEOUS = (11, "climatology data - instantaneous data")
+    CLIMATOLOGY_ACCUMULATED = (12, "climatology data - accumulated over the preceding interval")
+    CLIMATOLOGY_AVERAGED = (13, "climatology data - averaged over the preceding interval")
+    CLIMATOLOGY_ACCUMULATED_FORECAST = (14, "climatology data - accumulated since start of forecast")
+    CLIMATOLOGY_POINT = (15, "climatology data - point value recorded in the preceding interval")
+
+    def __init__(self, code: int, description: str) -> None:
+        """Initialize a TimeSeriesType with its numeric code and text description.
+
+        Args:
+            code: Numeric code defined by STF 2.0 conventions
+            description: Human-readable description of the aggregation type
+        """
+        self.code = code
+        self.description = description
+
+
+class DataOriginType(Enum):
+    """Type of data origin according to STF 2.0 conventions.
+
+    This enumeration defines how the data was obtained or generated,
+    following the STF (Standard Time Format) 2.0 conventions.
+
+    Attributes:
+        OBSERVED: Data observed directly from instruments (e.g., gauged rainfall)
+        DERIVED: Data derived from observations through processing (e.g., AWAP rainfall)
+        SIMULATED: Data simulated from historical observations (e.g., flow from GR4H with obs forcing)
+        FORECAST: Data forecast/simulated from predictions (e.g., flow from GR4H with NWP forcing)
+
+    Example:
+        >>> from efts_io.attributes import DataOriginType
+        >>> origin = DataOriginType.OBSERVED
+        >>> origin.code
+        'obs'
+        >>> origin.description
+        'observed directly'
+    """
+
+    OBSERVED = ("obs", "observed directly")
+    DERIVED = ("der", "derived from observations")
+    SIMULATED = ("sim", "simulated from observations")
+    FORECAST = ("fct", "simulated from forecasts")
+
+    def __init__(self, code: str, description: str) -> None:
+        """Initialize a DataOriginType with its string code and text description.
+
+        Args:
+            code: String code defined by STF 2.0 conventions
+            description: Human-readable description of the data origin
+        """
+        self.code = code
+        self.description = description
+
+
+class LocationType(Enum):
+    """Type of measurement location according to STF 2.0 conventions.
+
+    This enumeration defines whether the measurement represents a point
+    or an area-averaged value.
+
+    Attributes:
+        POINT: Point measurement (e.g., rain gauge, stream gauge)
+        AREA: Area-averaged measurement (e.g., subcatchment area)
+
+    Example:
+        >>> from efts_io.attributes import LocationType
+        >>> loc = LocationType.POINT
+        >>> loc.value
+        'Point'
+    """
+
+    POINT = "Point"
+    AREA = "Area"
+
+
+def create_variable_attributes(
+    long_name: str,
+    units: str,
+    time_series_type: TimeSeriesType,
+    data_origin: DataOriginType,
+    data_description: str,
+    location_type: LocationType = LocationType.POINT,
+    fill_value: float = -9999.0,
+) -> dict[str, Any]:
+    """Create variable attributes for STF 2.0 compliant netCDF files.
+
+    This is the recommended function for creating metadata attributes for data variables.
+    It uses type-safe enumerations to ensure attributes conform to STF 2.0 conventions
+    without requiring users to remember numeric codes or string identifiers.
+
+    Args:
+        long_name: Human-readable name for the variable (e.g., "observed rainfall")
+        units: Units of measurement (e.g., "mm", "m3/s", "°C")
+        time_series_type: How the data is aggregated/sampled (use TimeSeriesType enum)
+        data_origin: How the data was obtained (use DataOriginType enum)
+        data_description: Detailed description of the data (e.g., "AWAP data interpolated from observations")
+        location_type: Whether data is point or area measurement (default: POINT)
+        fill_value: Value used for missing data (default: -9999.0)
+
+    Returns:
+        Dictionary of attributes ready to use with xarray DataArray or EftsDataSet.new_variable()
+
+    Example:
+        >>> from efts_io.attributes import (
+        ...     create_variable_attributes,
+        ...     TimeSeriesType,
+        ...     DataOriginType,
+        ...     LocationType
+        ... )
+        >>> attrs = create_variable_attributes(
+        ...     long_name="observed rainfall",
+        ...     units="mm",
+        ...     time_series_type=TimeSeriesType.ACCUMULATED,
+        ...     data_origin=DataOriginType.OBSERVED,
+        ...     data_description="gauge measurements from station network",
+        ...     location_type=LocationType.POINT
+        ... )
+        >>> attrs['type']
+        2
+        >>> attrs['type_description']
+        'accumulated over the preceding interval'
+        >>> attrs['dat_type']
+        'obs'
+
+    See Also:
+        - TimeSeriesType: Enumeration of valid time series aggregation types
+        - DataOriginType: Enumeration of valid data origin types
+        - LocationType: Enumeration of valid location types
+        - template_variable_attributes: For getting an empty template dictionary
+    """
+    return {
+        LONG_NAME_ATTR_KEY: long_name,
+        UNITS_ATTR_KEY: units,
+        FILLVALUE_ATTR_KEY: fill_value,
+        TYPE_ATTR_KEY: time_series_type.code,
+        TYPE_DESCRIPTION_ATTR_KEY: time_series_type.description,
+        DAT_TYPE_ATTR_KEY: data_origin.code,
+        DAT_TYPE_DESCRIPTION_ATTR_KEY: data_description,
+        LOCATION_TYPE_ATTR_KEY: location_type.value,
+    }
+

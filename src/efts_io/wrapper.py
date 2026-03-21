@@ -2,7 +2,7 @@
 
 import os
 from datetime import datetime
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, Union
 
 # import netCDF4
 import numpy as np
@@ -10,6 +10,10 @@ import pandas as pd
 import xarray as xr
 
 from efts_io._ncdf_stf2 import StfDataType, StfVariable
+
+if TYPE_CHECKING:
+    from efts_io.attributes import DataOriginType, LocationType, TimeSeriesType
+
 from efts_io.conventions import (
     AREA_VARNAME,
     AXIS_ATTR_KEY,
@@ -153,13 +157,6 @@ def load_from_stf2_file(file_path: str, time_zone_timestamps: bool) -> xr.Datase
         attrs=station_names_var.attrs,
     )
     return new_dataset
-
-
-def template_variable_attributes() -> dict[str, Any]:
-    """Return a template dictionary for variable attributes."""
-    from efts_io.conventions import _template_variable_attributes
-
-    return _template_variable_attributes()
 
 
 class EftsDataSet:
