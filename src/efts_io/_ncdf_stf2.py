@@ -446,27 +446,27 @@ def write_nc_stf2(
         d_type, d_type_long = _stf_data_types(stf_nc_vers)
 
         # change var_type and data_type to python based index starting from 0
-        var_type = var_type - 1
-        data_type = data_type - 1
+        var_type_indx = var_type - 1
+        data_type_indx = data_type - 1
         # print(f"data_type: {data_type}')
         # Create prescribed variable names
         if int(stf_nc_vers) == 1:
-            var_name_s = f"{v_type[var_type]}_{d_type[data_type]}"
-            var_name_l = f"{d_type_long[data_type]} {v_type_long[var_type]}"
+            var_name_s = f"{v_type[var_type_indx]}_{d_type[data_type_indx]}"
+            var_name_l = f"{d_type_long[data_type_indx]} {v_type_long[var_type_indx]}"
             if ens:
                 var_name_s = f"{var_name_s}_ens"
                 var_name_l = f"{var_name_l} ensemble"
         else:
-            var_name_attr = d_type[data_type]
-            dat_type_description = d_type_long[data_type]
-            if data_type in [0, 2]:
+            var_name_attr = d_type[data_type_indx]
+            dat_type_description = d_type_long[data_type_indx]
+            if data_type_indx in [0, 2]:
                 # print("Obs")
-                var_name_s = f"{v_type[var_type]}_obs"
-                var_name_l = f"observed {v_type_long[var_type]}"
+                var_name_s = f"{v_type[var_type_indx]}_obs"
+                var_name_l = f"observed {v_type_long[var_type_indx]}"
             else:
                 # print("Sim")
-                var_name_s = f"{v_type[var_type]}_sim"
-                var_name_l = f"simulated {v_type_long[var_type]}"
+                var_name_s = f"{v_type[var_type_indx]}_sim"
+                var_name_l = f"simulated {v_type_long[var_type_indx]}"
 
         # Use data attributes where available
         data_attrs = data.attrs
@@ -477,7 +477,7 @@ def write_nc_stf2(
 
         attr_long_name = data_attrs.get(LONG_NAME_ATTR_KEY, var_name_l)
         attr_fillvalue = data_attrs.get(FILLVALUE_ATTR_KEY, -9999.0)
-        attr_data_type = int(data_attrs.get(TYPE_ATTR_KEY, v_ttype[var_type]))
+        attr_data_type = int(data_attrs.get(TYPE_ATTR_KEY, v_ttype[var_type_indx]))
         attr_type_description = data_attrs.get(TYPE_DESCRIPTION_ATTR_KEY, v_ttype_name[attr_data_type])
         attr_dat_type = data_attrs.get(DAT_TYPE_ATTR_KEY, var_name_attr)
         attr_location_type = data_attrs.get(LOCATION_TYPE_ATTR_KEY, "Point")
@@ -506,7 +506,7 @@ def write_nc_stf2(
         if data_qual is not None:
             qu_var_name_s = f"{var_name_s}_qual"
             if int(stf_nc_vers) == 1:
-                if data_type == 2:  # noqa: PLR2004
+                if data_type_indx == 2:  # noqa: PLR2004
                     qsim_qual_var = ncfile.createVariable(
                         qu_var_name_s,
                         "f",
@@ -553,7 +553,7 @@ def write_nc_stf2(
         # This prevents double-close in the exception handler
         ncfile.close()
 
-def _stf_data_types(stf_nc_vers):
+def _stf_data_types(stf_nc_vers:int) -> tuple[list, list]:
     d_type = [None] * 4
     d_type_long = [None] * 4
     d_type[0] = "der"
