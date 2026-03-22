@@ -10,6 +10,13 @@ import pytest
 from efts_io.attributes import (
     create_variable_attributes,
     template_variable_attributes,
+    create_quality_variable_attributes,
+    create_state_variable_attributes,
+    create_global_attributes,
+    validate_variable_attributes,
+    validate_quality_variable_attributes,
+    validate_state_variable_attributes,
+    validate_global_attributes,
 )
 from efts_io.conventions import (
     DataOriginType,
@@ -490,3 +497,385 @@ class TestTemplateVariableAttributes:
         assert attrs["dat_type"] == "obs"
         assert attrs["location_type"] == "Point"
         assert attrs["_FillValue"] == -9999.0
+
+
+# ===================================================================
+# Phase 5: create_quality_variable_attributes
+# ===================================================================
+
+
+class TestCreateQualityVariableAttributes:
+    """Tests for create_quality_variable_attributes driven by STF 2.0 conventions."""
+
+    REQUIRED_QUALITY_ATTR_KEYS = {"long_name", "units", "_FillValue"}
+
+    def test_output_contains_all_required_keys(self):
+        """Convention: quality variables require long_name, units, _FillValue."""
+        attrs = create_quality_variable_attributes(
+            long_name="Quality of observed rainfall",
+            quality_code_standard="ABC Quality coding",
+        )
+        assert set(attrs.keys()) == self.REQUIRED_QUALITY_ATTR_KEYS
+
+    def test_fill_value_is_integer(self):
+        """Convention: quality variable _FillValue is int, not float."""
+        attrs = create_quality_variable_attributes(
+            long_name="Quality of observed rainfall",
+            quality_code_standard="ABC Quality coding",
+        )
+        assert isinstance(attrs["_FillValue"], int)
+
+    def test_default_fill_value_is_minus_one(self):
+        """Convention: quality variable default _FillValue = -1."""
+        attrs = create_quality_variable_attributes(
+            long_name="Quality of observed rainfall",
+            quality_code_standard="ABC Quality coding",
+        )
+        assert attrs["_FillValue"] == -1
+
+    def test_custom_fill_value(self):
+        attrs = create_quality_variable_attributes(
+            long_name="Quality of observed rainfall",
+            quality_code_standard="ABC Quality coding",
+            fill_value=-9,
+        )
+        assert attrs["_FillValue"] == -9
+
+    def test_long_name_stored_verbatim(self):
+        attrs = create_quality_variable_attributes(
+            long_name="Quality of observed rainfall",
+            quality_code_standard="ABC Quality coding",
+        )
+        assert attrs["long_name"] == "Quality of observed rainfall"
+
+    def test_quality_code_standard_stored_as_units(self):
+        """Convention: 'units' contains the quality code standard."""
+        attrs = create_quality_variable_attributes(
+            long_name="Quality of observed rainfall",
+            quality_code_standard="ABC Quality coding",
+        )
+        assert attrs["units"] == "ABC Quality coding"
+
+    def test_rain_obs_qul_scenario(self):
+        """Convention example: rain_obs_qul."""
+        attrs = create_quality_variable_attributes(
+            long_name="Quality of observed rainfall",
+            quality_code_standard="ABC Quality coding",
+        )
+        assert attrs["long_name"] == "Quality of observed rainfall"
+        assert attrs["units"] == "ABC Quality coding"
+        assert attrs["_FillValue"] == -1
+        assert isinstance(attrs["_FillValue"], int)
+
+
+# ===================================================================
+# Phase 6: create_state_variable_attributes
+# ===================================================================
+
+
+class TestCreateStateVariableAttributes:
+    """Tests for create_state_variable_attributes driven by STF 2.0 conventions."""
+
+    REQUIRED_STATE_ATTR_KEYS = {"long_name", "model_name", "sv_name", "sv_description", "_FillValue"}
+
+    def test_output_contains_all_required_keys(self):
+        """Convention: state variables require long_name, model_name, sv_name, sv_description, _FillValue."""
+        attrs = create_state_variable_attributes(
+            long_name="state var 1",
+            model_name="GR4H_RR",
+            sv_name="UH_Inflow",
+            sv_description="Total inflow to Unit Hydrographs in GR4H",
+        )
+        assert set(attrs.keys()) == self.REQUIRED_STATE_ATTR_KEYS
+
+    def test_default_fill_value(self):
+        """Convention: state variable default _FillValue = -9999.0."""
+        attrs = create_state_variable_attributes(
+            long_name="state var 1",
+            model_name="GR4H_RR",
+            sv_name="UH_Inflow",
+            sv_description="desc",
+        )
+        assert attrs["_FillValue"] == -9999.0
+
+    def test_custom_fill_value(self):
+        attrs = create_state_variable_attributes(
+            long_name="state var 1",
+            model_name="GR4H_RR",
+            sv_name="UH_Inflow",
+            sv_description="desc",
+            fill_value=-1.0,
+        )
+        assert attrs["_FillValue"] == -1.0
+
+    def test_all_strings_stored_verbatim(self):
+        attrs = create_state_variable_attributes(
+            long_name="state var 1",
+            model_name="GR4H_RR",
+            sv_name="UH_Inflow",
+            sv_description="Total inflow to Unit Hydrographs in GR4H",
+        )
+        assert attrs["long_name"] == "state var 1"
+        assert attrs["model_name"] == "GR4H_RR"
+        assert attrs["sv_name"] == "UH_Inflow"
+        assert attrs["sv_description"] == "Total inflow to Unit Hydrographs in GR4H"
+
+    def test_sv1_convention_scenario(self):
+        """Convention example: sv1 from the spec table."""
+        attrs = create_state_variable_attributes(
+            long_name="state var 1",
+            model_name="GR4H_RR",
+            sv_name="UH_Inflow",
+            sv_description="Total inflow to Unit Hydrographs in GR4H",
+        )
+        assert attrs["long_name"] == "state var 1"
+        assert attrs["model_name"] == "GR4H_RR"
+        assert attrs["sv_name"] == "UH_Inflow"
+        assert attrs["sv_description"] == "Total inflow to Unit Hydrographs in GR4H"
+        assert attrs["_FillValue"] == -9999.0
+
+
+# ===================================================================
+# Phase 7: create_global_attributes (enhanced)
+# ===================================================================
+
+
+class TestCreateGlobalAttributes:
+    """Tests for create_global_attributes driven by STF 2.0 conventions."""
+
+    REQUIRED_GLOBAL_ATTR_KEYS = {
+        "title", "institution", "source", "catchment",
+        "STF_convention_version", "STF_nc_spec",
+        "comment", "history",
+    }
+
+    def test_output_contains_all_required_keys(self):
+        """Convention: global attributes require 8 specific keys."""
+        attrs = create_global_attributes(
+            title="Test dataset",
+            institution="CSIRO",
+            source="Test",
+            catchment="Test_Catchment",
+            comment="Test comment",
+        )
+        assert set(attrs.keys()) == self.REQUIRED_GLOBAL_ATTR_KEYS
+
+    def test_backward_compatible_with_5_positional_args(self):
+        """Existing callers passing 5 args should still work, getting 8-key dict."""
+        attrs = create_global_attributes("Title", "Inst", "Src", "Catch", "Comment")
+        assert len(attrs) == 8
+        assert attrs["title"] == "Title"
+        assert attrs["institution"] == "Inst"
+        assert attrs["source"] == "Src"
+        assert attrs["catchment"] == "Catch"
+        assert attrs["comment"] == "Comment"
+
+    def test_default_stf_convention_version(self):
+        """Convention: STF_convention_version defaults to 2.0."""
+        attrs = create_global_attributes("Title", "Inst", "Src", "Catch", "Comment")
+        assert attrs["STF_convention_version"] == 2.0
+
+    def test_default_stf_nc_spec(self):
+        """Convention: STF_nc_spec defaults to the STF 2.0 URL."""
+        attrs = create_global_attributes("Title", "Inst", "Src", "Catch", "Comment")
+        assert "github.com" in attrs["STF_nc_spec"]
+        assert "netcdf_for_water_forecasting" in attrs["STF_nc_spec"]
+
+    def test_default_history_is_empty(self):
+        attrs = create_global_attributes("Title", "Inst", "Src", "Catch", "Comment")
+        assert attrs["history"] == ""
+
+    def test_custom_stf_convention_version(self):
+        attrs = create_global_attributes(
+            "Title", "Inst", "Src", "Catch", "Comment",
+            stf_convention_version=3.0,
+        )
+        assert attrs["STF_convention_version"] == 3.0
+
+    def test_custom_stf_nc_spec(self):
+        attrs = create_global_attributes(
+            "Title", "Inst", "Src", "Catch", "Comment",
+            stf_nc_spec="https://example.com/spec",
+        )
+        assert attrs["STF_nc_spec"] == "https://example.com/spec"
+
+    def test_custom_history(self):
+        attrs = create_global_attributes(
+            "Title", "Inst", "Src", "Catch", "Comment",
+            history="2024-01-01 Created",
+        )
+        assert attrs["history"] == "2024-01-01 Created"
+
+    def test_empty_title_raises_value_error(self):
+        with pytest.raises(ValueError, match="Empty title"):
+            create_global_attributes("", "Inst", "Src", "Catch", "Comment")
+
+
+# ===================================================================
+# Phase 8: Validation functions
+# ===================================================================
+
+
+class TestValidateVariableAttributes:
+    """Tests for validate_variable_attributes."""
+
+    def test_valid_attributes_return_no_errors(self):
+        attrs = create_variable_attributes(
+            long_name="observed rainfall",
+            units="mm",
+            time_series_type=TimeSeriesType.ACCUMULATED,
+            data_origin=DataOriginType.OBSERVED,
+            data_description="gauge measurements",
+        )
+        assert validate_variable_attributes(attrs) == []
+
+    def test_empty_dict_returns_errors_for_all_keys(self):
+        errors = validate_variable_attributes({})
+        assert len(errors) == 8
+
+    def test_missing_single_key_detected(self):
+        attrs = create_variable_attributes(
+            long_name="test",
+            units="mm",
+            time_series_type=TimeSeriesType.ACCUMULATED,
+            data_origin=DataOriginType.OBSERVED,
+            data_description="test",
+        )
+        del attrs["long_name"]
+        errors = validate_variable_attributes(attrs)
+        assert len(errors) == 1
+        assert "long_name" in errors[0]
+
+    def test_invalid_type_code_detected(self):
+        attrs = create_variable_attributes(
+            long_name="test",
+            units="mm",
+            time_series_type=TimeSeriesType.ACCUMULATED,
+            data_origin=DataOriginType.OBSERVED,
+            data_description="test",
+        )
+        attrs["type"] = 99
+        errors = validate_variable_attributes(attrs)
+        assert any("type" in e and "99" in e for e in errors)
+
+    def test_invalid_dat_type_code_detected(self):
+        attrs = create_variable_attributes(
+            long_name="test",
+            units="mm",
+            time_series_type=TimeSeriesType.ACCUMULATED,
+            data_origin=DataOriginType.OBSERVED,
+            data_description="test",
+        )
+        attrs["dat_type"] = "bad"
+        errors = validate_variable_attributes(attrs)
+        assert any("dat_type" in e and "bad" in e for e in errors)
+
+    def test_invalid_location_type_detected(self):
+        attrs = create_variable_attributes(
+            long_name="test",
+            units="mm",
+            time_series_type=TimeSeriesType.ACCUMULATED,
+            data_origin=DataOriginType.OBSERVED,
+            data_description="test",
+        )
+        attrs["location_type"] = "Line"
+        errors = validate_variable_attributes(attrs)
+        assert any("location_type" in e and "Line" in e for e in errors)
+
+    @pytest.mark.parametrize(
+        "ts_type",
+        list(TimeSeriesType),
+        ids=[m.name for m in TimeSeriesType],
+    )
+    @pytest.mark.parametrize(
+        "origin",
+        list(DataOriginType),
+        ids=[m.name for m in DataOriginType],
+    )
+    def test_all_enum_combinations_pass_validation(self, ts_type, origin):
+        attrs = create_variable_attributes(
+            long_name="test",
+            units="mm",
+            time_series_type=ts_type,
+            data_origin=origin,
+            data_description="test",
+        )
+        assert validate_variable_attributes(attrs) == []
+
+
+class TestValidateQualityVariableAttributes:
+    """Tests for validate_quality_variable_attributes."""
+
+    def test_valid_attributes_return_no_errors(self):
+        attrs = create_quality_variable_attributes(
+            long_name="Quality of observed rainfall",
+            quality_code_standard="ABC Quality coding",
+        )
+        assert validate_quality_variable_attributes(attrs) == []
+
+    def test_empty_dict_returns_errors(self):
+        errors = validate_quality_variable_attributes({})
+        assert len(errors) == 3
+
+    def test_float_fill_value_detected_as_error(self):
+        attrs = {
+            "long_name": "Quality of observed rainfall",
+            "units": "ABC Quality coding",
+            "_FillValue": -1.0,  # float, should be int
+        }
+        errors = validate_quality_variable_attributes(attrs)
+        assert len(errors) == 1
+        assert "_FillValue" in errors[0]
+
+
+class TestValidateStateVariableAttributes:
+    """Tests for validate_state_variable_attributes."""
+
+    def test_valid_attributes_return_no_errors(self):
+        attrs = create_state_variable_attributes(
+            long_name="state var 1",
+            model_name="GR4H_RR",
+            sv_name="UH_Inflow",
+            sv_description="desc",
+        )
+        assert validate_state_variable_attributes(attrs) == []
+
+    def test_empty_dict_returns_errors(self):
+        errors = validate_state_variable_attributes({})
+        assert len(errors) == 5
+
+    def test_missing_model_name_detected(self):
+        attrs = create_state_variable_attributes(
+            long_name="state var 1",
+            model_name="GR4H_RR",
+            sv_name="UH_Inflow",
+            sv_description="desc",
+        )
+        del attrs["model_name"]
+        errors = validate_state_variable_attributes(attrs)
+        assert len(errors) == 1
+        assert "model_name" in errors[0]
+
+
+class TestValidateGlobalAttributes:
+    """Tests for validate_global_attributes."""
+
+    def test_valid_attributes_return_no_errors(self):
+        attrs = create_global_attributes("Title", "Inst", "Src", "Catch", "Comment")
+        assert validate_global_attributes(attrs) == []
+
+    def test_empty_dict_returns_errors(self):
+        errors = validate_global_attributes({})
+        assert len(errors) == 8
+
+    def test_empty_title_detected(self):
+        attrs = create_global_attributes("Title", "Inst", "Src", "Catch", "Comment")
+        attrs["title"] = ""
+        errors = validate_global_attributes(attrs)
+        assert any("title" in e and "empty" in e for e in errors)
+
+    def test_wrong_type_for_convention_version_detected(self):
+        attrs = create_global_attributes("Title", "Inst", "Src", "Catch", "Comment")
+        attrs["STF_convention_version"] = "2.0"  # string, should be numeric
+        errors = validate_global_attributes(attrs)
+        assert any("STF_convention_version" in e for e in errors)

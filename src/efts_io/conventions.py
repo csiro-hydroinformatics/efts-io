@@ -98,6 +98,10 @@ DAT_TYPE_DESCRIPTION_ATTR_KEY = "dat_type_description"
 DAT_TYPE_ATTR_KEY = "dat_type"
 LOCATION_TYPE_ATTR_KEY = "location_type"
 
+MODEL_NAME_ATTR_KEY = "model_name"
+SV_NAME_ATTR_KEY = "sv_name"
+SV_DESCRIPTION_ATTR_KEY = "sv_description"
+
 # We use a URL at a specific commit point, to be used as a file attribute.
 # STF_2_0_URL = "https://github.com/csiro-hydroinformatics/efts/blob/d7d43a995fb5e459bcb894e09b7bb89de03e285c/docs/netcdf_for_water_forecasting.md"
 # July 2025, set a new location/commit point:
@@ -1140,71 +1144,4 @@ class LocationType(Enum):
 
     POINT = "Point"
     AREA = "Area"
-
-
-def create_variable_attributes(
-    long_name: str,
-    units: str,
-    time_series_type: TimeSeriesType,
-    data_origin: DataOriginType,
-    data_description: str,
-    location_type: LocationType = LocationType.POINT,
-    fill_value: float = -9999.0,
-) -> dict[str, Any]:
-    """Create variable attributes for STF 2.0 compliant netCDF files.
-
-    This is the recommended function for creating metadata attributes for data variables.
-    It uses type-safe enumerations to ensure attributes conform to STF 2.0 conventions
-    without requiring users to remember numeric codes or string identifiers.
-
-    Args:
-        long_name: Human-readable name for the variable (e.g., "observed rainfall")
-        units: Units of measurement (e.g., "mm", "m3/s", "°C")
-        time_series_type: How the data is aggregated/sampled (use TimeSeriesType enum)
-        data_origin: How the data was obtained (use DataOriginType enum)
-        data_description: Detailed description of the data (e.g., "AWAP data interpolated from observations")
-        location_type: Whether data is point or area measurement (default: POINT)
-        fill_value: Value used for missing data (default: -9999.0)
-
-    Returns:
-        Dictionary of attributes ready to use with xarray DataArray or EftsDataSet.new_variable()
-
-    Example:
-        >>> from efts_io.attributes import (
-        ...     create_variable_attributes,
-        ...     TimeSeriesType,
-        ...     DataOriginType,
-        ...     LocationType
-        ... )
-        >>> attrs = create_variable_attributes(
-        ...     long_name="observed rainfall",
-        ...     units="mm",
-        ...     time_series_type=TimeSeriesType.ACCUMULATED,
-        ...     data_origin=DataOriginType.OBSERVED,
-        ...     data_description="gauge measurements from station network",
-        ...     location_type=LocationType.POINT
-        ... )
-        >>> attrs['type']
-        2
-        >>> attrs['type_description']
-        'accumulated over the preceding interval'
-        >>> attrs['dat_type']
-        'obs'
-
-    See Also:
-        - TimeSeriesType: Enumeration of valid time series aggregation types
-        - DataOriginType: Enumeration of valid data origin types
-        - LocationType: Enumeration of valid location types
-        - template_variable_attributes: For getting an empty template dictionary
-    """
-    return {
-        LONG_NAME_ATTR_KEY: long_name,
-        UNITS_ATTR_KEY: units,
-        FILLVALUE_ATTR_KEY: fill_value,
-        TYPE_ATTR_KEY: time_series_type.code,
-        TYPE_DESCRIPTION_ATTR_KEY: time_series_type.description,
-        DAT_TYPE_ATTR_KEY: data_origin.code,
-        DAT_TYPE_DESCRIPTION_ATTR_KEY: data_description,
-        LOCATION_TYPE_ATTR_KEY: location_type.value,
-    }
 

@@ -10,10 +10,16 @@ from efts_io.attributes import (
     DataOriginType,
     LocationType,
     TimeSeriesType,
-    _create_template_variable_attributes,
     create_global_attributes,
+    create_quality_variable_attributes,
+    create_state_variable_attributes,
     create_var_attribute_definition,
     create_variable_attributes,
+    template_variable_attributes,
+    validate_global_attributes,
+    validate_quality_variable_attributes,
+    validate_state_variable_attributes,
+    validate_variable_attributes,
 )
 
 # Main classes and functions
@@ -32,10 +38,17 @@ __all__: list[str] = [
     "create_efts",
     "create_global_attributes",
     "create_mandatory_global_attributes",
+    "create_quality_variable_attributes",
+    "create_state_variable_attributes",
     "create_var_attribute_definition",
     # Attribute creation functions
     "create_variable_attributes",
     "open_efts",
-    "_create_template_variable_attributes",
+    "template_variable_attributes",
+    # Attribute validation functions
+    "validate_global_attributes",
+    "validate_quality_variable_attributes",
+    "validate_state_variable_attributes",
+    "validate_variable_attributes",
     "xr_efts",
 ]

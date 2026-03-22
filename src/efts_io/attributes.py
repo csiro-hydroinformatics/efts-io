@@ -12,10 +12,17 @@ from efts_io.conventions import (
     DAT_TYPE_ATTR_KEY,
     DAT_TYPE_DESCRIPTION_ATTR_KEY,
     FILLVALUE_ATTR_KEY,
+    HISTORY_ATTR_KEY,
     INSTITUTION_ATTR_KEY,
     LOCATION_TYPE_ATTR_KEY,
     LONG_NAME_ATTR_KEY,
+    MODEL_NAME_ATTR_KEY,
     SOURCE_ATTR_KEY,
+    STF_2_0_URL,
+    STF_CONVENTION_VERSION_ATTR_KEY,
+    STF_NC_SPEC_ATTR_KEY,
+    SV_DESCRIPTION_ATTR_KEY,
+    SV_NAME_ATTR_KEY,
     TITLE_ATTR_KEY,
     TYPE_ATTR_KEY,
     TYPE_DESCRIPTION_ATTR_KEY,
@@ -342,7 +349,10 @@ def create_global_attributes(
     source: str,
     catchment: str,
     comment: str,
-) -> dict[str, str]:
+    stf_convention_version: float = 2.0,
+    stf_nc_spec: str = STF_2_0_URL,
+    history: str = "",
+) -> dict[str, Any]:
     """Creates STF global attributes.
 
     Args:
@@ -351,12 +361,15 @@ def create_global_attributes(
         source (str): source
         catchment (str): catchment
         comment (str): comment
+        stf_convention_version (float): STF convention version (default: 2.0)
+        stf_nc_spec (str): URL to the STF specification document (default: STF 2.0 URL)
+        history (str): audit trail for modifications to the original data (default: "")
 
     Raises:
         ValueError: Unexpected or insufficient information
 
     Returns:
-        dict[str, str]: _description_
+        dict[str, Any]: dictionary of global attributes
     """
     # catchment info should not have white spaces (and why was that???)
     # catchment = 'Upper  Murray River '
@@ -370,7 +383,10 @@ def create_global_attributes(
         INSTITUTION_ATTR_KEY: institution,
         SOURCE_ATTR_KEY: source,
         CATCHMENT_ATTR_KEY: catchment,
+        STF_CONVENTION_VERSION_ATTR_KEY: stf_convention_version,
+        STF_NC_SPEC_ATTR_KEY: stf_nc_spec,
         COMMENT_ATTR_KEY: comment,
+        HISTORY_ATTR_KEY: history,
     }
 
 
@@ -398,3 +414,257 @@ def create_global_attributes(
 #     }
 #   }
 # }
+
+
+def create_quality_variable_attributes(
+    long_name: str,
+    quality_code_standard: str,
+    fill_value: int = -1,
+) -> dict[str, Any]:
+    """Create attributes for a quality code variable (e.g., rain_obs_qul).
+
+    Quality code variables have a distinct set of attributes from data variables.
+    Per the STF 2.0 conventions, they require ``long_name``, ``units`` (the quality
+    code standard), and ``_FillValue`` (an integer, default -1).
+
+    Args:
+        long_name: Human-readable name (e.g., "Quality of observed rainfall")
+        quality_code_standard: Quality code standard used (e.g., "ABC Quality coding")
+        fill_value: Integer fill value for missing data (default: -1)
+
+    Returns:
+        Dictionary of attributes ready to use with xarray DataArray or EftsDataSet.new_variable()
+
+    Example:
+        >>> attrs = create_quality_variable_attributes(
+        ...     long_name="Quality of observed rainfall",
+        ...     quality_code_standard="ABC Quality coding",
+        ... )
+        >>> attrs['_FillValue']
+        -1
+    """
+    return {
+        LONG_NAME_ATTR_KEY: long_name,
+        UNITS_ATTR_KEY: quality_code_standard,
+        FILLVALUE_ATTR_KEY: fill_value,
+    }
+
+
+def create_state_variable_attributes(
+    long_name: str,
+    model_name: str,
+    sv_name: str,
+    sv_description: str,
+    fill_value: float = -9999.0,
+) -> dict[str, Any]:
+    """Create attributes for a state variable (e.g., sv1, sv2).
+
+    State variables store internal model states. Per the STF 2.0 conventions,
+    they require ``long_name``, ``model_name``, ``sv_name``, ``sv_description``,
+    and ``_FillValue``.
+
+    Args:
+        long_name: Human-readable name (e.g., "state var 1")
+        model_name: Name of the model (e.g., "GR4H_RR")
+        sv_name: Name of the state variable in the model (e.g., "UH_Inflow")
+        sv_description: Description of the state variable (e.g., "Total inflow to Unit Hydrographs in GR4H")
+        fill_value: Fill value for missing data (default: -9999.0)
+
+    Returns:
+        Dictionary of attributes ready to use with xarray DataArray or EftsDataSet.new_variable()
+
+    Example:
+        >>> attrs = create_state_variable_attributes(
+        ...     long_name="state var 1",
+        ...     model_name="GR4H_RR",
+        ...     sv_name="UH_Inflow",
+        ...     sv_description="Total inflow to Unit Hydrographs in GR4H",
+        ... )
+        >>> attrs['model_name']
+        'GR4H_RR'
+    """
+    return {
+        LONG_NAME_ATTR_KEY: long_name,
+        MODEL_NAME_ATTR_KEY: model_name,
+        SV_NAME_ATTR_KEY: sv_name,
+        SV_DESCRIPTION_ATTR_KEY: sv_description,
+        FILLVALUE_ATTR_KEY: fill_value,
+    }
+
+
+# ===================================================================
+# Attribute validation functions
+# ===================================================================
+
+_VALID_TYPE_CODES = {1, 2, 3, 4, 5, 11, 12, 13, 14, 15}
+_VALID_DAT_TYPE_CODES = {"obs", "der", "sim", "fct"}
+_VALID_LOCATION_TYPES = {"Point", "Area"}
+
+
+def validate_variable_attributes(attrs: dict[str, Any]) -> list[str]:
+    """Validate a dictionary of data variable attributes against STF 2.0 conventions.
+
+    Checks that all required keys are present and that coded values are valid.
+
+    Args:
+        attrs: Dictionary of attributes to validate
+
+    Returns:
+        List of error message strings. Empty list means valid.
+
+    Example:
+        >>> errors = validate_variable_attributes({})
+        >>> len(errors) > 0
+        True
+    """
+    errors: list[str] = []
+    required_keys = {
+        LONG_NAME_ATTR_KEY: str,
+        UNITS_ATTR_KEY: str,
+        FILLVALUE_ATTR_KEY: (int, float),
+        TYPE_ATTR_KEY: int,
+        TYPE_DESCRIPTION_ATTR_KEY: str,
+        DAT_TYPE_ATTR_KEY: str,
+        DAT_TYPE_DESCRIPTION_ATTR_KEY: str,
+        LOCATION_TYPE_ATTR_KEY: str,
+    }
+
+    for key, expected_type in required_keys.items():
+        if key not in attrs:
+            errors.append(f"Missing required attribute '{key}'")
+        elif not isinstance(attrs[key], expected_type):
+            errors.append(
+                f"Attribute '{key}' has type '{type(attrs[key]).__name__}',"
+                f" expected '{expected_type.__name__ if isinstance(expected_type, type) else ' or '.join(t.__name__ for t in expected_type)}'",
+            )
+
+    if TYPE_ATTR_KEY in attrs and isinstance(attrs[TYPE_ATTR_KEY], int) and attrs[TYPE_ATTR_KEY] not in _VALID_TYPE_CODES:
+        errors.append(
+            f"Attribute '{TYPE_ATTR_KEY}' has value {attrs[TYPE_ATTR_KEY]},"
+            f" expected one of {sorted(_VALID_TYPE_CODES)}",
+        )
+
+    if DAT_TYPE_ATTR_KEY in attrs and isinstance(attrs[DAT_TYPE_ATTR_KEY], str) and attrs[DAT_TYPE_ATTR_KEY] not in _VALID_DAT_TYPE_CODES:
+        errors.append(
+            f"Attribute '{DAT_TYPE_ATTR_KEY}' has value '{attrs[DAT_TYPE_ATTR_KEY]}',"
+            f" expected one of {sorted(_VALID_DAT_TYPE_CODES)}",
+        )
+
+    if LOCATION_TYPE_ATTR_KEY in attrs and isinstance(attrs[LOCATION_TYPE_ATTR_KEY], str) and attrs[LOCATION_TYPE_ATTR_KEY] not in _VALID_LOCATION_TYPES:
+        errors.append(
+            f"Attribute '{LOCATION_TYPE_ATTR_KEY}' has value '{attrs[LOCATION_TYPE_ATTR_KEY]}',"
+            f" expected one of {sorted(_VALID_LOCATION_TYPES)}",
+        )
+
+    return errors
+
+
+def validate_quality_variable_attributes(attrs: dict[str, Any]) -> list[str]:
+    """Validate a dictionary of quality variable attributes against STF 2.0 conventions.
+
+    Args:
+        attrs: Dictionary of attributes to validate
+
+    Returns:
+        List of error message strings. Empty list means valid.
+
+    Example:
+        >>> from efts_io.attributes import create_quality_variable_attributes
+        >>> attrs = create_quality_variable_attributes("Quality of observed rainfall", "ABC Quality coding")
+        >>> validate_quality_variable_attributes(attrs)
+        []
+    """
+    errors: list[str] = []
+    required_keys = {
+        LONG_NAME_ATTR_KEY: str,
+        UNITS_ATTR_KEY: str,
+        FILLVALUE_ATTR_KEY: int,
+    }
+
+    for key, expected_type in required_keys.items():
+        if key not in attrs:
+            errors.append(f"Missing required attribute '{key}'")
+        elif not isinstance(attrs[key], expected_type):
+            errors.append(
+                f"Attribute '{key}' has type '{type(attrs[key]).__name__}', expected '{expected_type.__name__}'",
+            )
+
+    return errors
+
+
+def validate_state_variable_attributes(attrs: dict[str, Any]) -> list[str]:
+    """Validate a dictionary of state variable attributes against STF 2.0 conventions.
+
+    Args:
+        attrs: Dictionary of attributes to validate
+
+    Returns:
+        List of error message strings. Empty list means valid.
+
+    Example:
+        >>> from efts_io.attributes import create_state_variable_attributes
+        >>> attrs = create_state_variable_attributes("sv1", "GR4H_RR", "UH_Inflow", "desc")
+        >>> validate_state_variable_attributes(attrs)
+        []
+    """
+    errors: list[str] = []
+    required_keys = {
+        LONG_NAME_ATTR_KEY: str,
+        MODEL_NAME_ATTR_KEY: str,
+        SV_NAME_ATTR_KEY: str,
+        SV_DESCRIPTION_ATTR_KEY: str,
+        FILLVALUE_ATTR_KEY: (int, float),
+    }
+
+    for key, expected_type in required_keys.items():
+        if key not in attrs:
+            errors.append(f"Missing required attribute '{key}'")
+        elif not isinstance(attrs[key], expected_type):
+            errors.append(
+                f"Attribute '{key}' has type '{type(attrs[key]).__name__}',"
+                f" expected '{expected_type.__name__ if isinstance(expected_type, type) else ' or '.join(t.__name__ for t in expected_type)}'",
+            )
+
+    return errors
+
+
+def validate_global_attributes(attrs: dict[str, Any]) -> list[str]:
+    """Validate a dictionary of global attributes against STF 2.0 conventions.
+
+    Args:
+        attrs: Dictionary of attributes to validate
+
+    Returns:
+        List of error message strings. Empty list means valid.
+
+    Example:
+        >>> from efts_io.attributes import create_global_attributes
+        >>> attrs = create_global_attributes("Title", "Inst", "Src", "Catch", "Comment")
+        >>> validate_global_attributes(attrs)
+        []
+    """
+    errors: list[str] = []
+    required_keys = {
+        TITLE_ATTR_KEY: str,
+        INSTITUTION_ATTR_KEY: str,
+        SOURCE_ATTR_KEY: str,
+        CATCHMENT_ATTR_KEY: str,
+        STF_CONVENTION_VERSION_ATTR_KEY: (int, float),
+        STF_NC_SPEC_ATTR_KEY: str,
+        COMMENT_ATTR_KEY: str,
+        HISTORY_ATTR_KEY: str,
+    }
+
+    for key, expected_type in required_keys.items():
+        if key not in attrs:
+            errors.append(f"Missing required attribute '{key}'")
+        elif not isinstance(attrs[key], expected_type):
+            errors.append(
+                f"Attribute '{key}' has type '{type(attrs[key]).__name__}',"
+                f" expected '{expected_type.__name__ if isinstance(expected_type, type) else ' or '.join(t.__name__ for t in expected_type)}'",
+            )
+
+    if TITLE_ATTR_KEY in attrs and isinstance(attrs[TITLE_ATTR_KEY], str) and attrs[TITLE_ATTR_KEY] == "":
+        errors.append(f"Attribute '{TITLE_ATTR_KEY}' must not be empty")
+
+    return errors
