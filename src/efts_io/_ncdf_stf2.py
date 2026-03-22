@@ -435,8 +435,9 @@ def write_nc_stf2(
 
         attr_long_name = data_attrs.get(LONG_NAME_ATTR_KEY, var_name_l)
         attr_fillvalue = data_attrs.get(FILLVALUE_ATTR_KEY, -9999.0)
-        attr_data_type = int(data_attrs.get(TYPE_ATTR_KEY, v_ttype[var_type_indx]))
-        attr_type_description = data_attrs.get(TYPE_DESCRIPTION_ATTR_KEY, v_ttype_name[attr_data_type])
+        _default_type_indx = v_ttype[var_type_indx]  # always 2, 3, or 5 — a valid index into v_ttype_name
+        attr_data_type = int(data_attrs.get(TYPE_ATTR_KEY, _default_type_indx))
+        attr_type_description = data_attrs.get(TYPE_DESCRIPTION_ATTR_KEY, v_ttype_name[_default_type_indx])
         attr_dat_type = data_attrs.get(DAT_TYPE_ATTR_KEY, var_name_attr)
         attr_location_type = data_attrs.get(LOCATION_TYPE_ATTR_KEY, "Point")
 
@@ -536,6 +537,9 @@ def _prescribed_names(stf_nc_vers, ens, var_type_indx, data_type_indx):
         ]
 
     d_type, d_type_long = _stf_data_types(stf_nc_vers)
+
+    var_name_attr = ""
+    dat_type_description = ""
 
         # print(f"data_type: {data_type}')
         # Create prescribed variable names
