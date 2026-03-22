@@ -250,7 +250,7 @@ def write_nc_stf2(
     for var_id in (AREA_VARNAME, X_VARNAME, Y_VARNAME, ELEVATION_VARNAME):
         _check_optional_var_attr(dataset, var_id)
 
-    var_type = var_type.value
+    var_type_nb = var_type.value
     if isinstance(data_type, StfDataType):
         warnings.warn(
             "StfDataType is deprecated and will be removed in a future version. "
@@ -420,53 +420,11 @@ def write_nc_stf2(
         time_var.setncattr(UNITS_ATTR_KEY, time_units_str)
         time_var[:] = axis_values
 
-        # Borrowing from create_empty_stfnc.m
-        # Name Arrays
-        v_type = ["q", "pet", "rain", "swe", "tmin", "tmax", "tave"]
-        v_type_long = [
-            "streamflow",
-            "potential evapotranspiration",
-            "rainfall",
-            "snow water equivalent",
-            "minimum temperature",
-            "maximum temperature",
-            "average temperature",
-        ]
-        # v_units = ["m3/s", "mm", "mm", "mm", "K", "K", "K"]
-        v_ttype = [3, 2, 2, 2, 5, 5, 5]
-        v_ttype_name = [
-            "averaged over the preceding interval",
-            "accumulated over the preceding interval",
-            "accumulated over the preceding interval",
-            "point value recorded in the preceding interval",
-            "point value recorded in the preceding interval",
-            "averaged over the preceding interval",
-        ]
-
-        d_type, d_type_long = _stf_data_types(stf_nc_vers)
-
         # change var_type and data_type to python based index starting from 0
-        var_type_indx = var_type - 1
+        var_type_indx = var_type_nb - 1
         data_type_indx = data_type - 1
-        # print(f"data_type: {data_type}')
-        # Create prescribed variable names
-        if int(stf_nc_vers) == 1:
-            var_name_s = f"{v_type[var_type_indx]}_{d_type[data_type_indx]}"
-            var_name_l = f"{d_type_long[data_type_indx]} {v_type_long[var_type_indx]}"
-            if ens:
-                var_name_s = f"{var_name_s}_ens"
-                var_name_l = f"{var_name_l} ensemble"
-        else:
-            var_name_attr = d_type[data_type_indx]
-            dat_type_description = d_type_long[data_type_indx]
-            if data_type_indx in [0, 2]:
-                # print("Obs")
-                var_name_s = f"{v_type[var_type_indx]}_obs"
-                var_name_l = f"observed {v_type_long[var_type_indx]}"
-            else:
-                # print("Sim")
-                var_name_s = f"{v_type[var_type_indx]}_sim"
-                var_name_l = f"simulated {v_type_long[var_type_indx]}"
+
+        v_ttype, v_ttype_name, var_name_s, var_name_l, var_name_attr, dat_type_description = _prescribed_names(stf_nc_vers, ens, var_type_indx, data_type_indx)
 
         # Use data attributes where available
         data_attrs = data.attrs
@@ -552,6 +510,53 @@ def write_nc_stf2(
         # Only close the file here if no exception occurred
         # This prevents double-close in the exception handler
         ncfile.close()
+
+def _prescribed_names(stf_nc_vers, ens, var_type_indx, data_type_indx):
+    v_type = ["q", "pet", "rain", "swe", "tmin", "tmax", "tave"]
+        # Borrowing from create_empty_stfnc.m
+        # Name Arrays
+    v_type_long = [
+            "streamflow",
+            "potential evapotranspiration",
+            "rainfall",
+            "snow water equivalent",
+            "minimum temperature",
+            "maximum temperature",
+            "average temperature",
+        ]
+        # v_units = ["m3/s", "mm", "mm", "mm", "K", "K", "K"]
+    v_ttype = [3, 2, 2, 2, 5, 5, 5]
+    v_ttype_name = [
+            "averaged over the preceding interval",
+            "accumulated over the preceding interval",
+            "accumulated over the preceding interval",
+            "point value recorded in the preceding interval",
+            "point value recorded in the preceding interval",
+            "averaged over the preceding interval",
+        ]
+
+    d_type, d_type_long = _stf_data_types(stf_nc_vers)
+
+        # print(f"data_type: {data_type}')
+        # Create prescribed variable names
+    if int(stf_nc_vers) == 1:
+        var_name_s = f"{v_type[var_type_indx]}_{d_type[data_type_indx]}"
+        var_name_l = f"{d_type_long[data_type_indx]} {v_type_long[var_type_indx]}"
+        if ens:
+            var_name_s = f"{var_name_s}_ens"
+            var_name_l = f"{var_name_l} ensemble"
+    else:
+        var_name_attr = d_type[data_type_indx]
+        dat_type_description = d_type_long[data_type_indx]
+        if data_type_indx in [0, 2]:
+                # print("Obs")
+            var_name_s = f"{v_type[var_type_indx]}_obs"
+            var_name_l = f"observed {v_type_long[var_type_indx]}"
+        else:
+                # print("Sim")
+            var_name_s = f"{v_type[var_type_indx]}_sim"
+            var_name_l = f"simulated {v_type_long[var_type_indx]}"
+    return v_ttype,v_ttype_name,var_name_s,var_name_l,var_name_attr,dat_type_description
 
 def _stf_data_types(stf_nc_vers:int) -> tuple[list, list]:
     d_type = [None] * 4
