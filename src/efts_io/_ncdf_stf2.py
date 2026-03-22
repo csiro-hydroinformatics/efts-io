@@ -4,6 +4,7 @@ These are functions ported from a collection of utilities initially in https://b
 """
 
 import os  # noqa: I001
+import warnings
 from enum import Enum
 from typing import Any, Optional
 
@@ -25,6 +26,7 @@ from efts_io.conventions import (
     TYPE_DESCRIPTION_ATTR_KEY,
     TYPES_CONVERTIBLE_TO_TIMESTAMP,
     AttributesErrorLevel,
+    DataOriginType,
     check_optional_variable_attributes,
     detect_timezone_info,
     validate_fixed_offset_timezone,
@@ -44,10 +46,29 @@ class StfVariable(Enum):
 
 
 class StfDataType(Enum):
+    """Deprecated. Use :class:`efts_io.DataOriginType` instead.
+
+    .. deprecated::
+        Use :class:`~efts_io.DataOriginType` for new code. Passing a
+        ``StfDataType`` value to :func:`write_nc_stf2` or
+        :meth:`~efts_io.EftsDataSet.save_to_stf2` will emit a
+        :class:`DeprecationWarning` and will be removed in a future version.
+    """
+
     DERIVED_FROM_OBSERVATIONS = 1
     FORECAST = 2
     OBSERVED = 3
     SIMULATED = 4
+
+
+# Internal mapping from DataOriginType to the integer ordinal used by write_nc_stf2.
+# The integers correspond to StfDataType values for backward compatibility.
+_DATA_ORIGIN_TYPE_TO_INT: dict[DataOriginType, int] = {
+    DataOriginType.DERIVED: StfDataType.DERIVED_FROM_OBSERVATIONS.value,
+    DataOriginType.FORECAST: StfDataType.FORECAST.value,
+    DataOriginType.OBSERVED: StfDataType.OBSERVED.value,
+    DataOriginType.SIMULATED: StfDataType.SIMULATED.value,
+}
 
 
 def _create_cf_time_axis(data: xr.DataArray, timestep_str: str) -> tuple[np.ndarray, str, str, str]:
@@ -157,7 +178,7 @@ def write_nc_stf2(
     dataset: xr.Dataset,
     data: xr.DataArray,
     var_type: StfVariable = StfVariable.STREAMFLOW,
-    data_type: StfDataType = StfDataType.OBSERVED,
+    data_type: DataOriginType | StfDataType = DataOriginType.OBSERVED,
     stf_nc_vers: int = 2,
     ens: bool = False,  # noqa: FBT001, FBT002
     timestep: str = "days",
@@ -230,7 +251,16 @@ def write_nc_stf2(
         _check_optional_var_attr(dataset, var_id)
 
     var_type = var_type.value
-    data_type = data_type.value
+    if isinstance(data_type, StfDataType):
+        warnings.warn(
+            "StfDataType is deprecated and will be removed in a future version. "
+            "Use DataOriginType instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        data_type = data_type.value
+    else:
+        data_type = _DATA_ORIGIN_TYPE_TO_INT[data_type]
 
     n_stations = len(data[STATION_ID_DIMNAME])
 
@@ -413,17 +443,7 @@ def write_nc_stf2(
             "averaged over the preceding interval",
         ]
 
-        d_type = [None] * 4
-        d_type_long = [None] * 4
-        d_type[0] = "der"
-        d_type_long[0] = "derived (from observations)"
-
-        _get_stationid_data_types(stf_nc_vers, d_type, d_type_long)
-
-        d_type[2] = "obs"
-        d_type_long[2] = "observed"
-        d_type[3] = "sim"
-        d_type_long[3] = "simulated"
+        d_type, d_type_long = _stf_data_types(stf_nc_vers)
 
         # change var_type and data_type to python based index starting from 0
         var_type = var_type - 1
@@ -533,8 +553,23 @@ def write_nc_stf2(
         # This prevents double-close in the exception handler
         ncfile.close()
 
+def _stf_data_types(stf_nc_vers):
+    d_type = [None] * 4
+    d_type_long = [None] * 4
+    d_type[0] = "der"
+    d_type_long[0] = "derived (from observations)"
+
+    _get_stationid_data_types(stf_nc_vers, d_type, d_type_long)
+
+    d_type[2] = "obs"
+    d_type_long[2] = "observed"
+    d_type[3] = "sim"
+    d_type_long[3] = "simulated"
+    return d_type,d_type_long
+
 
 def _get_stationid_data_types(stf_nc_vers: Any, d_type: np.ndarray, d_type_long: np.ndarray) -> None:
+    """Helper function to populate data type strings based on STF NetCDF version."""
     if int(stf_nc_vers) == 1:
         d_type[1] = "fcast"
         d_type_long[1] = "forecast"

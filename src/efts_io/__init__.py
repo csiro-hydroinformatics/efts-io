@@ -5,6 +5,9 @@ Ensemble forecast time series
 
 from __future__ import annotations
 
+# Deprecated — use DataOriginType instead. Will be removed in a future version.
+from efts_io._ncdf_stf2 import StfDataType, StfVariable
+
 # Metadata attribute creation (recommended API)
 from efts_io.attributes import (
     DataOriginType,
@@ -23,7 +26,7 @@ from efts_io.attributes import (
 )
 
 # Main classes and functions
-from efts_io.wrapper import EftsDataSet, create_efts, create_mandatory_global_attributes, open_efts, xr_efts
+from efts_io.wrapper import EftsDataSet, create_mandatory_global_attributes, open_efts, xr_efts
 
 # import netCDF4
 
@@ -31,11 +34,13 @@ __all__: list[str] = [
     "DataOriginType",
     # Main classes
     "EftsDataSet",
+    # Deprecated — use DataOriginType instead
+    "StfDataType",
+    "StfVariable",
     "LocationType",
     # Metadata enumerations
     "TimeSeriesType",
     # Dataset creation functions
-    "create_efts",
     "create_global_attributes",
     "create_mandatory_global_attributes",
     "create_quality_variable_attributes",

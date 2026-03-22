@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from efts_io._internals import create_data_variable
 from efts_io.attributes import create_var_attribute_definition
 from efts_io.conventions import (
     AREA_VARNAME,
@@ -188,7 +187,7 @@ def create_variable_definitions(dframe: pd.DataFrame) -> Dict[str, Any]:
 
     # dframe[['rownum']] = 1:nrow(dframe)
     # r = plyr::dlply(.data = dframe, .variables = "rownum", .fun = f)
-    variables_defs: Dict = dframe.apply(lambda x: f(x), axis=1).to_dict()
+    variables_defs: Dict = dframe.apply(f, axis=1).to_dict()
     return {v["name"]: v for _, v in variables_defs.items()}
 
 
@@ -317,114 +316,4 @@ def create_optional_vardefs(
             "prec": vd["precision"],
         }
 
-    return vars_def.apply(lambda x: f(x), axis=1)
-
-
-#' Create netCDF variables according to the definition
-#'
-#' Create netCDF variables according to the definition
-#'
-#' @param data_var_def a list, with each item itself a list suitable as a variable definition argument to create_data_variable
-#' @param time_dim_info a list with the units and values defining the time dimension of the data set
-#' @param num_stations number of (gauging) stations identifying points in the data set
-#' @param lead_length length of the lead forecasting time series.
-#' @param ensemble_length number of ensembles, i.e. number of forecasts for each point on the main time axis of the data set
-#' @param optional_vars a data frame defining optional netCDF variables. For a templated default see
-#' \code{\link{default_optional_variable_definitions_v2_0}} and
-#' \url{https://github.com/jmp75/efts/blob/107c553045a37e6ef36b2eababf6a299e7883d50/docs/netcdf_for_water_forecasting.md#optional-variables}
-#' @param lead_time_tstep string specifying the time step of the forecast lead length.
-#' @seealso See
-#'    \code{\link{create_efts}} for examples
-def create_efts_variables(
-    data_var_def: Dict,
-    time_dim_info: Dict,
-    num_stations: int,
-    lead_length: int,
-    ensemble_length: int,
-    optional_vars: Optional[pd.DataFrame],
-    lead_time_tstep: str,
-) -> Dict[str, Any]:
-    """Create netCDF variables according to the definition."""
-    efts_dims = _create_nc_dims(
-        time_dim_info=time_dim_info,
-        num_stations=num_stations,
-        lead_length=lead_length,
-        ensemble_length=ensemble_length,
-    )
-
-    time_dim = efts_dims["time_dim"]
-    lead_time_dim = efts_dims["lead_time_dim"]
-    station_dim = efts_dims["station_dim"]
-    str_dim = efts_dims["str_dim"]
-    ensemble_dim = efts_dims["ensemble_dim"]
-
-    mandatory_var_ncdefs = create_mandatory_vardefs(
-        station_dim,
-        str_dim,
-        ensemble_dim,
-        lead_time_dim,
-        lead_time_tstep,
-    )
-    variables_metadata = mandatory_var_ncdefs
-    if optional_vars is not None:
-        optional_var_ncdefs = create_optional_vardefs(
-            station_dim,
-            vars_def=optional_vars,
-        )
-        # TODO if not native to ncdf4: check name clashes
-        # already_defs = names(variables)
-        variables_metadata.update(optional_var_ncdefs)
-
-    unknown_dims = [x for x in data_var_def.values() if x["dim_type"] not in ["2", "3", "4"]]
-    if len(unknown_dims) > 0:
-        raise ValueError(
-            f"Invalid dimension specifications for {len(unknown_dims)} variables. Only supported are characters 2, 3, 4",
-        )
-
-    variables = {}
-    variables["metadatavars"] = variables_metadata
-
-    data_variables = empty_data_variables(data_var_def, time_dim, lead_time_dim, station_dim, ensemble_dim)
-    variables["datavars"] = data_variables
-
-    return variables
-
-
-def empty_data_variables(
-    data_var_def: dict,
-    time_dim_tmp: Tuple[str, np.ndarray, Dict[str, str]],  # noqa: ARG001
-    lead_time_dim_tmp: Tuple[str, np.ndarray, Dict[str, str]],  # noqa: ARG001
-    station_dim_tmp: Tuple[str, np.ndarray, Dict[str, str]],  # noqa: ARG001
-    ensemble_dim_tmp: Tuple[str, np.ndarray, Dict[str, str]],  # noqa: ARG001
-) -> dict:
-    """Create data variables as defined in the definition."""
-    raise NotImplementedError("Not implemented yet")
-
-    data_variables = {}
-
-    ens_fcast_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "4"]
-    ens_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "3"]
-    point_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "2"]
-
-    time_dim = "not implemented"
-    lead_time_dim = "not implemented"
-    station_dim = "not implemented"
-    ensemble_dim = "not implemented"
-
-    data_variables.update(
-        {
-            x["name"]: create_data_variable(
-                x,
-                [lead_time_dim, station_dim, ensemble_dim, time_dim],
-            )
-            for x in ens_fcast_data_var_def
-        },
-    )
-    data_variables.update(
-        {x["name"]: create_data_variable(x, [station_dim, ensemble_dim, time_dim]) for x in ens_data_var_def},
-    )
-    data_variables.update(
-        {x["name"]: create_data_variable(x, [station_dim, time_dim]) for x in point_data_var_def},
-    )
-
-    return data_variables
+    return vars_def.apply(f, axis=1)

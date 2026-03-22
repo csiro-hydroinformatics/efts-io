@@ -1,8 +1,7 @@
 """A thin wrapper around xarray for reading and writing Ensemble Forecast Time Series (EFTS) data sets."""
 
-import os
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 # import netCDF4
 import numpy as np
@@ -10,10 +9,6 @@ import pandas as pd
 import xarray as xr
 
 from efts_io._ncdf_stf2 import StfDataType, StfVariable
-
-if TYPE_CHECKING:
-    from efts_io.attributes import DataOriginType, LocationType, TimeSeriesType
-
 from efts_io.conventions import (
     AREA_VARNAME,
     AXIS_ATTR_KEY,
@@ -42,10 +37,10 @@ from efts_io.conventions import (
     TITLE_ATTR_KEY,
     UNITS_ATTR_KEY,
     ConvertibleToTimestamp,
+    DataOriginType,
     check_index_found,
 )
 from efts_io.dimensions import cftimes_to_pdtstamps
-from efts_io.variables import create_efts_variables
 
 
 def byte_to_string(x: Union[int, bytes]) -> str:
@@ -364,7 +359,7 @@ class EftsDataSet:
         path: str,
         variable_name: Optional[str] = None,
         var_type: StfVariable = StfVariable.STREAMFLOW,
-        data_type: StfDataType = StfDataType.OBSERVED,
+        data_type: DataOriginType | StfDataType = DataOriginType.OBSERVED,
         ens: bool = False,  # noqa: FBT001, FBT002
         timestep: str = "days",
         data_qual: Optional[xr.DataArray] = None,
@@ -552,39 +547,11 @@ class EftsDataSet:
         start_time: Optional[pd.Timestamp] = None,
         lead_time_count: Optional[int] = None,
     ) -> xr.DataArray:
-        """Gets an ensemble forecast for a variable."""
+        """Not yet implemented. Gets an ensemble forecast for a variable."""
         # Return a time series, ensemble of forecasts over the lead time
-        if dimension_id is None:
-            dimension_id = self.get_stations_varname()
-        td = self.get_time_dim()
-        if start_time is None:
-            start_time = td[0]
-        n_ens = self.get_ensemble_size()
         raise NotImplementedError(
             "get_ensemble_forecasts: not yet implemented",
         )
-        index_id = self.index_for_identifier(identifier, dimension_id)
-        check_index_found(index_id, identifier, dimension_id)
-        if lead_time_count is None:
-            lead_time_count = self.get_lead_time_count()
-        indx_time = self.index_for_time(start_time)
-        # float rain_sim[lead_time,station,ens_member,time]
-        ens_data = self.data.get(variable_name)[
-            indx_time,
-            :n_ens,
-            index_id,
-            :lead_time_count,
-        ]
-        # ensData = self.data.get(variable_name), start = [1, index_id, 1, indTime],
-        #     count = c(lead_time_count, 1, nEns, 1), collapse_degen = FALSE)
-        # tu = self.get_lead_time_unit()
-        # if tu == "days":
-        #     timeAxis = start_time + pd.Timedelta(ncfile$dim$lead_time$vals)
-        # } else {
-        # timeAxis = start_time + lubridate::dhours(1) * ncfile$dim$lead_time$vals
-        # }
-        # out = xts(x = ensData[, 1, , 1], order.by = timeAxis, tzone = tz(start_time))
-        return ens_data  # noqa: RET504
 
     # def get_ensemble_forecasts_for_station(
     #     self,
@@ -614,7 +581,7 @@ class EftsDataSet:
 
     def get_ensemble_size(self) -> int:
         """Return the length of the ensemble size dimension."""
-        return self._dim_size(self.ENS_MEMBER_DIMNAME)
+        return self._dim_size(REALISATION_DIMNAME)
 
     def get_lead_time_count(self) -> int:
         """Length of the lead time dimension."""
@@ -642,7 +609,7 @@ class EftsDataSet:
 
     def get_station_count(self) -> int:
         """Return the number of stations in the data set."""
-        self._dim_size(self.STATION_DIMNAME)
+        return self._dim_size(STATION_ID_DIMNAME)
 
     def get_stations_varname(self) -> str:
         """Return the name of the variable that has the station identifiers."""
@@ -794,7 +761,7 @@ class EftsDataSet:
 #'
 #' @return A EftsDataSet object
 #' @importFrom methods is
-def open_efts(ncfile: Any, writein: bool = False) -> EftsDataSet:  # noqa: ARG001, FBT001, FBT002
+def open_efts(ncfile: Any) -> EftsDataSet:
     """Open an EFTS NetCDF file."""
     # raise NotImplemented("open_efts")
     # if isinstance(ncfile, str):
@@ -954,316 +921,3 @@ def _stf2_mandatory_global_attributes(
         STF_NC_SPEC_ATTR_KEY: STF_2_0_URL,
     }
 
-
-#' Creates a EftsDataSet for write access to a netCDF EFTS data set
-#'
-#' Creates a EftsDataSet for write access to a netCDF EFTS data set
-#'
-#' @param fname file name to create to. The file must not exist already.
-#' @param time_dim_info a list with the units and values defining the time dimension of the data set
-#' @param data_var_definitions a data frame, acceptable by \code{\link{create_variable_definitions}}, or list of netCDF variable definitions, e.g.
-#'       \code{list(rain_sim=list(name='rain_sim', longname='ECMWF Rainfall ensemble forecasts', units='mm', missval=-9999.0, precision='double', attributes=list(type=2, type_description='accumulated over the preceding interval')))}
-#' @param stations_ids station identifiers, coercible to an integer vector (note: may change to be a more flexible character storage)
-#' @param station_names optional; names of the stations
-#' @param nc_attributes a named list of characters, attributes for the whole file,
-#' including mandatory ones: title, institution, source, catchment, comment.
-#' You may use \code{\link{create_global_attributes}} as a starting template.
-#' @param lead_length length of the lead forecasting time series.
-#' @param optional_vars a data frame defining optional netCDF variables. For a templated default see
-#' \code{\link{default_optional_variable_definitions_v2_0}} and
-#' \url{https://github.com/jmp75/efts/blob/107c553045a37e6ef36b2eababf6a299e7883d50/docs/netcdf_for_water_forecasting.md#optional-variables}
-#' @param lead_time_tstep string specifying the time step of the forecast lead length.
-#' @param ensemble_length number of ensembles, i.e. number of forecasts for each point on the main time axis of the data set
-#' @examples
-#'
-#' # NOTE
-#' # The sample code below is purposely generic; to produce
-#' # a data set conforming with the conventions devised for
-#' # ensemble streamflow forecast you will need to
-#' # follow the additional guidelines at
-#' # https://github.com/jmp75/efts/blob/master/docs/netcdf_for_water_forecasting.md
-#'
-#' fname = tempfile()
-#'
-#' stations_ids = c(123,456)
-#' nEns = 3
-#' nLead = 4
-#' nTimeSteps = 12
-#'
-#' timeAxisStart = ISOdate(year=2010, month=08, day=01, hour = 14, min = 0, sec = 0, tz = 'UTC')
-#' time_dim_info = create_time_info(from=timeAxisStart,
-#'   n=nTimeSteps, time_step = "hours since")
-#'
-#' # It is possible to define variables for three combinations of dimensions.
-#' # dimensions '4' ==> [lead_time,station,ens_member,time]
-#' # dimensions '3' ==> [station,ens_member,time]
-#' # dimensions '2' ==> [station,time]
-#'
-#' variable_names = c('var1_fcast_ens','var2_fcast_ens', 'var1_obs',
-#'   'var2_obs', 'var1_ens','var2_ens')
-#'
-#' va = create_var_attribute_definition(
-#'   type = 2L,
-#'   type_description = "accumulated over the preceding interval",
-#'   dat_type = "der",
-#'   dat_type_description = paste(rep(c("var1", "var2"), 3), "synthetic test data"),
-#'   location_type = "Point")
-#'
-#'
-#' (varDef = create_variable_definition_dataframe(
-#'   variable_names=variable_names,
-#'   long_names = paste(variable_names, 'synthetic data'),
-#'   dimensions = c(4L,4L,2L,2L,3L,3L),
-#'   var_attributes = va))
-#'
-#' glob_attr = create_global_attributes(
-#'   title="data set title",
-#'   institution="my org",
-#'   catchment="Upper_Murray",
-#'   source="A journal reference, URL",
-#'   comment="example for vignette")
-#'
-#' (opt_metadatavars = default_optional_variable_definitions_v2_0())
-#'
-#' snc = create_efts(
-#'   fname=fname,
-#'   time_dim_info=time_dim_info,
-#'   data_var_definitions=varDef,
-#'   stations_ids=stations_ids,
-#'   nc_attributes=glob_attr,
-#'   optional_vars = opt_metadatavars,
-#'   lead_length=nLead,
-#'   ensemble_length=nEns,
-#'   lead_time_tstep = "hours")
-#'
-#' # Following is code that was used to create unit tests for EFTS.
-#' # This is kept in this example to provide sample on now to write data of various dimension.
-#' td = snc$get_time_dim()
-#' m = matrix(ncol=nEns, nrow=nLead)
-#' for (rnum in 1:nLead) {
-#'     for (cnum in 1:nEns) {
-#'       m[rnum,cnum] = rnum*0.01 + cnum*0.1
-#'   }
-#' }
-#' #      [,1] [,2] [,3]
-#' # [1,] 0.11 0.21 0.31
-#' # [2,] 0.12 0.22 0.32
-#' # [3,] 0.13 0.23 0.33
-#' # [4,] 0.14 0.24 0.34
-#' for (i in 1:length(td)) {
-#'   for (j in 1:length(stations_ids)) {
-#'     station = stations_ids[j]
-#'     var1Values = i + 0.1*j + m
-#'     var2Values = 2*var1Values
-#'     dtime = td[i]
-#'     snc$put_ensemble_forecasts(var1Values, variable_name = variable_names[1],
-#'       identifier = station, start_time = dtime)
-#'     snc$put_ensemble_forecasts(var2Values, variable_name = variable_names[2],
-#'       identifier = station, start_time = dtime)
-#'   }
-#' }
-#'
-#' timeSteps = 1:length(td)
-#' for (j in 1:length(stations_ids)) {
-#'   var3Values = timeSteps + 0.1*j
-#'   var4Values = var3Values + 0.01*timeSteps + 0.001*j
-#'
-#'   station = stations_ids[j]
-#'   snc$put_single_series(var3Values, variable_name = variable_names[3], identifier = station)
-#'   snc$put_single_series(var4Values, variable_name = variable_names[4], identifier = station)
-#' }
-#'
-#' for (j in 1:length(stations_ids)) {
-#'
-#'   var5Xts = matrix(rep(1:nEns, each=nTimeSteps) + timeSteps + 0.1*j, ncol=nEns)
-#'
-#'   # [time,ens_member] to [ens_member,time], as expected by put_ensemble_series
-#'   var5Values = t(var5Xts)
-#'   var6Values = 0.25 * var5Values
-#'
-#'   station = stations_ids[j]
-#'   snc$put_ensemble_series(var5Values, variable_name = variable_names[5], identifier = station)
-#'   snc$put_ensemble_series(var6Values, variable_name = variable_names[6], identifier = station)
-#' }
-#'
-#' # We can get/put values for some metadata variables:
-#' snc$get_values("x")
-#' snc$put_values(c(1.1, 2.2), "x")
-#' snc$put_values(letters[1:2], STATION_NAME_VARNAME)
-#'
-#' # Direct get/set access to data variables, however, is prevented;
-#' #  the following would thus cause an error:
-#' # snc$get_values("var1_fcast_ens")
-#'
-#' snc$close()
-#' # Cleaning up temp file:
-#' if (file.exists(fname))
-#'   file.remove(fname)
-#'
-#'
-#'
-#' @export
-#' @import ncdf4
-#' @importFrom utils packageDescription
-#' @importFrom methods new
-#' @return A EftsDataSet object
-def create_efts(
-    fname: str,
-    time_dim_info: Dict,
-    data_var_definitions: List[Dict[str, Any]],
-    stations_ids: List[int],
-    station_names: Optional[List[str]] = None,  # noqa: ARG001
-    nc_attributes: Optional[Dict[str, str]] = None,
-    optional_vars: Optional[dict[str, Any]] = None,
-    lead_length: int = 48,
-    ensemble_length: int = 50,
-    lead_time_tstep: str = "hours",
-) -> EftsDataSet:
-    """Create a new EFTS dataset."""
-    import xarray as xr
-
-    from efts_io.conventions import mandatory_global_attributes
-
-    if stations_ids is None:
-        raise ValueError(
-            "You must provide station identifiers when creating a new EFTS netCDF data set",
-        )
-
-    if nc_attributes is None:
-        raise ValueError(
-            "You must provide a suitable list for nc_attributes, including" + ", ".join(mandatory_global_attributes),
-        )
-
-    # check_global_attributes(nc_attributes)
-
-    if os.path.exists(fname):
-        raise FileExistsError("File already exists: " + fname)
-
-    if isinstance(data_var_definitions, pd.DataFrame):
-        raise TypeError(
-            "data_var_definitions should be a list of dictionaries, not a pandas DataFrame",
-        )
-
-    var_defs = create_efts_variables(
-        data_var_definitions,
-        time_dim_info,
-        num_stations=len(stations_ids),
-        lead_length=lead_length,
-        ensemble_length=ensemble_length,
-        optional_vars=optional_vars,
-        lead_time_tstep=lead_time_tstep,
-    )
-
-    ## attributes for dimensions variables
-    def add_dim_attribute(v: xr.Variable, dimname: str, attr_key: str, attr_value: str) -> None:
-        pass
-
-    add_dim_attribute(var_defs, TIME_DIMNAME, STANDARD_NAME_ATTR_KEY, TIME_DIMNAME)
-    add_dim_attribute(var_defs, TIME_DIMNAME, TIME_STANDARD_ATTR_KEY, "UTC")
-    add_dim_attribute(var_defs, TIME_DIMNAME, AXIS_ATTR_KEY, "t")
-    add_dim_attribute(var_defs, ENS_MEMBER_DIMNAME, STANDARD_NAME_ATTR_KEY, ENS_MEMBER_DIMNAME)
-    add_dim_attribute(var_defs, ENS_MEMBER_DIMNAME, AXIS_ATTR_KEY, "u")
-    add_dim_attribute(var_defs, LEAD_TIME_DIMNAME, STANDARD_NAME_ATTR_KEY, LEAD_TIME_DIMNAME)
-    add_dim_attribute(var_defs, LEAD_TIME_DIMNAME, AXIS_ATTR_KEY, "v")
-    add_dim_attribute(var_defs, LAT_VARNAME, AXIS_ATTR_KEY, "y")
-    add_dim_attribute(var_defs, LON_VARNAME, AXIS_ATTR_KEY, "x")
-
-    d = xr.Dataset(
-        data_vars=var_defs["datavars"],
-        coords=var_defs["metadatavars"],
-        attrs={"description": "TODO: put the right attributes"},
-    )
-
-    ## Determine if there is real value in a tryCatch. What is the point if we cannot close/delete the file.
-    # nc = tryCatch(
-    #   createSchema(fname, varDefs, data_var_definitions, nc_attributes, optional_vars,
-    #     stations_ids, lead_length, ensemble_length, station_names),
-    #   error = function(e) {
-    #     stop(paste("netCDF schema creation failed", e))
-    #     None
-    #   }, finally = function() {
-    #   }
-    # )
-    # nc = createSchema(fname, varDefs, data_var_definitions, nc_attributes, optional_vars,
-    #   stations_ids, lead_length, ensemble_length, station_names)
-
-    return EftsDataSet(d)
-
-
-# ########################################
-# # Below are functions not exported
-# ########################################
-
-# infoList(theList) {
-#   paste(paste(names(theList), theList, sep = ": "), collapse = ", ")
-# }
-
-# createSchema(fname, varDefs, data_var_definitions, nc_attributes, optional_vars,
-#   stations_ids, lead_length, ensemble_length, station_names=NA) {
-
-#   allVars = c(varDefs$datavars, varDefs$metadatavars)
-#   nc = ncdf4::nc_create(fname, vars = allVars)
-
-#   ## attributes for data variables
-#   lapply(data_var_definitions, put_variable_attributes, nc)
-
-#   ## attributes for dimensions variables
-#   ncdf4::ncatt_put(nc, TIME_DIMNAME, STANDARD_NAME_KEY, TIME_DIMNAME)
-#   ncdf4::ncatt_put(nc, TIME_DIMNAME, TIME_STANDARD_KEY, "UTC")
-#   ncdf4::ncatt_put(nc, TIME_DIMNAME, AXIS_ATTR_KEY, "t")
-#   ncdf4::ncatt_put(nc, ENS_MEMBER_DIMNAME, STANDARD_NAME_KEY, ENS_MEMBER_DIMNAME)
-#   ncdf4::ncatt_put(nc, ENS_MEMBER_DIMNAME, AXIS_ATTR_KEY, "u")
-#   ncdf4::ncatt_put(nc, LEAD_TIME_DIMNAME, STANDARD_NAME_KEY, LEAD_TIME_DIMNAME)
-#   ncdf4::ncatt_put(nc, LEAD_TIME_DIMNAME, AXIS_ATTR_KEY, "v")
-#   ncdf4::ncatt_put(nc, LAT_VARNAME, AXIS_ATTR_KEY, "y")
-#   ncdf4::ncatt_put(nc, lon_varname, AXIS_ATTR_KEY, "x")
-
-#   ## attributes for optional metadata variables
-#   if(!is.None(optional_vars))
-#   {
-#     var_names = rownames(optional_vars)
-#     if(STANDARD_NAME_KEY %in% colnames(optional_vars)){
-#       for (v in var_names) {
-#         sn = optional_vars[v, STANDARD_NAME_KEY]
-#         if(!is.na(sn)) ncdf4::ncatt_put(nc, v, STANDARD_NAME_KEY, sn)
-#       }
-#     }
-#     if(x_varname %in% var_names){
-#       ncdf4::ncatt_put(nc, x_varname, AXIS_ATTR_KEY, "x")
-#     }
-#     if(y_varname %in% var_names){
-#       ncdf4::ncatt_put(nc, y_varname, AXIS_ATTR_KEY, "y")
-#     }
-#   }
-
-#   ## Add global attributes
-#   ncdf4::ncatt_put(nc, 0, STF_CONVENTION_VERSION_ATTR_KEY, 2)
-#   ncdf4::ncatt_put(nc, 0, STF_NC_SPEC_ATTR_KEY, "https://github.com/jmp75/efts/blob/107c553045a37e6ef36b2eababf6a299e7883d50/docs/netcdf_for_water_forecasting.md")
-#   ncdf4::ncatt_put(nc, 0, HISTORY_ATTR_KEY,
-#     paste(
-#       as.character(lubridate::now(tzone="UTC")),
-#       "UTC",
-#       "file created with the R package efts", packageDescription("efts")$Version
-#     ) %>% infoList)
-
-#   if(!is.None(nc_attributes)) {
-#     for (k in names(nc_attributes)) {
-#       pad_global_attribute(nc, k, nc_attributes[k])
-#     }
-#   }
-
-#   ## populate metadata variables
-#   ncdf4::ncvar_put(nc, STATION_ID_VARNAME, stations_ids)
-#   ncdf4::ncvar_put(nc, LEAD_TIME_DIMNAME, 1:lead_length)
-#   ncdf4::ncvar_put(nc, ENS_MEMBER_DIMNAME, 1:ensemble_length)
-#   if (!is.None(station_names)) {
-#     ncdf4::ncvar_put(nc, STATION_NAME_VARNAME, station_names)
-#   }
-#   # One seems to need to close/reopen the newly created file, otherwise some
-#   # ncvar_get operations will fail with a cryptic message.  I follow the
-#   # advice in this and associated posts
-#   # https://www.unidata.ucar.edu/mailing_lists/archives/netcdfgroup/2012/msg00270.html
-#   ncdf4::nc_close(nc)
-#   nc = ncdf4::nc_open(fname, write = TRUE, readunlim = FALSE)
-#   return(nc)
-# }

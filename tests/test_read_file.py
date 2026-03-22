@@ -211,16 +211,6 @@ def doTests(
         nc_attributes=glob_attr,
     )
 
-    # snc = create_efts(
-    #     tempNcFname,
-    #     time_dim_info,
-    #     var_defs_dict,
-    #     station_ids_ints,
-    #     nc_attributes=glob_attr,
-    #     lead_length=nLead,
-    #     ensemble_length=nEns,
-    #     lead_time_tstep=lead_time_tstep,
-    # )
     snc = EftsDataSet(xr_data)
 
     snc.create_data_variables(var_defs_dict)
