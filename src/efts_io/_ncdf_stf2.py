@@ -1,42 +1,82 @@
-"""Low level functions to write an xarray dataarray to disk in the sft conventions.
+"""Low level functions to write an xarray DataArray to disk in the STF conventions.
 
-These are functions ported from a collection of utilities initially in https://bitbucket.csiro.au/projects/SF/repos/python_functions/browse/swift_utility/swift_io.py
+These are functions ported from a collection of utilities initially in
+https://bitbucket.csiro.au/projects/SF/repos/python_functions/browse/swift_utility/swift_io.py
 """
 
 import os  # noqa: I001
-import warnings
+from dataclasses import dataclass
 from enum import Enum
+from types import TracebackType
 from typing import Any, Optional
+
+from typing_extensions import Self
 
 import numpy as np
 import pandas as pd
 import xarray as xr
 
 from efts_io.conventions import (
+    AREA_VARNAME,
+    AXIS_ATTR_KEY,
+    CATCHMENT_ATTR_KEY,
+    COMMENT_ATTR_KEY,
     DAT_TYPE_ATTR_KEY,
     DAT_TYPE_DESCRIPTION_ATTR_KEY,
+    ELEVATION_VARNAME,
+    ENS_MEMBER_DIMNAME,
     FILLVALUE_ATTR_KEY,
+    HISTORY_ATTR_KEY,
+    INSTITUTION_ATTR_KEY,
     LAT_VARNAME,
+    LEAD_TIME_DIMNAME,
     LOCATION_TYPE_ATTR_KEY,
     LON_VARNAME,
+    LONG_NAME_ATTR_KEY,
     REALISATION_DIMNAME,
+    SOURCE_ATTR_KEY,
+    STANDARD_NAME_ATTR_KEY,
+    STATION_DIMNAME,
     STATION_ID_DIMNAME,
+    STATION_ID_VARNAME,
+    STATION_NAME_VARNAME,
     STF_2_0_URL,
+    STF_CONVENTION_VERSION_ATTR_KEY,
+    STR_LEN_DIMNAME,
+    TIME_DIMNAME,
+    TIME_STANDARD_ATTR_KEY,
+    TITLE_ATTR_KEY,
     TYPE_ATTR_KEY,
     TYPE_DESCRIPTION_ATTR_KEY,
     TYPES_CONVERTIBLE_TO_TIMESTAMP,
+    UNITS_ATTR_KEY,
+    X_VARNAME,
+    Y_VARNAME,
     AttributesErrorLevel,
     DataOriginType,
     check_optional_variable_attributes,
     detect_timezone_info,
-    validate_fixed_offset_timezone,
+    has_required_variables_xr,
     has_required_xarray_global_attributes,
+    has_variable,
+    is_subset_required_xarray_dimensions,
+    mandatory_global_attributes,
+    mandatory_varnames_xr,
+    mandatory_xarray_dimensions,
+    validate_fixed_offset_timezone,
 )
 
 from netCDF4 import Dataset
 
 
+# ---------------------------------------------------------------------------
+# Public enums
+# ---------------------------------------------------------------------------
+
+
 class StfVariable(Enum):
+    """Hydrological variable type in the STF convention."""
+
     STREAMFLOW = 1
     POTENTIAL_EVAPOTRANSPIRATION = 2
     RAINFALL = 3
@@ -70,6 +110,168 @@ _DATA_ORIGIN_TYPE_TO_INT: dict[DataOriginType, int] = {
     DataOriginType.SIMULATED: StfDataType.SIMULATED.value,
 }
 
+
+# ---------------------------------------------------------------------------
+# Variable naming metadata
+# ---------------------------------------------------------------------------
+
+# Mapping from StfVariable to its short prefix, long name, and default TimeSeriesType code.
+_VARIABLE_META: dict[StfVariable, tuple[str, str, int]] = {
+    StfVariable.STREAMFLOW: ("q", "streamflow", 3),
+    StfVariable.POTENTIAL_EVAPOTRANSPIRATION: ("pet", "potential evapotranspiration", 2),
+    StfVariable.RAINFALL: ("rain", "rainfall", 2),
+    StfVariable.SNOW_WATER_EQUIVALENT: ("swe", "snow water equivalent", 2),
+    StfVariable.MINIMUM_TEMPERATURE: ("tmin", "minimum temperature", 5),
+    StfVariable.MAXIMUM_TEMPERATURE: ("tmax", "maximum temperature", 5),
+}
+
+# Mapping from TimeSeriesType code to its description.
+_TIME_SERIES_TYPE_DESCRIPTIONS: dict[int, str] = {
+    2: "accumulated over the preceding interval",
+    3: "averaged over the preceding interval",
+    5: "point value recorded in the preceding interval",
+}
+
+# STF version 1 uses "fcast" for forecast; version 2 uses "fct".
+_FORECAST_SHORT: dict[int, str] = {1: "fcast", 2: "fct"}
+
+# Mapping from DataOriginType to (short_name, long_name) for STF version 2.
+# "derived" and "observed" map to "obs" category; "simulated" and "forecast" map to "sim".
+_DATA_ORIGIN_OBS_SET: frozenset[DataOriginType] = frozenset({DataOriginType.DERIVED, DataOriginType.OBSERVED})
+
+
+@dataclass(frozen=True)
+class VariableNaming:
+    """Resolved variable naming for a given var_type + data_type + version combination.
+
+    Attributes:
+        short_name: Short variable name written to the NetCDF file (e.g. ``"q_obs"``).
+        long_name: Long descriptive name for the variable.
+        default_ts_type_code: Default ``type`` attribute (TimeSeriesType integer code).
+        default_ts_type_description: Default ``type_description`` attribute.
+        dat_type: The ``dat_type`` attribute value (STF v2 only, e.g. ``"obs"``).
+        dat_type_description: The ``dat_type_description`` attribute value (STF v2 only).
+    """
+
+    short_name: str
+    long_name: str
+    default_ts_type_code: int
+    default_ts_type_description: str
+    dat_type: str
+    dat_type_description: str
+
+    @classmethod
+    def from_spec(
+        cls,
+        var_type: StfVariable,
+        data_type: DataOriginType,
+        stf_nc_vers: int,
+        ens: bool,  # noqa: FBT001
+    ) -> "VariableNaming":
+        """Derive the naming from the STF convention specification.
+
+        Args:
+            var_type: Hydrological variable type.
+            data_type: Data origin type.
+            stf_nc_vers: STF convention version (1 or 2).
+            ens: Whether this is an ensemble variable (version 1 only).
+
+        Returns:
+            A fully-resolved ``VariableNaming`` instance.
+        """
+        prefix, long_stem, ts_type_code = _VARIABLE_META[var_type]
+        ts_type_desc = _TIME_SERIES_TYPE_DESCRIPTIONS[ts_type_code]
+
+        dat_type_attr = ""
+        dat_type_desc = ""
+
+        if stf_nc_vers == 1:
+            d_short = _stf1_data_type_short(data_type)
+            d_long = _stf1_data_type_long(data_type)
+            short_name = f"{prefix}_{d_short}"
+            long_name = f"{d_long} {long_stem}"
+            if ens:
+                short_name = f"{short_name}_ens"
+                long_name = f"{long_name} ensemble"
+        else:
+            dat_type_attr = data_type.code
+            dat_type_desc = data_type.description
+            if data_type in _DATA_ORIGIN_OBS_SET:
+                short_name = f"{prefix}_obs"
+                long_name = f"observed {long_stem}"
+            else:
+                short_name = f"{prefix}_sim"
+                long_name = f"simulated {long_stem}"
+
+        return cls(
+            short_name=short_name,
+            long_name=long_name,
+            default_ts_type_code=ts_type_code,
+            default_ts_type_description=ts_type_desc,
+            dat_type=dat_type_attr,
+            dat_type_description=dat_type_desc,
+        )
+
+
+def _stf1_data_type_short(data_type: DataOriginType) -> str:
+    """Return the short data-type string for STF version 1."""
+    mapping = {
+        DataOriginType.DERIVED: "der",
+        DataOriginType.FORECAST: "fcast",
+        DataOriginType.OBSERVED: "obs",
+        DataOriginType.SIMULATED: "sim",
+    }
+    return mapping[data_type]
+
+
+def _stf1_data_type_long(data_type: DataOriginType) -> str:
+    """Return the long data-type description for STF version 1."""
+    mapping = {
+        DataOriginType.DERIVED: "derived (from observations)",
+        DataOriginType.FORECAST: "forecast",
+        DataOriginType.OBSERVED: "observed",
+        DataOriginType.SIMULATED: "simulated",
+    }
+    return mapping[data_type]
+
+
+# ---------------------------------------------------------------------------
+# Timestep normalisation
+# ---------------------------------------------------------------------------
+
+_TIMESTEP_ALIASES: dict[str, str] = {
+    "weeks": "weeks", "w": "weeks", "wk": "weeks", "week": "weeks",
+    "days": "days", "d": "days", "ds": "days", "day": "days",
+    "hours": "hours", "h": "hours", "hr": "hours", "hour": "hours",
+    "minutes": "minutes", "m": "minutes", "min": "minutes", "minute": "minutes",
+    "seconds": "seconds", "s": "seconds", "sec": "seconds", "second": "seconds",
+}
+
+
+def _normalise_timestep(timestep: str) -> str:
+    """Normalise a user-supplied timestep string to a canonical CF-compliant form.
+
+    Args:
+        timestep: A timestep alias (e.g. ``"d"``, ``"hr"``, ``"days"``).
+
+    Returns:
+        Canonical timestep string (one of ``"weeks"``, ``"days"``, ``"hours"``,
+        ``"minutes"``, ``"seconds"``).
+
+    Raises:
+        ValueError: If the timestep is not recognised.
+    """
+    canonical = _TIMESTEP_ALIASES.get(timestep)
+    if canonical is None:
+        raise ValueError(f"Unsupported or unrecognised time step unit: {timestep}")
+    return canonical
+
+
+# ---------------------------------------------------------------------------
+# CF time axis
+# ---------------------------------------------------------------------------
+
+
 def _create_cf_time_axis(data: xr.DataArray, timestep_str: str) -> tuple[np.ndarray, str, str, str]:
     """Create a CF-compliant time axis for the given xarray DataArray.
 
@@ -78,58 +280,50 @@ def _create_cf_time_axis(data: xr.DataArray, timestep_str: str) -> tuple[np.ndar
     supported by the STF2 NetCDF format.
 
     Args:
-        data (xr.DataArray): The input data array with time coordinate.
-        timestep_str (str): The time step string (e.g., "days", "hours").
+        data: The input data array with time coordinate.
+        timestep_str: The time step string (e.g., ``"days"``, ``"hours"``).
 
     Returns:
-        tuple[np.ndarray, str, str, str]: A tuple containing:
+        A tuple containing:
             - encoded time axis values
             - units string with timezone
             - calendar string
-            - timezone offset string (e.g., "+10:00", "-05:00", "+00:00")
+            - timezone offset string (e.g., ``"+10:00"``, ``"-05:00"``, ``"+00:00"``)
 
     Raises:
         ValueError: If time array is empty.
         TypeError: If time values are not convertible to timestamps.
         NotImplementedError: If timezone observes daylight saving time (DST).
     """
-    from xarray.coding import times  # noqa: I001
-    from efts_io.conventions import TIME_DIMNAME
+    from xarray.coding import times
 
     tt = data[TIME_DIMNAME].values
     if len(tt) == 0:
         raise ValueError("Cannot create CF time axis from empty data array.")
     origin = tt[0]
-    # will be strict in the first instance, relax or expand later on as needed
     if not any(isinstance(origin, t) for t in TYPES_CONVERTIBLE_TO_TIMESTAMP):
         raise TypeError(
             f"Expected data[TIME_DIMNAME] to be of a type convertible to pd.Timestamp, got {type(origin)} instead.",
         )
 
-    # Detect timezone from original timestamps (Phase 1 utility)
+    # Detect timezone from original timestamps
     tz_string, offset_string = detect_timezone_info(tt)
 
     # Validate that timezone is fixed-offset (no DST)
-    # This will raise NotImplementedError for DST timezones
     origin_ts = pd.Timestamp(origin)
     tz_string, offset_string = validate_fixed_offset_timezone(tz_string, origin_ts)
 
-    # Preserve original timezone instead of converting to UTC
-    # If timezone-naive, treat as UTC (already handled by detect_timezone_info)
+    # If timezone-naive, treat as UTC
     if origin_ts.tz is None:
-        # Localize to UTC if naive (detect_timezone_info returns "UTC" for naive)
         origin_ts = origin_ts.tz_localize("UTC")
 
-    # NOTE: this is not quite what is suggested by the STF convention in the example string.
-    # The below is closer to the the 8601 specifications, however we use space not 'T' for date/time separator
-    # https://docs.digi.com/resources/documentation/digidocs/90001488-13/reference/r_iso_8601_date_format.htm
+    # Format origin with timezone offset (ISO 8601 with space separator)
     formatted_string = origin_ts.strftime("%Y-%m-%d %H:%M:%S")
     formatted_string_with_tz = f"{formatted_string}{offset_string}"
 
     # xarray's encode_cf_datetime expects timezone-naive datetime values.
     # Convert timestamps to UTC and strip timezone info for encoding.
-    # The timezone is preserved in the units string (e.g., "days since 2024-01-15 00:00:00-11:00"),
-    # so when reading back, the decoder can correctly interpret the values.
+    # The timezone is preserved in the units string.
     dtimes_utc_naive = np.array(
         [
             pd.Timestamp(x).tz_convert("UTC").tz_localize(None) if pd.Timestamp(x).tz is not None else pd.Timestamp(x)
@@ -138,28 +332,32 @@ def _create_cf_time_axis(data: xr.DataArray, timestep_str: str) -> tuple[np.ndar
         dtype="datetime64[ns]",
     )
 
-    axis, units, calendar = times.encode_cf_datetime(
+    axis, _units, calendar = times.encode_cf_datetime(
         dates=dtimes_utc_naive,
         units=f"{timestep_str} since {formatted_string_with_tz}",
         calendar=None,
         dtype=None,
     )
-    # override times.encode_cf_datetime, which is varying
-    # depending on the input unit string and may not have the time zone, or a T separator.
+    # Override units — encode_cf_datetime may vary the format.
     units = f"{timestep_str} since {formatted_string_with_tz}"
     return axis, units, calendar, offset_string
+
+
+# ---------------------------------------------------------------------------
+# Station ID validation
+# ---------------------------------------------------------------------------
 
 
 def _validate_station_id_for_int32(station_id: np.ndarray, intdata_type: str) -> None:
     """Validate that station_id values can be safely stored as int32.
 
     Args:
-        station_id: Array of station ID values to validate
-        intdata_type: The intended integer data type (e.g., 'i4' for int32)
+        station_id: Array of station ID values to validate.
+        intdata_type: The intended integer data type (e.g., ``"i4"`` for int32).
 
     Raises:
-        TypeError: If station_id values are not integers
-        OverflowError: If station_id values are outside the int32 range
+        TypeError: If station_id values are not integers.
+        OverflowError: If station_id values are outside the int32 range.
     """
     if intdata_type == "i4":
         max_station_id = np.max(station_id)
@@ -172,53 +370,24 @@ def _validate_station_id_for_int32(station_id: np.ndarray, intdata_type: str) ->
             )
 
 
-def write_nc_stf2(
-    out_nc_file: str,
+# ---------------------------------------------------------------------------
+# Input validation
+# ---------------------------------------------------------------------------
+
+
+def _validate_inputs(
     dataset: xr.Dataset,
     data: xr.DataArray,
-    var_type: StfVariable = StfVariable.STREAMFLOW,
-    data_type: DataOriginType = DataOriginType.OBSERVED,
-    stf_nc_vers: int = 2,
-    ens: bool = False,  # noqa: FBT001, FBT002
-    timestep: str = "days",
-    data_qual: Optional[xr.DataArray] = None,
-    overwrite: bool = True,  # noqa: FBT001, FBT002
-    # loc_info: Optional[Dict[str, Any]] = None,
-    intdata_type: str = "i4",
 ) -> None:
-    from efts_io.conventions import (  # noqa: I001
-        X_VARNAME,
-        Y_VARNAME,
-        AREA_VARNAME,
-        ELEVATION_VARNAME,
-        AXIS_ATTR_KEY,
-        CATCHMENT_ATTR_KEY,
-        COMMENT_ATTR_KEY,
-        ENS_MEMBER_DIMNAME,
-        HISTORY_ATTR_KEY,
-        INSTITUTION_ATTR_KEY,
-        LEAD_TIME_DIMNAME,
-        LONG_NAME_ATTR_KEY,
-        SOURCE_ATTR_KEY,
-        STANDARD_NAME_ATTR_KEY,
-        STATION_DIMNAME,
-        STATION_ID_VARNAME,
-        STATION_NAME_VARNAME,
-        STF_CONVENTION_VERSION_ATTR_KEY,
-        STR_LEN_DIMNAME,
-        TIME_DIMNAME,
-        TIME_STANDARD_ATTR_KEY,
-        TITLE_ATTR_KEY,
-        UNITS_ATTR_KEY,
-        is_subset_required_xarray_dimensions,
-        mandatory_xarray_dimensions,
-        mandatory_global_attributes,
-        has_required_variables_xr,
-        mandatory_varnames_xr,
-        has_variable,
-        # exportable_to_stf2,
-    )
+    """Validate that the dataset and data array meet STF requirements.
 
+    Args:
+        dataset: The xarray Dataset with global attributes and variables.
+        data: The xarray DataArray to be written.
+
+    Raises:
+        ValueError: If required dimensions, attributes, or variables are missing.
+    """
     if not is_subset_required_xarray_dimensions(data):
         raise ValueError(
             f"DataArray must have dimensions that are a subset of: {mandatory_xarray_dimensions}",
@@ -234,349 +403,401 @@ def write_nc_stf2(
             f"DataArray must have the following variables: {mandatory_varnames_xr}",
         )
 
-    # we may want to check this as well here.
-    # if not exportable_to_stf2(data):
-    #     raise ValueError(
-    #         "Unexpected condition in the input data array prevented export to STF2.",
-    #     )
-
-    # Check that optional variables, if present, have the minimum attributes present.
-    def _check_optional_var_attr(dataset: xr.Dataset, var_id: str) -> None:
-        if has_variable(dataset, var_id):
-            xrvar = dataset[var_id]
-            check_optional_variable_attributes(xrvar, AttributesErrorLevel.ERROR)
-
     for var_id in (AREA_VARNAME, X_VARNAME, Y_VARNAME, ELEVATION_VARNAME):
-        _check_optional_var_attr(dataset, var_id)
+        if has_variable(dataset, var_id):
+            check_optional_variable_attributes(dataset[var_id], AttributesErrorLevel.ERROR)
 
-    var_type_nb = var_type.value
-    # data_type = _DATA_ORIGIN_TYPE_TO_INT[data_type]
 
-    n_stations = len(data[STATION_ID_DIMNAME])
+def _coerce_station_ids(dataset: xr.Dataset) -> np.ndarray:
+    """Extract station IDs from the dataset, coercing to integer if necessary.
 
-    station = np.arange(1, n_stations + 1)
+    Args:
+        dataset: The xarray Dataset containing station_id values.
 
-    # Retrieve arrays from expected variables in the input xarray dataarray `data`
+    Returns:
+        Integer numpy array of station IDs.
+
+    Raises:
+        TypeError: If station_id values cannot be converted to integers.
+    """
     station_id = dataset[STATION_ID_VARNAME].values
     if not np.issubdtype(station_id.dtype, np.integer):
-        # convert to integer if possible
         try:
             station_id = station_id.astype(np.int64)
         except Exception as e:
             raise TypeError(
-                "station_id values must be representable as integers to be stored in STF2.0 format, and we could not convert them all automatically.",
+                "station_id values must be representable as integers to be stored in STF2.0 format, "
+                "and we could not convert them all automatically.",
             ) from e
-    station_name = dataset[STATION_NAME_VARNAME].values
-    sub_x_centroid = dataset[LON_VARNAME].values
-    sub_y_centroid = dataset[LAT_VARNAME].values
+    return station_id
 
-    # NOTE: the original code had an "other_station_id" option, apparently storing some
-    # identifiers from the Bureau of meteorology. For the time being, disable,
-    # but initiate a discussion. See issue #9.
-    # other_station_id = data["other_station_id"].values
 
-    if timestep in ["weeks", "w", "wk", "week"]:
-        timestep_str = "weeks"
-    elif timestep in ["days", "d", "ds", "day"]:
-        timestep_str = "days"
-    elif timestep in ["hours", "h", "hr", "hour"]:
-        timestep_str = "hours"
-    elif timestep in ["minutes", "m", "min", "minute"]:
-        timestep_str = "minutes"
-    elif timestep in ["seconds", "s", "sec", "second"]:
-        timestep_str = "seconds"
-    else:
-        raise ValueError(f"Unsupported or unrecognised time step unit: {timestep}")
+def _handle_existing_file(out_nc_file: str, overwrite: bool) -> None:  # noqa: FBT001
+    """Remove existing output file if overwrite is allowed, or raise.
 
-    # Check if file exists
+    Args:
+        out_nc_file: Path to the output NetCDF file.
+        overwrite: Whether to overwrite an existing file.
+
+    Raises:
+        FileExistsError: If the file exists and ``overwrite`` is ``False``.
+    """
     if os.path.exists(out_nc_file):
         if not overwrite:
             raise FileExistsError(
                 f"Warning: The file '{out_nc_file}' exists, so either set overwrite=True to overwrite or give new filename.",
             )
         os.remove(out_nc_file)
-        # print(f"Warning: The file '{out_nc_file}' has been overwritten.")
 
-    # Create netcdf file
-    ncfile = Dataset(out_nc_file, "w", format="NETCDF4")
-    try:
-        # Global Attributes
-        # ncfile.description = "CCLIR forecasts"
-        ncfile.title = dataset.attrs.get(TITLE_ATTR_KEY, "")  # = nc_title
-        ncfile.institution = dataset.attrs.get(INSTITUTION_ATTR_KEY, "")  # = inst
-        ncfile.source = dataset.attrs.get(SOURCE_ATTR_KEY, "")  # = source
-        ncfile.catchment = dataset.attrs.get(CATCHMENT_ATTR_KEY, "")  # = catchment
-        ncfile.STF_convention_version = dataset.attrs.get(STF_CONVENTION_VERSION_ATTR_KEY, "")  # = stf_nc_vers
-        ncfile.STF_nc_spec = STF_2_0_URL  # we do not transfer the spec version, this code determines it.
-        ncfile.comment = dataset.attrs.get(COMMENT_ATTR_KEY, "")  # = comment
-        ncfile.history = dataset.attrs.get(HISTORY_ATTR_KEY, "")
-        # = "Created " + datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
-        #  station
-        # --------------------
-        ncfile.createDimension(STATION_DIMNAME, n_stations)
-        station_var = ncfile.createVariable(STATION_DIMNAME, intdata_type, (STATION_DIMNAME,), fill_value=-9999)
-        station_var[:] = station
+# ---------------------------------------------------------------------------
+# NetCDF file builder
+# ---------------------------------------------------------------------------
 
-        #  station_id
 
-        _validate_station_id_for_int32(station_id, intdata_type)
+class _StfFileBuilder:
+    """Context manager that writes an STF NetCDF file.
 
-        station_id_var = ncfile.createVariable(STATION_ID_VARNAME, intdata_type, (STATION_DIMNAME,), fill_value=-9999)
-        station_id_var.setncattr(LONG_NAME_ATTR_KEY, "station or node identification code")
-        station_id_var[:] = station_id
+    Usage::
 
-        #  station_name
-        ncfile.createDimension(STR_LEN_DIMNAME, 30)
-        station_name_var = ncfile.createVariable(STATION_NAME_VARNAME, "c", (STATION_DIMNAME, STR_LEN_DIMNAME))
+        with _StfFileBuilder(path, ...) as builder:
+            builder.write()
+    """
+
+    def __init__(
+        self,
+        path: str,
+        dataset: xr.Dataset,
+        data: xr.DataArray,
+        naming: VariableNaming,
+        data_type: DataOriginType,
+        stf_nc_vers: int,
+        timestep_str: str,
+        intdata_type: str,
+        data_qual: Optional[xr.DataArray],
+    ) -> None:
+        self._path = path
+        self._dataset = dataset
+        self._data = data
+        self._naming = naming
+        self._data_type = data_type
+        self._stf_nc_vers = stf_nc_vers
+        self._timestep_str = timestep_str
+        self._intdata_type = intdata_type
+        self._data_qual = data_qual
+        self._ncfile: Optional[Dataset] = None
+
+    # -- context manager ------------------------------------------------------
+
+    def __enter__(self) -> Self:
+        self._ncfile = Dataset(self._path, "w", format="NETCDF4")
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        if self._ncfile is None:
+            return
+        self._ncfile.close()
+        if exc_type is not None and os.path.exists(self._path):
+            os.remove(self._path)
+
+    # -- public entry point ---------------------------------------------------
+
+    def write(self) -> None:
+        """Write the complete STF NetCDF file."""
+        self._write_global_attributes()
+        self._write_station_dimension()
+        self._write_station_id()
+        self._write_station_name()
+        self._write_geolocation()
+        self._write_optional_variables()
+        self._prepare_data()
+        self._write_lead_time_dimension()
+        self._write_ensemble_dimension()
+        self._write_time_dimension()
+        self._write_data_variable()
+        if self._data_qual is not None:
+            self._write_quality_variable()
+
+    # -- helpers --------------------------------------------------------------
+
+    def _add_variable(
+        self,
+        name: str,
+        dtype: str,
+        dims: tuple[str, ...],
+        data: np.ndarray,
+        fill_value: Any = -9999,
+        attrs: Optional[dict[str, Any]] = None,
+    ) -> None:
+        """Create a variable, set attributes, and assign data."""
+        assert self._ncfile is not None  # noqa: S101
+        var = self._ncfile.createVariable(name, dtype, dims, fill_value=fill_value)
+        if attrs:
+            for key, value in attrs.items():
+                var.setncattr(key, value)
+        var[:] = data
+
+    # -- section writers ------------------------------------------------------
+
+    def _write_global_attributes(self) -> None:
+        nc = self._ncfile
+        assert nc is not None  # noqa: S101
+        ds_attrs = self._dataset.attrs
+        nc.title = ds_attrs.get(TITLE_ATTR_KEY, "")
+        nc.institution = ds_attrs.get(INSTITUTION_ATTR_KEY, "")
+        nc.source = ds_attrs.get(SOURCE_ATTR_KEY, "")
+        nc.catchment = ds_attrs.get(CATCHMENT_ATTR_KEY, "")
+        nc.STF_convention_version = ds_attrs.get(STF_CONVENTION_VERSION_ATTR_KEY, "")
+        nc.STF_nc_spec = STF_2_0_URL
+        nc.comment = ds_attrs.get(COMMENT_ATTR_KEY, "")
+        nc.history = ds_attrs.get(HISTORY_ATTR_KEY, "")
+
+    def _write_station_dimension(self) -> None:
+        nc = self._ncfile
+        assert nc is not None  # noqa: S101
+        n_stations = len(self._data[STATION_ID_DIMNAME])
+        nc.createDimension(STATION_DIMNAME, n_stations)
+        self._add_variable(
+            STATION_DIMNAME,
+            self._intdata_type,
+            (STATION_DIMNAME,),
+            np.arange(1, n_stations + 1),
+        )
+
+    def _write_station_id(self) -> None:
+        station_id = _coerce_station_ids(self._dataset)
+        _validate_station_id_for_int32(station_id, self._intdata_type)
+        self._add_variable(
+            STATION_ID_VARNAME,
+            self._intdata_type,
+            (STATION_DIMNAME,),
+            station_id,
+            attrs={LONG_NAME_ATTR_KEY: "station or node identification code"},
+        )
+
+    def _write_station_name(self) -> None:
+        nc = self._ncfile
+        assert nc is not None  # noqa: S101
+        station_names = self._dataset[STATION_NAME_VARNAME].values
+        str_len = 30
+        nc.createDimension(STR_LEN_DIMNAME, str_len)
+        station_name_var = nc.createVariable(STATION_NAME_VARNAME, "c", (STATION_DIMNAME, STR_LEN_DIMNAME))
         station_name_var.setncattr(LONG_NAME_ATTR_KEY, "station or node name")
-        for s_i, stn_name in enumerate(station_name):
-            char_stn_name = [" "] * 30  # 30 char length
-            stn_name_30 = stn_name[:30]
-            char_stn_name[: len(stn_name_30)] = stn_name_30
-            station_name_var[s_i, :] = char_stn_name
+        for idx, name in enumerate(station_names):
+            padded = [" "] * str_len
+            truncated = name[:str_len]
+            padded[: len(truncated)] = truncated
+            station_name_var[idx, :] = padded
 
-        # additional station id e.g. BoM
-        # other_station_id_var = ncfile.createVariable("other_station_id", "c", (STATION_DIMNAME, STR_LEN_DIMNAME))
-        # other_station_id_var.setncattr(LONG_NAME_ATTR_KEY, "other station id e.g. BoM")
-        # for s_i, stn_name in enumerate(other_station_id):
-        #     char_stn_name = [" "] * 30  # 30 char length
-        #     stn_name_30 = stn_name[:30]
-        #     char_stn_name[: len(stn_name_30)] = stn_name_30
-        #     other_station_id_var[s_i, :] = char_stn_name
-        # coordinates, area
-        # --------------------
-        lat_var = ncfile.createVariable(LAT_VARNAME, "f", (STATION_DIMNAME,), fill_value=-9999)
-        lat_var.setncattr(LONG_NAME_ATTR_KEY, "latitude")
-        lat_var.setncattr(UNITS_ATTR_KEY, "degrees_north")
-        lat_var.setncattr(AXIS_ATTR_KEY, "y")
-        lat_var[:] = sub_y_centroid
+    def _write_geolocation(self) -> None:
+        self._add_variable(
+            LAT_VARNAME, "f", (STATION_DIMNAME,),
+            self._dataset[LAT_VARNAME].values,
+            attrs={LONG_NAME_ATTR_KEY: "latitude", UNITS_ATTR_KEY: "degrees_north", AXIS_ATTR_KEY: "y"},
+        )
+        self._add_variable(
+            LON_VARNAME, "f", (STATION_DIMNAME,),
+            self._dataset[LON_VARNAME].values,
+            attrs={LONG_NAME_ATTR_KEY: "longitude", UNITS_ATTR_KEY: "degrees_east", AXIS_ATTR_KEY: "x"},
+        )
 
-        lon_var = ncfile.createVariable(LON_VARNAME, "f", (STATION_DIMNAME,), fill_value=-9999)
-        lon_var.setncattr(LONG_NAME_ATTR_KEY, "longitude")
-        lon_var.setncattr(UNITS_ATTR_KEY, "degrees_east")
-        lon_var.setncattr(AXIS_ATTR_KEY, "x")
-        lon_var[:] = sub_x_centroid
-
-        def add_optional_variables(data: xr.DataArray, ncfile: Dataset, var_id: str) -> None:
-            if has_variable(data, var_id):
-                ncvar_type = "f"
-                xrvar = data[var_id]
-                opt_nc_var = ncfile.createVariable(var_id, ncvar_type, (STATION_DIMNAME,), fill_value=-9999)
-                opt_nc_var[:] = xrvar.values
-                for x in (STANDARD_NAME_ATTR_KEY, LONG_NAME_ATTR_KEY, UNITS_ATTR_KEY):
-                    opt_nc_var.setncattr(x, xrvar.attrs[x])
-
+    def _write_optional_variables(self) -> None:
+        nc = self._ncfile
+        assert nc is not None  # noqa: S101
         for var_id in (AREA_VARNAME, X_VARNAME, Y_VARNAME, ELEVATION_VARNAME):
-            add_optional_variables(dataset, ncfile, var_id)
+            if not has_variable(self._dataset, var_id):
+                continue
+            xrvar = self._dataset[var_id]
+            var = nc.createVariable(var_id, "f", (STATION_DIMNAME,), fill_value=-9999)
+            var[:] = xrvar.values
+            for attr_key in (STANDARD_NAME_ATTR_KEY, LONG_NAME_ATTR_KEY, UNITS_ATTR_KEY):
+                var.setncattr(attr_key, xrvar.attrs[attr_key])
 
+    def _prepare_data(self) -> None:
+        """Expand and reorder data dimensions for the target NetCDF layout."""
         dimensions_order = (TIME_DIMNAME, ENS_MEMBER_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME)
-        # expand and reorder if necessary the dimensions of the array.
-        # In part see feature request https://github.com/csiro-hydroinformatics/efts-io/issues/14
-        data = make_ready_for_saving(data, dataset, dimensions_order)
+        self._dimensions_order = dimensions_order
+        self._data = make_ready_for_saving(self._data, self._dataset, dimensions_order)
 
-        # lead time
-        # ------------
-        ncfile.createDimension(LEAD_TIME_DIMNAME, len(data[LEAD_TIME_DIMNAME]))
-        lt_var = ncfile.createVariable(LEAD_TIME_DIMNAME, intdata_type, (LEAD_TIME_DIMNAME,), fill_value=-9999)
-        lt_var.setncattr(STANDARD_NAME_ATTR_KEY, "lead time")
-        lt_var.setncattr(LONG_NAME_ATTR_KEY, "forecast lead time")
-        lt_var.setncattr(UNITS_ATTR_KEY, "days since time")
-        lt_var.setncattr(AXIS_ATTR_KEY, "v")
-        lt_var[:] = data[LEAD_TIME_DIMNAME].values
+    def _write_lead_time_dimension(self) -> None:
+        nc = self._ncfile
+        assert nc is not None  # noqa: S101
+        lt_values = self._data[LEAD_TIME_DIMNAME].values
+        nc.createDimension(LEAD_TIME_DIMNAME, len(lt_values))
+        self._add_variable(
+            LEAD_TIME_DIMNAME,
+            self._intdata_type,
+            (LEAD_TIME_DIMNAME,),
+            lt_values,
+            attrs={
+                STANDARD_NAME_ATTR_KEY: "lead time",
+                LONG_NAME_ATTR_KEY: "forecast lead time",
+                UNITS_ATTR_KEY: "days since time",
+                AXIS_ATTR_KEY: "v",
+            },
+        )
 
-        # ensemble members
-        # ------------------
-        ncfile.createDimension(ENS_MEMBER_DIMNAME, len(data[REALISATION_DIMNAME]))
-        ens_mem_var = ncfile.createVariable(ENS_MEMBER_DIMNAME, intdata_type, (ENS_MEMBER_DIMNAME,), fill_value=-9999)
-        ens_mem_var.setncattr(STANDARD_NAME_ATTR_KEY, ENS_MEMBER_DIMNAME)
-        ens_mem_var.setncattr(LONG_NAME_ATTR_KEY, "ensemble member")
-        ens_mem_var.setncattr(UNITS_ATTR_KEY, "member id")
-        ens_mem_var.setncattr(AXIS_ATTR_KEY, "u")
-        ens_mem_var[:] = np.arange(1, len(data[REALISATION_DIMNAME]) + 1)
+    def _write_ensemble_dimension(self) -> None:
+        nc = self._ncfile
+        assert nc is not None  # noqa: S101
+        n_ens = len(self._data[REALISATION_DIMNAME])
+        nc.createDimension(ENS_MEMBER_DIMNAME, n_ens)
+        self._add_variable(
+            ENS_MEMBER_DIMNAME,
+            self._intdata_type,
+            (ENS_MEMBER_DIMNAME,),
+            np.arange(1, n_ens + 1),
+            attrs={
+                STANDARD_NAME_ATTR_KEY: ENS_MEMBER_DIMNAME,
+                LONG_NAME_ATTR_KEY: "ensemble member",
+                UNITS_ATTR_KEY: "member id",
+                AXIS_ATTR_KEY: "u",
+            },
+        )
 
-        # time
-        # ------
-        ncfile.createDimension(TIME_DIMNAME, len(data[TIME_DIMNAME]))
-        time_var = ncfile.createVariable(TIME_DIMNAME, intdata_type, (TIME_DIMNAME,), fill_value=-9999)
-        time_var.setncattr(STANDARD_NAME_ATTR_KEY, TIME_DIMNAME)
-        time_var.setncattr(LONG_NAME_ATTR_KEY, TIME_DIMNAME)
+    def _write_time_dimension(self) -> None:
+        nc = self._ncfile
+        assert nc is not None  # noqa: S101
+        n_time = len(self._data[TIME_DIMNAME])
+        nc.createDimension(TIME_DIMNAME, n_time)
 
-        # time_units_str = "days since {} 00:00:00".format(data.attrs["fcast_date"])
-        axis_values, time_units_str, _, timezone_offset = _create_cf_time_axis(data, timestep_str)
-        # Use dynamic timezone offset instead of hardcoded "UTC+00:00"
-        time_var.setncattr(TIME_STANDARD_ATTR_KEY, f"UTC{timezone_offset}")
-        time_var.setncattr(AXIS_ATTR_KEY, "t")
-        time_var.setncattr(UNITS_ATTR_KEY, time_units_str)
-        time_var[:] = axis_values
+        axis_values, time_units_str, _, timezone_offset = _create_cf_time_axis(self._data, self._timestep_str)
+        self._add_variable(
+            TIME_DIMNAME,
+            self._intdata_type,
+            (TIME_DIMNAME,),
+            axis_values,
+            attrs={
+                STANDARD_NAME_ATTR_KEY: TIME_DIMNAME,
+                LONG_NAME_ATTR_KEY: TIME_DIMNAME,
+                TIME_STANDARD_ATTR_KEY: f"UTC{timezone_offset}",
+                AXIS_ATTR_KEY: "t",
+                UNITS_ATTR_KEY: time_units_str,
+            },
+        )
 
-        # change var_type and data_type to python based index starting from 0
-        var_type_indx = var_type_nb - 1
-        data_type_indx = _DATA_ORIGIN_TYPE_TO_INT[data_type] - 1
+    def _write_data_variable(self) -> None:
+        """Write the main hydrological data variable with its attributes."""
+        nc = self._ncfile
+        assert nc is not None  # noqa: S101
+        naming = self._naming
+        data_attrs = self._data.attrs
 
-        v_ttype, v_ttype_name, var_name_s, var_name_l, var_name_attr, dat_type_description = _prescribed_names(stf_nc_vers, ens, var_type_indx, data_type_indx)
-
-        # Use data attributes where available
-        data_attrs = data.attrs
-        # we definitely want units to be present
         if UNITS_ATTR_KEY not in data_attrs:
-            raise ValueError(f"DataArray variable '{data.name}' must have '{UNITS_ATTR_KEY}' attribute defined.")  # noqa: TRY301
-        attr_units = data_attrs[UNITS_ATTR_KEY]
+            raise ValueError(
+                f"DataArray variable '{self._data.name}' must have '{UNITS_ATTR_KEY}' attribute defined.",
+            )
 
-        attr_long_name = data_attrs.get(LONG_NAME_ATTR_KEY, var_name_l)
         attr_fillvalue = data_attrs.get(FILLVALUE_ATTR_KEY, -9999.0)
-        _default_type_indx = v_ttype[var_type_indx]  # always 2, 3, or 5 — a valid index into v_ttype_name
-        attr_data_type = int(data_attrs.get(TYPE_ATTR_KEY, _default_type_indx))
-        attr_type_description = data_attrs.get(TYPE_DESCRIPTION_ATTR_KEY, v_ttype_name[_default_type_indx])
-        attr_dat_type = data_attrs.get(DAT_TYPE_ATTR_KEY, var_name_attr)
-        attr_location_type = data_attrs.get(LOCATION_TYPE_ATTR_KEY, "Point")
 
-        qsim_var = ncfile.createVariable(
-            var_name_s,
+        var = nc.createVariable(
+            naming.short_name,
             "f",
-            dimensions_order,
+            self._dimensions_order,
             fill_value=attr_fillvalue,
         )
 
-        qsim_var.setncattr(STANDARD_NAME_ATTR_KEY, var_name_s)
-        qsim_var.setncattr(LONG_NAME_ATTR_KEY, attr_long_name)
-        qsim_var.setncattr(UNITS_ATTR_KEY, attr_units)
+        var.setncattr(STANDARD_NAME_ATTR_KEY, naming.short_name)
+        var.setncattr(LONG_NAME_ATTR_KEY, data_attrs.get(LONG_NAME_ATTR_KEY, naming.long_name))
+        var.setncattr(UNITS_ATTR_KEY, data_attrs[UNITS_ATTR_KEY])
 
-        qsim_var.setncattr(TYPE_ATTR_KEY, attr_data_type)
-        qsim_var.setncattr(TYPE_DESCRIPTION_ATTR_KEY, attr_type_description)
-        qsim_var.setncattr(LOCATION_TYPE_ATTR_KEY, attr_location_type)
-        if int(stf_nc_vers) == 2:  # noqa: PLR2004
-            qsim_var.setncattr(DAT_TYPE_ATTR_KEY, attr_dat_type)
-            qsim_var.setncattr(DAT_TYPE_DESCRIPTION_ATTR_KEY, dat_type_description)
+        var.setncattr(
+            TYPE_ATTR_KEY,
+            int(data_attrs.get(TYPE_ATTR_KEY, naming.default_ts_type_code)),
+        )
+        var.setncattr(
+            TYPE_DESCRIPTION_ATTR_KEY,
+            data_attrs.get(TYPE_DESCRIPTION_ATTR_KEY, naming.default_ts_type_description),
+        )
+        var.setncattr(LOCATION_TYPE_ATTR_KEY, data_attrs.get(LOCATION_TYPE_ATTR_KEY, "Point"))
 
-        qsim_var[:, :, :, :] = data.values[:]
+        if int(self._stf_nc_vers) == 2:  # noqa: PLR2004
+            var.setncattr(DAT_TYPE_ATTR_KEY, data_attrs.get(DAT_TYPE_ATTR_KEY, naming.dat_type))
+            var.setncattr(DAT_TYPE_DESCRIPTION_ATTR_KEY, naming.dat_type_description)
 
-        # Specify the quality variable
-        if data_qual is not None:
-            qu_var_name_s = f"{var_name_s}_qual"
-            if int(stf_nc_vers) == 1:
-                if data_type_indx == 2:  # noqa: PLR2004
-                    qsim_qual_var = ncfile.createVariable(
-                        qu_var_name_s,
-                        "f",
-                        (TIME_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME),
-                        fill_value=-1,
-                    )
-                    qsim_qual_var[:, :, :] = data_qual.values[:]
-                else:
-                    qsim_qual_var = ncfile.createVariable(
-                        qu_var_name_s,
-                        "f",
-                        (TIME_DIMNAME, STATION_DIMNAME),
-                        fill_value=-1,
-                    )
-                    qsim_qual_var[:, :] = data_qual.values[:]
+        var[:, :, :, :] = self._data.values[:]
+
+    def _write_quality_variable(self) -> None:
+        """Write the data quality variable."""
+        nc = self._ncfile
+        assert nc is not None  # noqa: S101
+        assert self._data_qual is not None  # noqa: S101
+        naming = self._naming
+
+        qu_var_name_s = f"{naming.short_name}_qual"
+
+        if int(self._stf_nc_vers) == 1:
+            data_type_indx = _DATA_ORIGIN_TYPE_TO_INT[self._data_type] - 1
+            if data_type_indx == 2:  # noqa: PLR2004  OBSERVED
+                dims: tuple[str, ...] = (TIME_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME)
             else:
-                qsim_qual_var = ncfile.createVariable(
-                    qu_var_name_s,
-                    "f",
-                    (TIME_DIMNAME, ENS_MEMBER_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME),
-                    fill_value=-1,
-                )
-                qsim_qual_var[:, :, :, :] = data_qual.values[:]
-
-            qu_var_name_l = f"{var_name_l} data quality"
-
-            qsim_qual_var.setncattr(STANDARD_NAME_ATTR_KEY, qu_var_name_s)
-            qsim_qual_var.setncattr(LONG_NAME_ATTR_KEY, qu_var_name_l)
-            quality_code = data_qual.attrs.get("quality_code", "Quality codes")
-
-            qsim_qual_var.setncattr(UNITS_ATTR_KEY, quality_code)
-            # Write data
-
-    except Exception:
-        # If any error occurs, ensure we close the file and clean up
-        ncfile.close()
-        # Remove the partially written file to avoid leaving corrupted files
-        if os.path.exists(out_nc_file):
-            os.remove(out_nc_file)
-        # Re-raise the exception so the caller knows the operation failed
-        raise
-    else:
-        # Only close the file here if no exception occurred
-        # This prevents double-close in the exception handler
-        ncfile.close()
-
-def _prescribed_names(stf_nc_vers, ens, var_type_indx, data_type_indx):
-    v_type = ["q", "pet", "rain", "swe", "tmin", "tmax", "tave"]
-        # Borrowing from create_empty_stfnc.m
-        # Name Arrays
-    v_type_long = [
-            "streamflow",
-            "potential evapotranspiration",
-            "rainfall",
-            "snow water equivalent",
-            "minimum temperature",
-            "maximum temperature",
-            "average temperature",
-        ]
-        # v_units = ["m3/s", "mm", "mm", "mm", "K", "K", "K"]
-    v_ttype = [3, 2, 2, 2, 5, 5, 5]
-    v_ttype_name = [
-            "averaged over the preceding interval",
-            "accumulated over the preceding interval",
-            "accumulated over the preceding interval",
-            "point value recorded in the preceding interval",
-            "point value recorded in the preceding interval",
-            "averaged over the preceding interval",
-        ]
-
-    d_type, d_type_long = _stf_data_types(stf_nc_vers)
-
-    var_name_attr = ""
-    dat_type_description = ""
-
-        # print(f"data_type: {data_type}')
-        # Create prescribed variable names
-    if int(stf_nc_vers) == 1:
-        var_name_s = f"{v_type[var_type_indx]}_{d_type[data_type_indx]}"
-        var_name_l = f"{d_type_long[data_type_indx]} {v_type_long[var_type_indx]}"
-        if ens:
-            var_name_s = f"{var_name_s}_ens"
-            var_name_l = f"{var_name_l} ensemble"
-    else:
-        var_name_attr = d_type[data_type_indx]
-        dat_type_description = d_type_long[data_type_indx]
-        if data_type_indx in [0, 2]:
-                # print("Obs")
-            var_name_s = f"{v_type[var_type_indx]}_obs"
-            var_name_l = f"observed {v_type_long[var_type_indx]}"
+                dims = (TIME_DIMNAME, STATION_DIMNAME)
         else:
-                # print("Sim")
-            var_name_s = f"{v_type[var_type_indx]}_sim"
-            var_name_l = f"simulated {v_type_long[var_type_indx]}"
-    return v_ttype,v_ttype_name,var_name_s,var_name_l,var_name_attr,dat_type_description
+            dims = (TIME_DIMNAME, ENS_MEMBER_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME)
 
-def _stf_data_types(stf_nc_vers:int) -> tuple[list, list]:
-    d_type = [None] * 4
-    d_type_long = [None] * 4
-    d_type[0] = "der"
-    d_type_long[0] = "derived (from observations)"
+        var = nc.createVariable(qu_var_name_s, "f", dims, fill_value=-1)
+        var[:] = self._data_qual.values[:]
 
-    _get_stationid_data_types(stf_nc_vers, d_type, d_type_long)
-
-    d_type[2] = "obs"
-    d_type_long[2] = "observed"
-    d_type[3] = "sim"
-    d_type_long[3] = "simulated"
-    return d_type,d_type_long
+        var.setncattr(STANDARD_NAME_ATTR_KEY, qu_var_name_s)
+        var.setncattr(LONG_NAME_ATTR_KEY, f"{naming.long_name} data quality")
+        var.setncattr(UNITS_ATTR_KEY, self._data_qual.attrs.get("quality_code", "Quality codes"))
 
 
-def _get_stationid_data_types(stf_nc_vers: Any, d_type: np.ndarray, d_type_long: np.ndarray) -> None:
-    """Helper function to populate data type strings based on STF NetCDF version."""
-    if int(stf_nc_vers) == 1:
-        d_type[1] = "fcast"
-        d_type_long[1] = "forecast"
-    elif int(stf_nc_vers) == 2:  # noqa: PLR2004
-        d_type[1] = "fct"
-        d_type_long[1] = "forecast"
-    else:
-        raise ValueError("Version not recognised: Currently only version 1.X or 2.X are supported")
+# ---------------------------------------------------------------------------
+# Public entry point
+# ---------------------------------------------------------------------------
+
+
+def write_nc_stf2(
+    out_nc_file: str,
+    dataset: xr.Dataset,
+    data: xr.DataArray,
+    var_type: StfVariable = StfVariable.STREAMFLOW,
+    data_type: DataOriginType = DataOriginType.OBSERVED,
+    stf_nc_vers: int = 2,
+    ens: bool = False,  # noqa: FBT001, FBT002
+    timestep: str = "days",
+    data_qual: Optional[xr.DataArray] = None,
+    overwrite: bool = True,  # noqa: FBT001, FBT002
+    intdata_type: str = "i4",
+) -> None:
+    """Write an xarray DataArray to a NetCDF file following the STF conventions.
+
+    Args:
+        out_nc_file: Path to the output NetCDF file.
+        dataset: xarray Dataset containing coordinates, variables and global attributes.
+        data: xarray DataArray with the hydrological data to write.
+        var_type: Type of hydrological variable.
+        data_type: Data origin type.
+        stf_nc_vers: STF convention version (1 or 2).
+        ens: Whether this is an ensemble variable (version 1 only).
+        timestep: Time step unit string (e.g. ``"days"``, ``"hours"``, ``"h"``).
+        data_qual: Optional quality-flag DataArray.
+        overwrite: Whether to overwrite an existing file.
+        intdata_type: NetCDF integer type for dimension variables (``"i4"`` or ``"i8"``).
+    """
+    _validate_inputs(dataset, data)
+    naming = VariableNaming.from_spec(var_type, data_type, stf_nc_vers, ens)
+    timestep_str = _normalise_timestep(timestep)
+    _handle_existing_file(out_nc_file, overwrite)
+
+    with _StfFileBuilder(
+        path=out_nc_file,
+        dataset=dataset,
+        data=data,
+        naming=naming,
+        data_type=data_type,
+        stf_nc_vers=stf_nc_vers,
+        timestep_str=timestep_str,
+        intdata_type=intdata_type,
+        data_qual=data_qual,
+    ) as builder:
+        builder.write()
 
 
 def make_ready_for_saving(data: xr.DataArray, dataset: xr.Dataset, dimensions_order: tuple) -> xr.DataArray:
