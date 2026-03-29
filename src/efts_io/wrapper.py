@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from efts_io._ncdf_stf2 import StfDataType, StfVariable
+from efts_io._ncdf_stf2 import StfVariable
 from efts_io.conventions import (
     AREA_VARNAME,
     AXIS_ATTR_KEY,
@@ -359,7 +359,7 @@ class EftsDataSet:
         path: str,
         variable_name: Optional[str] = None,
         var_type: StfVariable = StfVariable.STREAMFLOW,
-        data_type: DataOriginType | StfDataType = DataOriginType.OBSERVED,
+        data_type: DataOriginType = DataOriginType.OBSERVED,
         ens: bool = False,  # noqa: FBT001, FBT002
         timestep: str = "days",
         data_qual: Optional[xr.DataArray] = None,

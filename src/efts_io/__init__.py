@@ -6,7 +6,7 @@ Ensemble forecast time series
 from __future__ import annotations
 
 # Deprecated — use DataOriginType instead. Will be removed in a future version.
-from efts_io._ncdf_stf2 import StfDataType, StfVariable
+from efts_io._ncdf_stf2 import StfVariable
 
 # Metadata attribute creation (recommended API)
 from efts_io.attributes import (
@@ -35,7 +35,6 @@ __all__: list[str] = [
     # Main classes
     "EftsDataSet",
     # Deprecated — use DataOriginType instead
-    "StfDataType",
     "StfVariable",
     "LocationType",
     # Metadata enumerations

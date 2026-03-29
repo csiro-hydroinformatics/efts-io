@@ -7,7 +7,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from efts_io._ncdf_stf2 import StfDataType, StfVariable
+from efts_io._ncdf_stf2 import StfVariable
+from efts_io.conventions import DataOriginType
 from efts_io.wrapper import EftsDataSet, xr_efts
 
 
@@ -66,7 +67,7 @@ def test_file_lock_released_on_validation_error() -> None:
                 path=filename,
                 variable_name="nonexistent_variable",  # This will fail
                 var_type=StfVariable.RAINFALL,
-                data_type=StfDataType.DERIVED_FROM_OBSERVATIONS,
+                data_type=DataOriginType.DERIVED,
                 ens=False,
                 timestep="hours",
                 data_qual=None,
@@ -81,7 +82,7 @@ def test_file_lock_released_on_validation_error() -> None:
             path=filename,
             variable_name="rain_obs",
             var_type=StfVariable.RAINFALL,
-            data_type=StfDataType.DERIVED_FROM_OBSERVATIONS,
+            data_type=DataOriginType.DERIVED,
             ens=False,
             timestep="hours",
             data_qual=None,
@@ -154,7 +155,7 @@ def test_file_lock_released_on_write_error() -> None:
                 path=filename,
                 variable_name="rain_obs",
                 var_type=StfVariable.RAINFALL,
-                data_type=StfDataType.DERIVED_FROM_OBSERVATIONS,
+                data_type=DataOriginType.DERIVED,
                 ens=False,
                 timestep="hours",
                 data_qual=None,
@@ -206,7 +207,7 @@ def test_file_lock_released_on_write_error() -> None:
             path=filename,
             variable_name="rain_obs",
             var_type=StfVariable.RAINFALL,
-            data_type=StfDataType.DERIVED_FROM_OBSERVATIONS,
+            data_type=DataOriginType.DERIVED,
             ens=False,
             timestep="hours",
             data_qual=None,
@@ -277,7 +278,7 @@ def test_file_lock_released_on_overflow_error() -> None:
                 path=filename,
                 variable_name="rain_obs",
                 var_type=StfVariable.RAINFALL,
-                data_type=StfDataType.DERIVED_FROM_OBSERVATIONS,
+                data_type=DataOriginType.DERIVED,
                 ens=False,
                 timestep="hours",
                 data_qual=None,
@@ -330,7 +331,7 @@ def test_file_lock_released_on_overflow_error() -> None:
             path=filename,
             variable_name="rain_obs",
             var_type=StfVariable.RAINFALL,
-            data_type=StfDataType.DERIVED_FROM_OBSERVATIONS,
+            data_type=DataOriginType.DERIVED,
             ens=False,
             timestep="hours",
             data_qual=None,

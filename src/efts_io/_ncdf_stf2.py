@@ -55,7 +55,7 @@ class StfDataType(Enum):
         :class:`DeprecationWarning` and will be removed in a future version.
     """
 
-    DERIVED_FROM_OBSERVATIONS = 1
+    DERIVED = 1
     FORECAST = 2
     OBSERVED = 3
     SIMULATED = 4
@@ -64,12 +64,11 @@ class StfDataType(Enum):
 # Internal mapping from DataOriginType to the integer ordinal used by write_nc_stf2.
 # The integers correspond to StfDataType values for backward compatibility.
 _DATA_ORIGIN_TYPE_TO_INT: dict[DataOriginType, int] = {
-    DataOriginType.DERIVED: StfDataType.DERIVED_FROM_OBSERVATIONS.value,
+    DataOriginType.DERIVED: StfDataType.DERIVED.value,
     DataOriginType.FORECAST: StfDataType.FORECAST.value,
     DataOriginType.OBSERVED: StfDataType.OBSERVED.value,
     DataOriginType.SIMULATED: StfDataType.SIMULATED.value,
 }
-
 
 def _create_cf_time_axis(data: xr.DataArray, timestep_str: str) -> tuple[np.ndarray, str, str, str]:
     """Create a CF-compliant time axis for the given xarray DataArray.
@@ -178,7 +177,7 @@ def write_nc_stf2(
     dataset: xr.Dataset,
     data: xr.DataArray,
     var_type: StfVariable = StfVariable.STREAMFLOW,
-    data_type: DataOriginType | StfDataType = DataOriginType.OBSERVED,
+    data_type: DataOriginType = DataOriginType.OBSERVED,
     stf_nc_vers: int = 2,
     ens: bool = False,  # noqa: FBT001, FBT002
     timestep: str = "days",
@@ -251,16 +250,7 @@ def write_nc_stf2(
         _check_optional_var_attr(dataset, var_id)
 
     var_type_nb = var_type.value
-    if isinstance(data_type, StfDataType):
-        warnings.warn(
-            "StfDataType is deprecated and will be removed in a future version. "
-            "Use DataOriginType instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        data_type = data_type.value
-    else:
-        data_type = _DATA_ORIGIN_TYPE_TO_INT[data_type]
+    # data_type = _DATA_ORIGIN_TYPE_TO_INT[data_type]
 
     n_stations = len(data[STATION_ID_DIMNAME])
 
@@ -422,7 +412,7 @@ def write_nc_stf2(
 
         # change var_type and data_type to python based index starting from 0
         var_type_indx = var_type_nb - 1
-        data_type_indx = data_type - 1
+        data_type_indx = _DATA_ORIGIN_TYPE_TO_INT[data_type] - 1
 
         v_ttype, v_ttype_name, var_name_s, var_name_l, var_name_attr, dat_type_description = _prescribed_names(stf_nc_vers, ens, var_type_indx, data_type_indx)
 

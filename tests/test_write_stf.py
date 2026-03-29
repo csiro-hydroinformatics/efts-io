@@ -17,6 +17,7 @@ from efts_io.conventions import (
     STATION_NAME_VARNAME,
     LAT_VARNAME,
     LON_VARNAME,
+    DataOriginType,
     xr_to_stf_dims,
     stf_to_xr_dims,
 )
@@ -317,6 +318,31 @@ def test_exportable_to_stf2_integer_station_ids():
     assert exportable_to_stf2(dataset) is True
 
 
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "Convention §Description of Variables / lead_time: "
+        "'lead_time zero is the same date and time as the time dimension and therefore "
+        "not expected as a legitimate value.' "
+        "exportable_to_stf2 does not currently validate against zero lead_time values."
+    ),
+)
+def test_exportable_to_stf2_rejects_zero_lead_time():
+    """Convention: a lead_time coordinate containing zero must not be exportable.
+
+    The STF 2.0 spec states that lead_time zero is implicitly the same instant as
+    the time dimension and is therefore never a legitimate value in the lead_time
+    variable.  exportable_to_stf2 should return False for such datasets.
+    """
+    from efts_io.conventions import exportable_to_stf2
+
+    dataset = create_valid_stf2_dataset()
+    # Introduce zero into the lead_time coordinate — convention says this is invalid
+    dataset = dataset.assign_coords({LEAD_TIME_DIMNAME: [0, 1, 2]})
+
+    assert exportable_to_stf2(dataset) is False
+
+
 def _temporary_named_file():
     """Create a temporary file, using RAM disk (/dev/shm) on Linux for faster tests."""
     import platform
@@ -346,7 +372,7 @@ def test_station_id_int64_preserved_on_read():
     import tempfile
     import os
     from efts_io.wrapper import EftsDataSet, xr_efts
-    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+    from efts_io._ncdf_stf2 import StfVariable
     from efts_io.conventions import STATION_ID_VARNAME
 
     # 1. Create test data with large int64 station IDs that exceed int32 range
@@ -403,7 +429,7 @@ def test_station_id_int64_preserved_on_read():
             path=filename,
             variable_name="rain_obs",
             var_type=StfVariable.RAINFALL,
-            data_type=StfDataType.OBSERVED,
+            data_type=DataOriginType.OBSERVED,
         )
 
         # 3. Read back with default xarray settings (reproduces the bug)
@@ -463,7 +489,7 @@ def test_station_id_int32_preserved_on_read():
     import tempfile
     import os
     from efts_io.wrapper import EftsDataSet, xr_efts
-    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+    from efts_io._ncdf_stf2 import StfVariable
     from efts_io.conventions import STATION_ID_VARNAME
 
     # Create test data with small int32 station IDs
@@ -520,7 +546,7 @@ def test_station_id_int32_preserved_on_read():
             path=filename,
             variable_name="flow_obs",
             var_type=StfVariable.STREAMFLOW,
-            data_type=StfDataType.OBSERVED,
+            data_type=DataOriginType.OBSERVED,
         )
 
         # Read with default settings (reproduces the bug)
@@ -583,7 +609,7 @@ def test_save_to_stf2_preserves_data_array_attributes():
     import os
     import netCDF4 as nc
     from efts_io.wrapper import EftsDataSet, xr_efts
-    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+    from efts_io._ncdf_stf2 import StfVariable
     from efts_io.conventions import (
         UNITS_ATTR_KEY,
         LONG_NAME_ATTR_KEY,
@@ -669,7 +695,7 @@ def test_save_to_stf2_preserves_data_array_attributes():
             path=filename,
             variable_name="test_var",
             var_type=StfVariable.RAINFALL,
-            data_type=StfDataType.OBSERVED,
+            data_type=DataOriginType.OBSERVED,
         )
 
         # Read back the file with netCDF4 to check attributes
@@ -731,10 +757,288 @@ def test_save_to_stf2_preserves_data_array_attributes():
             f"Expected location_type '{custom_location_type}', got '{saved_var.getncattr(LOCATION_TYPE_ATTR_KEY)}'"
         )
 
+        # ---- Convention compliance checks (structure, not just attributes) ----
+
+        # Bug #1: Dimension order must match convention: (lead_time, station, ens_member, time)
+        assert saved_var.dimensions == ("lead_time", "station", "ens_member", "time"), (
+            f"Data variable dimension order should be (lead_time, station, ens_member, time) per STF 2.0, "
+            f"got {saved_var.dimensions}"
+        )
+
+        # Bug #6: station_name dimensions must be (strLen, station) per convention
+        stn_name_var = nc_ds.variables["station_name"]
+        assert stn_name_var.dimensions == ("strLen", "station"), (
+            f"station_name dimension order should be (strLen, station) per STF 2.0, "
+            f"got {stn_name_var.dimensions}"
+        )
+
+        # Bug #7: Convention specifies data variables as double precision
+        assert saved_var.dtype == np.float64, (
+            f"Data variable should be float64 (double) per STF 2.0, got {saved_var.dtype}"
+        )
+
+        # Bug #5: lead_time axis attribute should be "u" per convention
+        lt_var = nc_ds.variables["lead_time"]
+        assert lt_var.getncattr("axis") == "u", (
+            f"lead_time axis should be 'u' per STF 2.0, got '{lt_var.getncattr('axis')}'"
+        )
+
         nc_ds.close()
 
     finally:
         # Clean up temporary file
+        if os.path.exists(filename):
+            os.remove(filename)
+
+
+def test_stf2_default_attributes_match_conventions():
+    """Test that default attributes written by write_nc_stf2 match STF 2.0 conventions.
+
+    When no custom attributes are provided on the data variable (except the mandatory
+    'units'), the function should derive correct defaults from the convention:
+    - Bug #3: type_description for streamflow (type 3) should be "averaged over the preceding interval"
+    - Bug #3: type_description for min temperature (type 5) should be "point value recorded in the preceding interval"
+    - Bug #9: dat_type_description for OBSERVED should be "observed directly" (not "observed")
+    - Bug #4: quality variable name suffix should be "_qul" (not "_qual")
+    """
+    import os
+    import netCDF4 as nc
+    from efts_io.wrapper import EftsDataSet, xr_efts
+    from efts_io._ncdf_stf2 import StfVariable
+    from efts_io.conventions import (
+        UNITS_ATTR_KEY,
+        TYPE_ATTR_KEY,
+        TYPE_DESCRIPTION_ATTR_KEY,
+        DAT_TYPE_ATTR_KEY,
+        DAT_TYPE_DESCRIPTION_ATTR_KEY,
+    )
+
+    # Create test dataset
+    issue_times = pd.date_range("2023-01-01", periods=5, freq="D")
+    station_ids = [100, 200]
+    lead_times = np.arange(1, 4)
+
+    xr_ds = xr_efts(
+        issue_times=issue_times,
+        station_ids=station_ids,
+        lead_times=lead_times,
+        lead_time_tstep="hours",
+        ensemble_size=2,
+        station_names=["Station_A", "Station_B"],
+        nc_attributes={
+            "title": "Test dataset for default attributes",
+            "institution": "Test Institution",
+            "source": "Unit test",
+            "catchment": "Test_Catchment",
+            "comment": "Testing convention-compliant defaults",
+            "history": "Created for unit testing",
+        },
+    )
+
+    eds = EftsDataSet(xr_ds)
+
+    # Create data variable with ONLY the mandatory 'units' attribute — no custom overrides
+    eds.create_data_variables(
+        {
+            "flow_var": {
+                "name": "flow_var",
+                "longname": "streamflow",
+                "units": "m3/s",
+                "dim_type": "4",
+                "missval": -9999.0,
+                "precision": "double",
+                "attributes": {},  # No custom type/dat_type overrides
+            },
+        }
+    )
+
+    eds.data["flow_var"].loc[:, :, :, :] = np.random.rand(3, 2, 2, 5) * 10.0
+
+    with _temporary_named_file() as tmp:
+        filename = tmp.name
+
+    try:
+        # --- Test 1: STREAMFLOW + OBSERVED (default type_description and dat_type_description) ---
+        eds.save_to_stf2(
+            path=filename,
+            variable_name="flow_var",
+            var_type=StfVariable.STREAMFLOW,
+            data_type=DataOriginType.OBSERVED,
+        )
+
+        nc_ds = nc.Dataset(filename, "r")
+
+        # The written variable should be "q_obs" for streamflow + observed
+        assert "q_obs" in nc_ds.variables, (
+            f"Expected variable 'q_obs' in file, got variables: {list(nc_ds.variables.keys())}"
+        )
+        saved_var = nc_ds.variables["q_obs"]
+
+        # Bug #3: Streamflow is type 3 = "averaged over the preceding interval"
+        assert saved_var.getncattr(TYPE_ATTR_KEY) == 3, (
+            f"Streamflow default type should be 3, got {saved_var.getncattr(TYPE_ATTR_KEY)}"
+        )
+        assert saved_var.getncattr(TYPE_DESCRIPTION_ATTR_KEY) == "averaged over the preceding interval", (
+            f"Streamflow default type_description should be 'averaged over the preceding interval', "
+            f"got '{saved_var.getncattr(TYPE_DESCRIPTION_ATTR_KEY)}'"
+        )
+
+        # Bug #9: dat_type_description for OBSERVED should be "observed directly"
+        assert saved_var.getncattr(DAT_TYPE_ATTR_KEY) == "obs", (
+            f"Expected dat_type 'obs', got '{saved_var.getncattr(DAT_TYPE_ATTR_KEY)}'"
+        )
+        assert saved_var.getncattr(DAT_TYPE_DESCRIPTION_ATTR_KEY) == "observed directly", (
+            f"Expected dat_type_description 'observed directly', "
+            f"got '{saved_var.getncattr(DAT_TYPE_DESCRIPTION_ATTR_KEY)}'"
+        )
+
+        nc_ds.close()
+
+        # --- Test 2: MINIMUM_TEMPERATURE + OBSERVED (type 5 default) ---
+        if os.path.exists(filename):
+            os.remove(filename)
+
+        eds.save_to_stf2(
+            path=filename,
+            variable_name="flow_var",
+            var_type=StfVariable.MINIMUM_TEMPERATURE,
+            data_type=DataOriginType.OBSERVED,
+        )
+
+        nc_ds = nc.Dataset(filename, "r")
+
+        assert "tmin_obs" in nc_ds.variables, (
+            f"Expected variable 'tmin_obs' in file, got variables: {list(nc_ds.variables.keys())}"
+        )
+        saved_var = nc_ds.variables["tmin_obs"]
+
+        # Bug #3: Min temperature is type 5 = "point value recorded in the preceding interval"
+        assert saved_var.getncattr(TYPE_ATTR_KEY) == 5, (
+            f"Min temperature default type should be 5, got {saved_var.getncattr(TYPE_ATTR_KEY)}"
+        )
+        assert saved_var.getncattr(TYPE_DESCRIPTION_ATTR_KEY) == "point value recorded in the preceding interval", (
+            f"Min temperature default type_description should be 'point value recorded in the preceding interval', "
+            f"got '{saved_var.getncattr(TYPE_DESCRIPTION_ATTR_KEY)}'"
+        )
+
+        nc_ds.close()
+
+        # --- Test 3: STREAMFLOW + FORECAST (dat_type_description default) ---
+        if os.path.exists(filename):
+            os.remove(filename)
+
+        eds.save_to_stf2(
+            path=filename,
+            variable_name="flow_var",
+            var_type=StfVariable.STREAMFLOW,
+            data_type=DataOriginType.FORECAST,
+        )
+
+        nc_ds = nc.Dataset(filename, "r")
+
+        assert "q_sim" in nc_ds.variables, (
+            f"Expected variable 'q_sim' in file, got variables: {list(nc_ds.variables.keys())}"
+        )
+        saved_var = nc_ds.variables["q_sim"]
+
+        # Bug #9: dat_type_description for FORECAST should be "simulated from forecasts"
+        assert saved_var.getncattr(DAT_TYPE_ATTR_KEY) == "fct", (
+            f"Expected dat_type 'fct', got '{saved_var.getncattr(DAT_TYPE_ATTR_KEY)}'"
+        )
+        assert saved_var.getncattr(DAT_TYPE_DESCRIPTION_ATTR_KEY) == "simulated from forecasts", (
+            f"Expected dat_type_description 'simulated from forecasts', "
+            f"got '{saved_var.getncattr(DAT_TYPE_DESCRIPTION_ATTR_KEY)}'"
+        )
+
+        nc_ds.close()
+
+    finally:
+        if os.path.exists(filename):
+            os.remove(filename)
+
+
+def test_quality_variable_name_suffix_matches_convention():
+    """Test that quality variable name uses '_qul' suffix per STF 2.0.
+
+    Bug #4: The convention names quality variables as e.g. 'rain_obs_qul',
+    but the code currently writes 'rain_obs_qual'.
+    """
+    import os
+    import netCDF4 as nc
+    from efts_io.wrapper import EftsDataSet, xr_efts
+    from efts_io._ncdf_stf2 import StfVariable
+
+    issue_times = pd.date_range("2023-01-01", periods=5, freq="D")
+    station_ids = [100, 200]
+    lead_times = np.arange(1, 4)
+
+    xr_ds = xr_efts(
+        issue_times=issue_times,
+        station_ids=station_ids,
+        lead_times=lead_times,
+        lead_time_tstep="hours",
+        ensemble_size=2,
+        station_names=["Station_A", "Station_B"],
+        nc_attributes={
+            "title": "Test quality variable naming",
+            "institution": "Test Institution",
+            "source": "Unit test",
+            "catchment": "Test_Catchment",
+            "comment": "Testing quality variable suffix",
+            "history": "Created for unit testing",
+        },
+    )
+
+    eds = EftsDataSet(xr_ds)
+
+    eds.create_data_variables(
+        {
+            "rain_var": {
+                "name": "rain_var",
+                "longname": "rainfall",
+                "units": "mm",
+                "dim_type": "4",
+                "missval": -9999.0,
+                "precision": "double",
+                "attributes": {},
+            },
+        }
+    )
+
+    eds.data["rain_var"].loc[:, :, :, :] = np.random.rand(3, 2, 2, 5) * 10.0
+
+    # Create a quality data array with the same shape
+    qual_data = xr.DataArray(
+        np.ones_like(eds.data["rain_var"].values, dtype=np.float32),
+        dims=eds.data["rain_var"].dims,
+        coords=eds.data["rain_var"].coords,
+        attrs={"quality_code": "BOM Quality codes"},
+    )
+
+    with _temporary_named_file() as tmp:
+        filename = tmp.name
+
+    try:
+        eds.save_to_stf2(
+            path=filename,
+            variable_name="rain_var",
+            var_type=StfVariable.RAINFALL,
+            data_type=DataOriginType.OBSERVED,
+            data_qual=qual_data,
+        )
+
+        nc_ds = nc.Dataset(filename, "r")
+
+        # Convention says quality variables are named e.g. "rain_obs_qul"
+        all_vars = list(nc_ds.variables.keys())
+        assert "rain_obs_qul" in all_vars, (
+            f"Expected quality variable 'rain_obs_qul' per STF 2.0 convention, "
+            f"found variables: {all_vars}"
+        )
+
+        nc_ds.close()
+
+    finally:
         if os.path.exists(filename):
             os.remove(filename)
 
@@ -755,7 +1059,7 @@ def _verify_time_attributes_preservation(timezone_str: str):
     import os
     import netCDF4 as nc
     from efts_io.wrapper import EftsDataSet, xr_efts
-    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+    from efts_io._ncdf_stf2 import StfVariable
     from efts_io.conventions import TIME_STANDARD_ATTR_KEY, UNITS_ATTR_KEY
 
     # Create test dataset with explicit timezone timestamps
@@ -818,7 +1122,7 @@ def _verify_time_attributes_preservation(timezone_str: str):
             path=filename,
             variable_name="temp_obs",
             var_type=StfVariable.MAXIMUM_TEMPERATURE,
-            data_type=StfDataType.OBSERVED,
+            data_type=DataOriginType.OBSERVED,
             timestep="days",
         )
 
@@ -855,6 +1159,12 @@ def _verify_time_attributes_preservation(timezone_str: str):
         # Verify time values are sequential (daily step = 1 day offset)
         time_diffs = np.diff(time_values)
         assert np.all(time_diffs == 1), f"Expected daily increments of 1, got {time_diffs}"
+
+        # Bug #5: lead_time axis attribute should be "u" per STF 2.0 convention
+        lt_var = nc_ds.variables["lead_time"]
+        assert lt_var.getncattr("axis") == "u", (
+            f"lead_time axis should be 'u' per STF 2.0, got '{lt_var.getncattr('axis')}'"
+        )
 
         nc_ds.close()
 
@@ -1080,7 +1390,7 @@ def test_timezone_naive_timestamps_localized_to_utc():
     import os
     import netCDF4 as nc
     from efts_io.wrapper import EftsDataSet, xr_efts
-    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+    from efts_io._ncdf_stf2 import StfVariable
     from efts_io.conventions import TIME_STANDARD_ATTR_KEY, UNITS_ATTR_KEY
 
     # Create test dataset with timezone-naive timestamps (no tz parameter)
@@ -1134,7 +1444,7 @@ def test_timezone_naive_timestamps_localized_to_utc():
             path=filename,
             variable_name="precip_obs",
             var_type=StfVariable.RAINFALL,
-            data_type=StfDataType.OBSERVED,
+            data_type=DataOriginType.OBSERVED,
             timestep="days",
         )
 
@@ -1170,7 +1480,7 @@ def test_invalid_timezone_string_raises_error():
     import tempfile
     import os
     from efts_io.wrapper import EftsDataSet, xr_efts
-    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+    from efts_io._ncdf_stf2 import StfVariable
 
     invalid_timezones = [
         "Invalid/Timezone",
@@ -1229,7 +1539,7 @@ def test_invalid_timezone_string_raises_error():
                         path=filename,
                         variable_name="test_var",
                         var_type=StfVariable.RAINFALL,
-                        data_type=StfDataType.OBSERVED,
+                        data_type=DataOriginType.OBSERVED,
                     )
             finally:
                 if os.path.exists(filename):
@@ -1262,7 +1572,7 @@ def test_roundtrip_precision_with_hourly_timestep():
     import tempfile
     import os
     from efts_io.wrapper import EftsDataSet, xr_efts
-    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+    from efts_io._ncdf_stf2 import StfVariable
 
     # Create hourly timestamps
     issue_times = pd.date_range("2024-04-10 00:00", periods=24, freq="h", tz="UTC+05:00")
@@ -1311,7 +1621,7 @@ def test_roundtrip_precision_with_hourly_timestep():
             path=filename,
             variable_name="flow_hourly",
             var_type=StfVariable.STREAMFLOW,
-            data_type=StfDataType.OBSERVED,
+            data_type=DataOriginType.OBSERVED,
             timestep="hours",
         )
 
@@ -1343,7 +1653,7 @@ def test_roundtrip_precision_with_minute_timestep():
     import tempfile
     import os
     from efts_io.wrapper import EftsDataSet, xr_efts
-    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+    from efts_io._ncdf_stf2 import StfVariable
 
     # Create minute-resolution timestamps
     issue_times = pd.date_range("2024-05-15 12:00", periods=60, freq="min", tz="UTC-07:00")
@@ -1392,7 +1702,7 @@ def test_roundtrip_precision_with_minute_timestep():
             path=filename,
             variable_name="level_minute",
             var_type=StfVariable.STREAMFLOW,  # hack of sorts.
-            data_type=StfDataType.OBSERVED,
+            data_type=DataOriginType.OBSERVED,
             timestep="minutes",
         )
 
@@ -1428,7 +1738,7 @@ def test_single_station_single_ensemble_single_leadtime():
     import tempfile
     import os
     from efts_io.wrapper import EftsDataSet, xr_efts, load_from_stf2_file
-    from efts_io._ncdf_stf2 import StfVariable, StfDataType
+    from efts_io._ncdf_stf2 import StfVariable
 
     # Create test data with single station, single ensemble, single lead time
     issue_times = pd.date_range("2023-06-01", periods=10, freq="D")
@@ -1482,7 +1792,7 @@ def test_single_station_single_ensemble_single_leadtime():
             path=filename,
             variable_name="flow_obs",
             var_type=StfVariable.STREAMFLOW,
-            data_type=StfDataType.OBSERVED,
+            data_type=DataOriginType.OBSERVED,
         )
 
         # This is where the bug would occur - loading a file with single-element dimensions

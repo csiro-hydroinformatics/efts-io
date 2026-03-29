@@ -2,8 +2,9 @@
 import numpy as np
 import pandas as pd
 import pytest
-from efts_io._ncdf_stf2 import StfDataType, StfVariable
+from efts_io._ncdf_stf2 import StfVariable
 from efts_io.attributes import template_variable_attributes
+from efts_io.conventions import DataOriginType
 from efts_io.wrapper import EftsDataSet, xr_efts
 
 
@@ -67,7 +68,7 @@ def test_create_new_efts_stf2():
             path=filename,
             variable_name="rain_obs",
             var_type=StfVariable.RAINFALL,
-            data_type=StfDataType.DERIVED_FROM_OBSERVATIONS,
+            data_type=DataOriginType.DERIVED,
             ens=False,
             timestep="hours",
             data_qual=None,
@@ -201,7 +202,7 @@ def _saving_to_stf2(station_ids, intdata_type="i4", delete=True):
             path=filename,
             variable_name="rain_obs",
             var_type=StfVariable.RAINFALL,
-            data_type=StfDataType.DERIVED_FROM_OBSERVATIONS,
+            data_type=DataOriginType.DERIVED,
             ens=False,
             timestep="hours",
             data_qual=None,
