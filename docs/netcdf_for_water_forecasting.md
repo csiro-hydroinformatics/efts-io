@@ -1,15 +1,5 @@
 # NetCDF for Water Forecasting Conventions
 
-## Version
-
-This document specifies conventions at version 2.0.
-
-## Foreword
-
-As of July 2025 the latest version of these conventions should be available at [https://csiro-hydroinformatics.github.io/efts-io/netcdf_for_water_forecasting/](https://csiro-hydroinformatics.github.io/efts-io/netcdf_for_water_forecasting/).
-
-The initial point of truth in March 2018 is/was at [this location](https://confluence.csiro.au/display/wirada/netCDF+for+Water+Forecasting+Specification+v2.0) March 2018. Credits for the specifications go to [James Bennett (CSIRO)](https://people-my.csiro.au/B/J/james-bennett).
-
 ## Purpose
 
 Plain text files are not well suited to storing the large volumes of data generated for and by ensemble streamflow forecasts with numerical weather prediction models. netCDF is a binary file format developed primarily for climate, ocean and meteorological data. Detailed, formalised descriptions of the data (metadata) can be included inside the netCDF file, and netCDF can store highly compressed data, making the format suitable for the STF project. However, netCDF has traditionally been used to store time slices of gridded data, rather than complete time series of point data. This document describes the conventions we have developed for storing complete time series data used in ensemble streamflow forecasting in netCDF.
@@ -21,6 +11,16 @@ NetCDF is a binary format, which renders it unintelligible to text editors. It a
 The netCDF format uses dimensions, and variables, to store data. Data is stored in variables, each variable can be considered as an array, and is independent of each other variable. The data space of these variables is defined by the dimensions. For example, for a gridded rainfall data set, the dimensions may be latitude and longitude, and the variable may be millimetres per day.
 
 Metadata is stored in netCDF format as attributes. Attributes can be defined as global, applying to the whole data set, or defined as specific to a variable. For instance, the origin of a variable (e.g. Rain gauge) may be stored specifically for that variable, whereas the agency responsible for the data set may be stored as a global attribute.
+
+## Version
+
+This document specifies conventions at version 2.0.
+
+## Foreword
+
+As of March 2026 the latest version of these conventions should be available at [https://csiro-hydroinformatics.github.io/efts-io/netcdf_for_water_forecasting/](https://csiro-hydroinformatics.github.io/efts-io/netcdf_for_water_forecasting/).
+
+The initial version 2.0 of this specification was published in March 2018 at [this location](https://confluence.csiro.au/display/wirada/netCDF+for+Water+Forecasting+Specification+v2.0), and was last corrected in 2021. Credits for the specifications go to [James Bennett (CSIRO)](https://people-my.csiro.au/B/J/james-bennett). The present document incorporates corrections and clarifications made since that initial publication, notably: the `lead_time` axis attribute was changed from `"u"` to `"v"` to distinguish it from `ens_member`, the quality code variable suffix was changed from `_qul` to `_qual`, and several example values were corrected.
 
 ## Schematic
 
@@ -56,9 +56,12 @@ The following abbreviations are used to construct variable names:
 
 * q - streamflow
 * pet - potential evapotranspiration 
-* rain - rainfall
+* rain - rainfall/precip
+* swe - snow water equivalent
+* tmin - minimum temperature
+* tmax - maximum temperature
 * sv - state variable
-* qul - data quality
+* qual - data quality
 * obs - observed
 * sim - simulated
 
@@ -97,12 +100,12 @@ Observations and simulations:
 
 Quality codes:
 
-* float rain_obs_qul (lead_time, station, ens_member, time)
-* float q_obs_qul (lead_time, station, ens_member, time)
-* float pet_obs_qul (lead_time, station, ens_member, time)
-* float rain_sim_qul (lead_time, station, ens_member, time)
-* float q_sim_qul (lead_time, station, ens_member, time)
-* float pet_sim_qul (lead_time, station, ens_member, time)
+* float rain_obs_qual (lead_time, station, ens_member, time)
+* float q_obs_qual (lead_time, station, ens_member, time)
+* float pet_obs_qual (lead_time, station, ens_member, time)
+* float rain_sim_qual (lead_time, station, ens_member, time)
+* float q_sim_qual (lead_time, station, ens_member, time)
+* float pet_sim_qual (lead_time, station, ens_member, time)
 
 
 ## Description of Variables
@@ -202,7 +205,7 @@ Description | Name | Type | Example
 The short name for the variable | standard_name | String | lead time
 The long name for the variable | long_name | String | forecast lead time
 Units | units | String | hours since time
-Axis label | axis | String | u
+Axis label | axis | String | v
 
 The units can also be days or months since time of forecast.
 
@@ -360,7 +363,7 @@ pet = potential evapotranspiration ; rain = precipitation; q = streamflow; swe =
 
 Description | Name | Type | Example 
 --- | --- | --- | --- 
-The long name for the variable | long_name | String | simulated rainfall
+The long name for the variable | long_name | String | simulated streamflow
 Units | units | String | m3/s
 Missing data value | _FillValue | float | -9999f
 Type of aggregation | type | int | 3
@@ -369,7 +372,7 @@ Type of data. Code as follows: "sim" - simulated from historical forcings; "fct"
 Description of type of data | dat_type_description | string | forecast data
 Location type of data. Takes value of "Point" (e.g. for a rain gauge) or "Area" (e.g. for a subarea). Default value is "Point". | location_type	| String | Point
 
-### `[variable]_obs_qul/[variable]_sim_qul`
+### `[variable]_obs_qual/[variable]_sim_qual`
 
 Description: Data quality
 
@@ -385,7 +388,7 @@ Description: Data quality
 Description | Name | Type | Example 
 --- | --- | --- | --- 
 The long name for the variable | long_name | String | Quality of observed rainfall
-Quality code standard | units | String | ABC Quality coding
+Quality code standard | units | String | ABC quality coding
 Missing data value | _FillValue | int | -1
 
 ### sv1/sv2/sv[#]
@@ -403,7 +406,7 @@ Description: State variables (double)
 
 Description | Name | Type | Example 
 --- | --- | --- | --- 
-The long name for the variable | long_name | String | state var 1
+The long name for the variable | long_name | String | state variable 1
 Name of model | model_name | String | GR4H_RR
 Name of state variable in model	| sv_name | String | UH_Inflow
 Description of state variable | sv_description | String | Total inflow to Unit Hydrographs in GR4H
@@ -416,15 +419,15 @@ Missing data value | _FillValue | float | -9999f
 Type ID | Description | Example variable
 --- | --- | --- 
 1	| instantaneous data | stage height
-2	| accumulated over the preceding interval | rainfall
-3	| averaged over the preceding interval | flow, average temp
-4	| accumulated since start of forecast | flow
-5	| point value recorded in the preceding interval | max/min temperature
+2	| accumulated over the preceding interval | rain, swe, pet
+3	| averaged over the preceding interval | q (streamflow)
+4	| accumulated since start of forecast | q (streamflow)
+5	| point value recorded in the preceding interval | tmax tmin
 11*	| climatology data - instantaneous data | climatology stage height
-12*	| climatology data - accumulated over the preceding interval | climatology rainfall
-13*	| climatology data - averaged over the preceding interval | climatology flow
-14*	| climatology data - accumulated since start of forecast | climatology flow
-15*	| climatology data - point value recorded in the preceding interval | climatology max temp
+12*	| climatology data - accumulated over the preceding interval | climatology rain
+13*	| climatology data - averaged over the preceding interval | climatology q (streamflow)
+14*	| climatology data - accumulated since start of forecast | climatology q (streamflow)
+15*	| climatology data - point value recorded in the preceding interval | climatology tmax
 
 __*NB - please specify the period over which climatology data is calculated and how it is calculated in the global "comment" attribute, as well as any applicable references in the "source" global attribute.__
 
@@ -436,6 +439,6 @@ __*NB - please specify the period over which climatology data is calculated and 
 Type ID | Description | Example variable
 --- | --- | --- 
 obs | observed directly | gauged rainfall
-der | derived from observations | awap rainfall
+der | derived from observations | interpolated rainfall (e.g. by inverse distance weighting of gauges)
 sim | simulated from observations | flow simulated by GR4H forced by observations
 fct | simulated from forecasts | flow forecast by GR4H forced by NWP forecasts
