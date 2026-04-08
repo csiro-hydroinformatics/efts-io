@@ -1,1 +1,5 @@
---8<-- "contributing.md"
+---
+title: Contributing
+---
+
+--8<-- "CONTRIBUTING.md"

@@ -6,9 +6,10 @@ build-backend = "pdm.backend"
 name = "efts-io"
 description = "Ensemble forecast time series"
 authors = [{name = "J-M", email = "jean-michel.perraud@csiro.au"}]
-license = {text = "BSD-3-Clause-Clear"}
+license = "BSD-3-Clause-Clear"
+license-files = ["LICENSE"]
 readme = "README.md"
-requires-python = ">=3.10" # importlib
+requires-python = ">=3.10"
 keywords = []
 dynamic = ["version"]
 classifiers = [
@@ -21,6 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Documentation",
     "Topic :: Software Development",
     "Topic :: Utilities",
@@ -49,12 +51,12 @@ Discussions = "https://github.com/csiro-hydroinformatics/efts-io/discussions"
 [project.scripts]
 efts = "efts_io.cli:main"
 
-[tool.pdm]
-version = {source = "scm"}
+[tool.pdm.version]
+source = "call"
+getter = "scripts.get_version:get_version"
 
 [tool.pdm.build]
-package-dir = "src"
-editable-backend = "editables"
+# Include as much as possible in the source distribution, to help redistributors.
 excludes = ["**/.pytest_cache"]
 source-includes = [
     "config",
@@ -62,14 +64,16 @@ source-includes = [
     "scripts",
     "share",
     "tests",
-    "devdeps.txt",
     "duties.py",
-    "mkdocs.yml",
+    "zensical.toml",
     "*.md",
     "LICENSE",
 ]
 
 [tool.pdm.build.wheel-data]
+# Manual pages can be included in the wheel.
+# Depending on the installation tool, they will be accessible to users.
+# pipx supports it, uv does not yet, see https://github.com/astral-sh/uv/issues/4731.
 data = [
     {path = "share/**/*", relative-to = "."},
 ]
@@ -77,3 +81,34 @@ data = [
 [tool.pdm.build.package-data]
 "efts_io" = ["data/*"]
 # Note: because package-dir = "src", we have to have data under src.efts_io???
+
+[dependency-groups]
+maintain = [
+    "git-changelog>=2.5",
+    "twine>=5.1",
+    "yore>=0.3.3",
+]
+ci = [
+    "duty>=1.6",
+    "griffe>=2.0",
+    "pytest>=8.2",
+    "pytest-cov>=5.0",
+    "pytest-randomly>=3.15",
+    "pytest-xdist>=3.6",
+    "ruff>=0.4",
+    "ty>=0.0.14",
+    "types-markdown>=3.6",
+    "types-pyyaml>=6.0",
+]
+ docs = [
+    "ghp-import>=2.1",
+    "markdown-callouts>=0.4",
+    "markdown-exec>=1.8",
+    "mkdocstrings[python]>=0.29",
+    # YORE: EOL 3.10: Remove line.
+    "tomli>=2.0; python_version < '3.11'",
+    "zensical>=0.0.21",
+]
+
+[tool.uv]
+default-groups = ["maintain", "ci", "docs"]

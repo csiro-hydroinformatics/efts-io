@@ -5,6 +5,8 @@ Ensemble forecast time series
 
 from __future__ import annotations
 
+from efts_io._internal.cli import get_parser, main
+
 # Deprecated — use DataOriginType instead. Will be removed in a future version.
 from efts_io._ncdf_stf2 import StfVariable
 
@@ -30,7 +32,10 @@ from efts_io.wrapper import EftsDataSet, create_mandatory_global_attributes, ope
 
 # import netCDF4
 
+
 __all__: list[str] = [
+    "get_parser",
+    "main",
     "DataOriginType",
     # Main classes
     "EftsDataSet",
