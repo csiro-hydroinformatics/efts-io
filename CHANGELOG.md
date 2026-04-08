@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 <!-- insertion marker -->
+## [0.8.0](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.8.0) - 2026-04-08
+
+<small>[Compare with 0.7.1](https://github.com/csiro-hydroinformatics/efts-io/compare/0.7.1...0.8.0)</small>
+
+### Features
+
+- additional functions to create and test metadata attributes as per the STF 2.0 conventions. Relates to #31. ([6b5fe07](https://github.com/csiro-hydroinformatics/efts-io/commit/6b5fe07c41ec92df2a6ffcdaa0c5e9495db65bed) by J-M).
+- WIP improve the API to create data attributes adhering to the STF 2.0 conventions. relates to #32. ([65a1286](https://github.com/csiro-hydroinformatics/efts-io/commit/65a1286a983c2c298775d166e56e3a711d8a0d32) by J-M).
+- WIP to support utc offset time zones, https://github.com/csiro-hydroinformatics/efts-io/issues/31 ([e0ff4e5](https://github.com/csiro-hydroinformatics/efts-io/commit/e0ff4e51e08f47f10d3c1c2126aaa861759b7fe0) by J-M).
+
+### Bug Fixes
+
+- address issues F and G in #38, legacy paths from R implementation. Just unused so removed. ([3449244](https://github.com/csiro-hydroinformatics/efts-io/commit/34492448a74e64bbcf9b6265fa92e5b92efa70bd) by J-M).
+- address multiple STF 2.0 compliance issues, due to various endo/exogenous factors ([a7760f6](https://github.com/csiro-hydroinformatics/efts-io/commit/a7760f67f1003ef75b1c39b6490de2f9975d6108) by J-M).
+- potential if improbable bug with array indices ([b28e17c](https://github.com/csiro-hydroinformatics/efts-io/commit/b28e17c5dffcb2ce4d39eee85cced70f2d449114) by J-M).
+
+### Code Refactoring
+
+- low level functions writing to netcdf. Relates to #34. ([ec64390](https://github.com/csiro-hydroinformatics/efts-io/commit/ec64390571c66eeb18efccc13c1e18e213c2f005) by J-M).
+- WIP de-uglify the low level write function. ([acc9478](https://github.com/csiro-hydroinformatics/efts-io/commit/acc94787892409955dd25d0d4424d39ac8b5e681) by J-M).
+- WIP deprecate StfDataType enum inherited that stemmed from some Matlab/third party python code numeric hard coding ([75d1427](https://github.com/csiro-hydroinformatics/efts-io/commit/75d14275a925403f0a95472983a3401a26c0bde2) by J-M).
+
 ## [0.7.1](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.7.1) - 2026-02-24
 
 <small>[Compare with 0.7.0](https://github.com/csiro-hydroinformatics/efts-io/compare/0.7.0...0.7.1)</small>
