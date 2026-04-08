@@ -66,13 +66,13 @@ conventional_varnames_optional = [
 
 conventional_varnames = conventional_varnames_mandatory + conventional_varnames_optional
 
-hydro_varnames = ("rain", "pet", "q", "swe", "tmin", "tmax")
+hydro_varnames = ("rain", "pet", "q", "swe", "tmin", "tmax", "tave")
 var_type = ("obs", "sim")
 obs_hydro_varnames = tuple(f"{var}_{var_type[0]}" for var in hydro_varnames)
 sim_hydro_varnames = tuple(f"{var}_{var_type[1]}" for var in hydro_varnames)
-obs_hydro_varnames_qul = tuple(f"{x}_qul" for x in obs_hydro_varnames)
-sim_hydro_varnames_qul = tuple(f"{x}_qul" for x in sim_hydro_varnames)
-known_hydro_varnames = obs_hydro_varnames + sim_hydro_varnames + obs_hydro_varnames_qul + sim_hydro_varnames_qul
+obs_hydro_varnames_qual = tuple(f"{x}_qual" for x in obs_hydro_varnames)
+sim_hydro_varnames_qual = tuple(f"{x}_qual" for x in sim_hydro_varnames)
+known_hydro_varnames = obs_hydro_varnames + sim_hydro_varnames + obs_hydro_varnames_qual + sim_hydro_varnames_qual
 
 # TODO: perhaps deal with the state variable names. But, is it used in practice?
 
@@ -421,7 +421,7 @@ def _is_simulation_variable(name: str) -> bool:
 
 
 def _is_quality_variable(name: str) -> bool:
-    return name in obs_hydro_varnames_qul or name in sim_hydro_varnames_qul
+    return name in obs_hydro_varnames_qual or name in sim_hydro_varnames_qual
 
 
 def _extract_var_type(variable: Any) -> str:
@@ -430,7 +430,7 @@ def _extract_var_type(variable: Any) -> str:
     if _is_simulation_variable(variable):
         return "sim"
     if _is_quality_variable(variable):
-        return "qul"
+        return "qual"
     return None
 
 
@@ -470,7 +470,7 @@ def _check_variable_attributes_sim(
     return _check_attrs(variable, required_attributes, missing_attributes_messages, error_threshold=error_threshold)
 
 
-def _check_variable_attributes_qul(
+def _check_variable_attributes_qual(
     variable: Any,
     error_threshold: AttributesErrorLevel = AttributesErrorLevel.NONE,
 ) -> List[str]:
@@ -558,8 +558,8 @@ def _check_variable_attributes(variable: Any) -> List[str]:
         return _check_variable_attributes_obs(variable)
     if var_type == "sim":
         return _check_variable_attributes_sim(variable)
-    if var_type == "qul":
-        return _check_variable_attributes_qul(variable)
+    if var_type == "qual":
+        return _check_variable_attributes_qual(variable)
 
     return []
 

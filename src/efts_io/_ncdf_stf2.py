@@ -83,6 +83,7 @@ class StfVariable(Enum):
     SNOW_WATER_EQUIVALENT = 4
     MINIMUM_TEMPERATURE = 5
     MAXIMUM_TEMPERATURE = 6
+    AVERAGE_TEMPERATURE = 7
 
 
 class StfDataType(Enum):
@@ -123,6 +124,7 @@ _VARIABLE_META: dict[StfVariable, tuple[str, str, int]] = {
     StfVariable.SNOW_WATER_EQUIVALENT: ("swe", "snow water equivalent", 2),
     StfVariable.MINIMUM_TEMPERATURE: ("tmin", "minimum temperature", 5),
     StfVariable.MAXIMUM_TEMPERATURE: ("tmax", "maximum temperature", 5),
+    StfVariable.AVERAGE_TEMPERATURE: ("tave", "average temperature", 5),
 }
 
 # Mapping from TimeSeriesType code to its description.

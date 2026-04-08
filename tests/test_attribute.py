@@ -556,8 +556,8 @@ class TestCreateQualityVariableAttributes:
         )
         assert attrs["units"] == "ABC Quality coding"
 
-    def test_rain_obs_qul_scenario(self):
-        """Convention example: rain_obs_qul."""
+    def test_rain_obs_qual_scenario(self):
+        """Convention example: rain_obs_qual."""
         attrs = create_quality_variable_attributes(
             long_name="Quality of observed rainfall",
             quality_code_standard="ABC Quality coding",
@@ -880,13 +880,13 @@ class TestValidateGlobalAttributes:
         errors = validate_global_attributes(attrs)
         assert any("STF_convention_version" in e for e in errors)
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "Convention §Global Attributes: 'The Catchment attribute may not contain spaces. "
-            "Underscores are permitted.' The validation function does not currently enforce this rule."
-        ),
-    )
+    # @pytest.mark.xfail(
+    #     strict=True,
+    #     reason=(
+    #         "Convention §Global Attributes: 'The Catchment attribute may not contain spaces. "
+    #         "Underscores are permitted.' The validation function does not currently enforce this rule."
+    #     ),
+    # )
     def test_catchment_with_spaces_detected(self):
         """Convention: catchment must not contain spaces (e.g. 'South_Esk', not 'South Esk')."""
         attrs = create_global_attributes("Title", "Inst", "Src", "South Esk", "Comment")

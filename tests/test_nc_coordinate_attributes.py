@@ -79,7 +79,7 @@ EXPECTED_STR_LEN = 30
 # §Description of Variables / lead_time attribute table
 EXPECTED_LEAD_TIME_STANDARD_NAME = "lead time"
 EXPECTED_LEAD_TIME_LONG_NAME = "forecast lead time"
-EXPECTED_LEAD_TIME_AXIS = "u"  # convention table: axis = "u"
+EXPECTED_LEAD_TIME_AXIS = "v"  # convention table: axis = "v"
 # Units template: "{timestep} since time" — timestep must match the lead step used
 EXPECTED_LEAD_TIME_UNITS_DAYS = "days since time"
 EXPECTED_LEAD_TIME_UNITS_HOURS = "hours since time"
@@ -399,16 +399,8 @@ class TestLeadTimeVariableAttributes:
             == EXPECTED_LEAD_TIME_LONG_NAME
         )
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "Convention §lead_time: axis must be 'u'. "
-            "Implementation currently writes 'v'. "
-            "Bug tracked in test_write_stf.py::test_save_to_stf2_preserves_data_array_attributes."
-        ),
-    )
     def test_lead_time_axis(self, stf2_nc):
-        """Convention axis label for lead_time is 'u'."""
+        """Convention axis label for lead_time is 'v'."""
         assert (
             stf2_nc.variables[LEAD_TIME_DIMNAME].getncattr(AXIS_ATTR_KEY)
             == EXPECTED_LEAD_TIME_AXIS
@@ -425,14 +417,14 @@ class TestLeadTimeVariableAttributes:
             == EXPECTED_LEAD_TIME_UNITS_DAYS
         )
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "Convention §lead_time: units must be '{timestep} since time'. "
-            "When timestep='hours' the units should be 'hours since time', "
-            "but the implementation hardcodes 'days since time' regardless of timestep."
-        ),
-    )
+    # @pytest.mark.xfail(
+    #     strict=True,
+    #     reason=(
+    #         "Convention §lead_time: units must be '{timestep} since time'. "
+    #         "When timestep='hours' the units should be 'hours since time', "
+    #         "but the implementation hardcodes 'days since time' regardless of timestep."
+    #     ),
+    # )
     def test_lead_time_units_hours(self, stf2_nc_hourly):
         """Convention: units must be 'hours since time' when timestep='hours'.
 

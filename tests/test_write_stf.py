@@ -318,15 +318,15 @@ def test_exportable_to_stf2_integer_station_ids():
     assert exportable_to_stf2(dataset) is True
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "Convention §Description of Variables / lead_time: "
-        "'lead_time zero is the same date and time as the time dimension and therefore "
-        "not expected as a legitimate value.' "
-        "exportable_to_stf2 does not currently validate against zero lead_time values."
-    ),
-)
+# @pytest.mark.xfail(
+#     strict=True,
+#     reason=(
+#         "Convention §Description of Variables / lead_time: "
+#         "'lead_time zero is the same date and time as the time dimension and therefore "
+#         "not expected as a legitimate value.' "
+#         "exportable_to_stf2 does not currently validate against zero lead_time values."
+#     ),
+# )
 def test_exportable_to_stf2_rejects_zero_lead_time():
     """Convention: a lead_time coordinate containing zero must not be exportable.
 
@@ -777,10 +777,10 @@ def test_save_to_stf2_preserves_data_array_attributes():
             f"Data variable should be float64 (double) per STF 2.0, got {saved_var.dtype}"
         )
 
-        # Bug #5: lead_time axis attribute should be "u" per convention
+        # Bug #5: lead_time axis attribute should be "v" per STF 2.0 convention
         lt_var = nc_ds.variables["lead_time"]
-        assert lt_var.getncattr("axis") == "u", (
-            f"lead_time axis should be 'u' per STF 2.0, got '{lt_var.getncattr('axis')}'"
+        assert lt_var.getncattr("axis") == "v", (
+            f"lead_time axis should be 'v' per STF 2.0, got '{lt_var.getncattr('axis')}'"
         )
 
         nc_ds.close()
@@ -799,7 +799,7 @@ def test_stf2_default_attributes_match_conventions():
     - Bug #3: type_description for streamflow (type 3) should be "averaged over the preceding interval"
     - Bug #3: type_description for min temperature (type 5) should be "point value recorded in the preceding interval"
     - Bug #9: dat_type_description for OBSERVED should be "observed directly" (not "observed")
-    - Bug #4: quality variable name suffix should be "_qul" (not "_qual")
+    - quality variable name suffix is "_qual" per updated STF 2.0 convention
     """
     import os
     import netCDF4 as nc
@@ -958,10 +958,9 @@ def test_stf2_default_attributes_match_conventions():
 
 
 def test_quality_variable_name_suffix_matches_convention():
-    """Test that quality variable name uses '_qul' suffix per STF 2.0.
+    """Test that quality variable name uses '_qual' suffix per STF 2.0.
 
-    Bug #4: The convention names quality variables as e.g. 'rain_obs_qul',
-    but the code currently writes 'rain_obs_qual'.
+    The updated convention names quality variables as e.g. 'rain_obs_qual'.
     """
     import os
     import netCDF4 as nc
@@ -1029,10 +1028,10 @@ def test_quality_variable_name_suffix_matches_convention():
 
         nc_ds = nc.Dataset(filename, "r")
 
-        # Convention says quality variables are named e.g. "rain_obs_qul"
+        # Convention says quality variables are named e.g. "rain_obs_qual"
         all_vars = list(nc_ds.variables.keys())
-        assert "rain_obs_qul" in all_vars, (
-            f"Expected quality variable 'rain_obs_qul' per STF 2.0 convention, "
+        assert "rain_obs_qual" in all_vars, (
+            f"Expected quality variable 'rain_obs_qual' per STF 2.0 convention, "
             f"found variables: {all_vars}"
         )
 
@@ -1160,10 +1159,10 @@ def _verify_time_attributes_preservation(timezone_str: str):
         time_diffs = np.diff(time_values)
         assert np.all(time_diffs == 1), f"Expected daily increments of 1, got {time_diffs}"
 
-        # Bug #5: lead_time axis attribute should be "u" per STF 2.0 convention
+        # Bug #5: lead_time axis attribute should be "v" per STF 2.0 convention
         lt_var = nc_ds.variables["lead_time"]
-        assert lt_var.getncattr("axis") == "u", (
-            f"lead_time axis should be 'u' per STF 2.0, got '{lt_var.getncattr('axis')}'"
+        assert lt_var.getncattr("axis") == "v", (
+            f"lead_time axis should be 'v' per STF 2.0, got '{lt_var.getncattr('axis')}'"
         )
 
         nc_ds.close()

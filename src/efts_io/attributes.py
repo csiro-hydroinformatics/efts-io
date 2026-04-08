@@ -421,7 +421,7 @@ def create_quality_variable_attributes(
     quality_code_standard: str,
     fill_value: int = -1,
 ) -> dict[str, Any]:
-    """Create attributes for a quality code variable (e.g., rain_obs_qul).
+    """Create attributes for a quality code variable (e.g., rain_obs_qual).
 
     Quality code variables have a distinct set of attributes from data variables.
     Per the STF 2.0 conventions, they require ``long_name``, ``units`` (the quality
