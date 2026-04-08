@@ -896,10 +896,17 @@ def create_mandatory_global_attributes(
         catchment=catchment,
         source=source,
         comment=comment,
-        history=history or f"Created on {pd.Timestamp.now(tz='UTC').isoformat()}",
+        history=history or __default_history_attval(),
     )
     return d  # noqa: RET504
 
+def __default_history_attval() -> str:
+    try:
+        from importlib.metadata import version
+        pkg_version = version("efts-io")
+    except Exception:  # noqa: BLE001
+        pkg_version = "unknown"
+    return f"Created on {pd.Timestamp.now(tz='UTC').isoformat()} by efts-io v{pkg_version}"
 
 def _stf2_mandatory_global_attributes(
     title: str = "not provided",
