@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 <!-- insertion marker -->
+## [0.8.1](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.8.1) - 2026-04-08
+
+<small>[Compare with 0.8.0](https://github.com/csiro-hydroinformatics/efts-io/compare/0.8.0...0.8.1)</small>
+
 ## [0.8.0](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.8.0) - 2026-04-08
 
 <small>[Compare with 0.7.1](https://github.com/csiro-hydroinformatics/efts-io/compare/0.7.1...0.8.0)</small>
