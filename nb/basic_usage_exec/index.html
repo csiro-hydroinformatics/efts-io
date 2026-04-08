@@ -12,9 +12,13 @@
         <meta name="author" content="J-M">
       
       
-        <link rel="canonical" href="https://csiro-hydroinformatics.github.io/efts-io/nb/basic_usage/">
+        <link rel="canonical" href="https://csiro-hydroinformatics.github.io/efts-io/nb/basic_usage_exec/">
       
       
+        <link rel="prev" href="../../license/">
+      
+      
+        <link rel="next" href="../../reference/api/">
       
       
         
@@ -226,9 +230,11 @@
   
   
   
+    
   
-    <li class="md-tabs__item">
-      <a href="../basic_usage_exec/" class="md-tabs__link">
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="././" class="md-tabs__link">
         
   
   Examples
@@ -492,10 +498,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../basic_usage_exec/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
         
   
   
@@ -511,6 +544,127 @@
   
 
       </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#reading-from-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading from file
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reading from file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validating-compliance-of-a-file-before-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validating compliance of a file before loading
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checking-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checking variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loading-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loading data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#saving-a-stf-20-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Saving a STF 2.0 file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-a-new-stf-xarray-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a new STF xarray dataset
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating a new STF xarray dataset">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-data-variable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a data variable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -826,7 +980,7 @@
                 
                   
   
-    <a href="https://github.com/csiro-hydroinformatics/efts-io/edit/master/docs/nb/basic_usage.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/csiro-hydroinformatics/efts-io/edit/master/docs/nb/basic_usage_exec.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v9.34"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10.378 12.622a1 1 0 0 1 3 3.003L8.36 20.637a2 2 0 0 1-.854.506l-2.867.837a.5.5 0 0 1-.62-.62l.836-2.869a2 2 0 0 1 .506-.853z"/></svg>
     </a>
@@ -835,7 +989,7 @@
     
       
     
-    <a href="https://github.com/csiro-hydroinformatics/efts-io/raw/master/docs/nb/basic_usage.md" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/csiro-hydroinformatics/efts-io/raw/master/docs/nb/basic_usage_exec.md" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-code-2" viewBox="0 0 24 24"><path d="M4 12.15V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2h-3.35"/><path d="M14 2v5a1 1 0 0 0 1 1h5M5 16l-3 3 3 3M9 22l3-3-3-3"/></svg>
     </a>
@@ -849,43 +1003,59 @@
 <p>The package includes small, sample data files. We will start with a file storing a single rainfall time series</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">efts_io.helpers</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hlp</span>
 </code></pre></div>
+
 <div class="highlight"><pre><span></span><code><span class="n">fn</span> <span class="o">=</span> <span class="n">hlp</span><span class="o">.</span><span class="n">derived_rainfall_tas</span><span class="p">()</span>
 </code></pre></div>
+
 <div class="highlight"><pre><span></span><code><span class="c1"># The path to the sample file will depend on your operating system, environment setup etc.</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="n">homepath</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">())</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">fn</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">homepath</span><span class="p">,</span> <span class="s1">&#39;/your_home_path&#39;</span><span class="p">))</span>
 </code></pre></div>
+/your_home_path/src/efts-io/src/efts_io/data/derived_rainfall_tas.nc
+
 <div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
     <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
 </code></pre></div>
+
 <h3 id="validating-compliance-of-a-file-before-loading">Validating compliance of a file before loading<a class="headerlink" href="#validating-compliance-of-a-file-before-loading" title="Permanent link">&para;</a></h3>
 <p>The package includes facilities to check the structure of a file on disk and its level of compliance with the STF conventions:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.conventions</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_stf_compliance</span><span class="p">,</span> <span class="n">check_hydrologic_variables</span>
 </code></pre></div>
+
 <div class="highlight"><pre><span></span><code><span class="n">compliance_report</span> <span class="o">=</span> <span class="n">check_stf_compliance</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;compliance_report is a dictionary with keys </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">compliance_report</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
+compliance_report is a dictionary with keys ['INFO', 'WARNING', 'ERROR']
+
 <p>There is no error nor warnings in this sample file:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING:&quot;</span><span class="p">,</span> <span class="n">compliance_report</span><span class="p">[</span><span class="s2">&quot;WARNING&quot;</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR:&quot;</span><span class="p">,</span> <span class="n">compliance_report</span><span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">])</span>
 </code></pre></div>
+WARNING: []
+ERROR: []
+
 <p>To get a detail of what was checked in the file structure:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;INFO:&quot;</span><span class="p">,</span> <span class="n">compliance_report</span><span class="p">[</span><span class="s2">&quot;INFO&quot;</span><span class="p">])</span>
 </code></pre></div>
+INFO: ["Dimension 'time' is present.", "Dimension 'station' is present.", "Dimension 'lead_time' is present.", "Dimension 'ens_member' is present.", "Dimension 'strLen' is present.", "Global attribute 'title' is present.", "Global attribute 'institution' is present.", "Global attribute 'source' is present.", "Global attribute 'catchment' is present.", "Global attribute 'STF_convention_version' is present.", "Global attribute 'STF_nc_spec' is present.", "Global attribute 'comment' is present.", "Global attribute 'history' is present.", "Mandatory variable 'time' is present.", "Attribute 'standard_name' for variable 'time' is present.", "Attribute 'long_name' for variable 'time' is present.", "Attribute 'units' for variable 'time' is present.", "Attribute 'time_standard' for variable 'time' is present.", "Attribute 'axis' for variable 'time' is present.", "Mandatory variable 'station_id' is present.", "Attribute 'long_name' for variable 'station_id' is present.", "Mandatory variable 'station_name' is present.", "Attribute 'long_name' for variable 'station_name' is present.", "Mandatory variable 'ens_member' is present.", "Attribute 'standard_name' for variable 'ens_member' is present.", "Attribute 'long_name' for variable 'ens_member' is present.", "Attribute 'units' for variable 'ens_member' is present.", "Attribute 'axis' for variable 'ens_member' is present.", "Mandatory variable 'lead_time' is present.", "Attribute 'standard_name' for variable 'lead_time' is present.", "Attribute 'long_name' for variable 'lead_time' is present.", "Attribute 'units' for variable 'lead_time' is present.", "Attribute 'axis' for variable 'lead_time' is present.", "Mandatory variable 'lat' is present.", "Attribute 'long_name' for variable 'lat' is present.", "Attribute 'units' for variable 'lat' is present.", "Attribute 'axis' for variable 'lat' is present.", "Mandatory variable 'lon' is present.", "Attribute 'long_name' for variable 'lon' is present.", "Attribute 'units' for variable 'lon' is present.", "Attribute 'axis' for variable 'lon' is present."]
+
 <p>If we use the venerable <code>ncdump</code> command line tool, (just to give a low-level overview of the file):</p>
-<div class="highlight"><pre><span></span><code><span class="err">!</span><span class="n">ncdump</span> <span class="o">-</span><span class="n">h</span> <span class="p">{</span><span class="n">fn</span><span class="p">}</span>
+<div class="highlight"><pre><span></span><code>!ncdump -h {fn}
 </code></pre></div>
 <h3 id="checking-variables">Checking variables<a class="headerlink" href="#checking-variables" title="Permanent link">&para;</a></h3>
 <p><code>check_hydrologic_variables</code> looks into more details at the variables present in the netcdf file. The STF convention suggests naming conventions, as well as the expectation of certain variable attributes. </p>
 <div class="highlight"><pre><span></span><code><span class="n">compliance_report</span> <span class="o">=</span> <span class="n">check_hydrologic_variables</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="n">compliance_report</span>
-</code></pre></div>
+
 <div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;INFO:&quot;</span><span class="p">,</span> <span class="n">compliance_report</span><span class="p">[</span><span class="s2">&quot;INFO&quot;</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING:&quot;</span><span class="p">,</span> <span class="n">compliance_report</span><span class="p">[</span><span class="s2">&quot;WARNING&quot;</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR:&quot;</span><span class="p">,</span> <span class="n">compliance_report</span><span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">])</span>
 </code></pre></div>
+INFO: ["Hydrologic variable 'rain_obs' follows the recommended naming convention."]
+WARNING: ["Attribute '_FillValue' for variable 'rain_obs' has an unexpected type 'float32'. Expected type: 'float'.", "Attribute 'type' for variable 'rain_obs' has an unexpected type 'float64'. Expected type: 'int'."]
+ERROR: []
+
 <p>Two of the variable attributes in the file happen to not quite follow strictly the STF conventions, but in this case this is not a blocking incompatibility.</p>
 <h3 id="loading-data">Loading data<a class="headerlink" href="#loading-data" title="Permanent link">&para;</a></h3>
 <p>We recommend loading the files using a thin wrapper around an <code>xarray</code> object called <code>EftsDataSet</code>.</p>
@@ -896,29 +1066,62 @@
 <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 </code></pre></div>
+unable to decode time units 'days since time' with 'the default calendar'. Try opening your dataset with decode_times=False or installing cftime if it is not installed.
+
 <p><code>EftsDataSet</code> takes care of the low-level acrobatics required to read STF files, which was designed before <code>xarray</code> emerged and gained popularity. </p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.wrapper</span><span class="w"> </span><span class="kn">import</span> <span class="n">EftsDataSet</span>
 <span class="n">rain_stf</span> <span class="o">=</span> <span class="n">EftsDataSet</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
 </code></pre></div>
+
 <p>There are helper methods on <code>EftsDataSet</code> objects, but most add little value so far to the inner <code>xarray</code> object. Note that the in-memory <code>xarray</code> structure has a coordinate in a form of a string for <code>station_id</code>, rather than an integer as is specified in the STF 2.0 convention for on-disk netCDF storage. This is a deliberate choice, as we envisage that ulterior versions of the conventions will feature strings for station identifiers. Limiting station identifiers to integers is in part a legacy of using the Fortran programming language in the past.</p>
 <p>Details of a conversation about data design can be found in <a href="https://github.com/csiro-hydroinformatics/efts-io/issues/2">this thread</a>.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">rain_stf</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
 </code></pre></div>
+<xarray.Dataset> Size: 676B
+Dimensions:       (realisation: 1, lead_time: 1, station_id: 3, time: 7)
+Coordinates:
+  * realisation   (realisation) int32 4B 1
+  * lead_time     (lead_time) int32 4B 0
+  * station_id    (station_id) <U11 132B '28286670' '28294676' '28294677'
+  * time          (time) object 56B 2023-11-04T23:00:00+00:00 ... 2023-11-10T...
+Data variables:
+    area          (station_id) float32 12B 3.353 1.76 4.988
+    lat           (station_id) float32 12B -41.85 -41.82 -41.85
+    lon           (station_id) float32 12B 145.6 145.6 145.6
+    rain_obs      (time, realisation, station_id, lead_time) float32 84B 0.09...
+    station_name  (station_id) <U30 360B '28286670' '28294676' '28294677'
+Attributes:
+    title:                   Precip from Hydro Tasmania's observation network...
+    institution:             CSIRO Land & Water
+    source:                  
+    catchment:               Hydro Tas
+    STF_convention_version:  2.0
+    STF_nc_spec:             https://wiki.csiro.au/display/wirada/NetCDF+for+...
+    comment:                 
+    history:                 Thu Jul 17 16:29:16 2025: ncks -d time,8389, -d ...
+    NCO:                     netCDF Operators version 5.1.4 (Homepage = http:...
+
 <h2 id="saving-a-stf-20-file">Saving a STF 2.0 file<a class="headerlink" href="#saving-a-stf-20-file" title="Permanent link">&para;</a></h2>
 <p>Since the data was loaded from an STF 2.0 file, one would hope we can round trip and save to disk. The method <code>writeable_to_stf2</code> performs checks on the in-memory representation, to determine if it has the information to create a compliant netCDF file. In this case, unsurprisingly:</p>
 <div class="highlight"><pre><span></span><code><span class="n">rain_stf</span><span class="o">.</span><span class="n">writeable_to_stf2</span><span class="p">()</span>
 </code></pre></div>
+
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
 </code></pre></div>
+
 <div class="highlight"><pre><span></span><code><span class="n">out_fn</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">()</span><span class="o">.</span><span class="n">name</span>
 </code></pre></div>
+
 <div class="highlight"><pre><span></span><code><span class="n">out_fn</span>
 </code></pre></div>
+
 <div class="highlight"><pre><span></span><code><span class="n">Path</span><span class="p">(</span><span class="n">out_fn</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
 </code></pre></div>
+
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.wrapper</span><span class="w"> </span><span class="kn">import</span> <span class="n">StfVariable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.conventions</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataOriginType</span>
 </code></pre></div>
+
 <div class="highlight"><pre><span></span><code><span class="n">rain_stf</span><span class="o">.</span><span class="n">save_to_stf2</span><span class="p">(</span>
     <span class="n">path</span><span class="o">=</span><span class="n">out_fn</span><span class="p">,</span>
     <span class="n">variable_name</span><span class="o">=</span><span class="s2">&quot;rain_obs&quot;</span><span class="p">,</span>
@@ -929,14 +1132,21 @@
     <span class="n">data_qual</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
+
 <div class="highlight"><pre><span></span><code><span class="n">compliance_report</span> <span class="o">=</span> <span class="n">check_stf_compliance</span><span class="p">(</span><span class="n">out_fn</span><span class="p">)</span>
 </code></pre></div>
+
 <p>One would hope that what the package writes out passes the low-level checks:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING:&quot;</span><span class="p">,</span> <span class="n">compliance_report</span><span class="p">[</span><span class="s2">&quot;WARNING&quot;</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR:&quot;</span><span class="p">,</span> <span class="n">compliance_report</span><span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">])</span>
 </code></pre></div>
+WARNING: []
+ERROR: []
+
 <div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;INFO:&quot;</span><span class="p">,</span> <span class="n">compliance_report</span><span class="p">[</span><span class="s2">&quot;INFO&quot;</span><span class="p">])</span>
 </code></pre></div>
+INFO: ["Dimension 'time' is present.", "Dimension 'station' is present.", "Dimension 'lead_time' is present.", "Dimension 'ens_member' is present.", "Dimension 'strLen' is present.", "Global attribute 'title' is present.", "Global attribute 'institution' is present.", "Global attribute 'source' is present.", "Global attribute 'catchment' is present.", "Global attribute 'STF_convention_version' is present.", "Global attribute 'STF_nc_spec' is present.", "Global attribute 'comment' is present.", "Global attribute 'history' is present.", "Mandatory variable 'time' is present.", "Attribute 'standard_name' for variable 'time' is present.", "Attribute 'long_name' for variable 'time' is present.", "Attribute 'units' for variable 'time' is present.", "Attribute 'time_standard' for variable 'time' is present.", "Attribute 'axis' for variable 'time' is present.", "Mandatory variable 'station_id' is present.", "Attribute 'long_name' for variable 'station_id' is present.", "Mandatory variable 'station_name' is present.", "Attribute 'long_name' for variable 'station_name' is present.", "Mandatory variable 'ens_member' is present.", "Attribute 'standard_name' for variable 'ens_member' is present.", "Attribute 'long_name' for variable 'ens_member' is present.", "Attribute 'units' for variable 'ens_member' is present.", "Attribute 'axis' for variable 'ens_member' is present.", "Mandatory variable 'lead_time' is present.", "Attribute 'standard_name' for variable 'lead_time' is present.", "Attribute 'long_name' for variable 'lead_time' is present.", "Attribute 'units' for variable 'lead_time' is present.", "Attribute 'axis' for variable 'lead_time' is present.", "Mandatory variable 'lat' is present.", "Attribute 'long_name' for variable 'lat' is present.", "Attribute 'units' for variable 'lat' is present.", "Attribute 'axis' for variable 'lat' is present.", "Mandatory variable 'lon' is present.", "Attribute 'long_name' for variable 'lon' is present.", "Attribute 'units' for variable 'lon' is present.", "Attribute 'axis' for variable 'lon' is present."]
+
 <p>Let's clean up the temporary file, in case the operating system does not later on.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="o">,</span><span class="w"> </span><span class="nn">time</span>
 
@@ -944,14 +1154,17 @@
 <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">out_fn</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
     <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">out_fn</span><span class="p">)</span>
 </code></pre></div>
+
 <h2 id="creating-a-new-stf-xarray-dataset">Creating a new STF xarray dataset<a class="headerlink" href="#creating-a-new-stf-xarray-dataset" title="Permanent link">&para;</a></h2>
 <p><strong>UNDER CONSTRUCTION</strong>. This will probably be revised.</p>
 <p>There are several ways to create a dataset for ensemble forecast time series with <code>efts-io</code>. One helper function to create a data set is <a href="https://csiro-hydroinformatics.github.io/efts-io/reference/efts_io/wrapper/?h=xr_efts#efts_io.wrapper.xr_efts"><code>xr_efts</code></a>, particularly if you know upfront the geometry (dimensions) of your dataset:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 </code></pre></div>
+
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">efts_io</span><span class="w"> </span><span class="kn">import</span> <span class="n">wrapper</span> <span class="k">as</span> <span class="n">w</span>
 </code></pre></div>
+
 <div class="highlight"><pre><span></span><code><span class="n">issue_times</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s2">&quot;2010-01-01&quot;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">31</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s2">&quot;D&quot;</span><span class="p">)</span>
 <span class="n">station_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;410088&quot;</span><span class="p">,</span><span class="s2">&quot;410776&quot;</span><span class="p">]</span>
 <span class="n">lead_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -962,6 +1175,7 @@
 <span class="n">longitudes</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="n">areas</span> <span class="o">=</span> <span class="kc">None</span>
 </code></pre></div>
+
 <div class="highlight"><pre><span></span><code><span class="n">nc_attributes</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">create_mandatory_global_attributes</span><span class="p">(</span>
     <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Example dataset&quot;</span><span class="p">,</span>
     <span class="n">institution</span><span class="o">=</span><span class="s2">&quot;My organisation&quot;</span><span class="p">,</span>
@@ -972,6 +1186,7 @@
 <span class="p">)</span>
 <span class="n">nc_attributes</span>
 </code></pre></div>
+
 <div class="highlight"><pre><span></span><code><span class="n">d</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">xr_efts</span><span class="p">(</span>
     <span class="n">issue_times</span><span class="p">,</span>
     <span class="n">station_ids</span><span class="p">,</span>
@@ -985,15 +1200,17 @@
     <span class="n">nc_attributes</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
+
 <p>Let us have a look at the created Dataset:</p>
 <div class="highlight"><pre><span></span><code><span class="n">d</span>
 </code></pre></div>
+
 <h3 id="adding-a-data-variable">Adding a data variable<a class="headerlink" href="#adding-a-data-variable" title="Permanent link">&para;</a></h3>
 <p>The dataset above has coordinates but not yet data.</p>
 <div class="highlight"><pre><span></span><code><span class="n">eds</span> <span class="o">=</span> <span class="n">EftsDataSet</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="n">eds</span><span class="o">.</span><span class="n">new_variable</span><span class="err">?</span>
-</code></pre></div>
+
+<p>tip: to get the documentation of a function in a jupyter notebook, you can use a question mark after the function of interest, e.g. <code>eds.new_variable?</code></p>
 <h3 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h3>
 <p><code>var_attributes</code></p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.attributes</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -1003,6 +1220,7 @@
     <span class="n">LocationType</span>
 <span class="p">)</span>
 </code></pre></div>
+
 <div class="highlight"><pre><span></span><code><span class="n">var_attrs</span> <span class="o">=</span> <span class="n">create_variable_attributes</span><span class="p">(</span>
     <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;synthetic streamflow&quot;</span><span class="p">,</span>
     <span class="n">units</span><span class="o">=</span><span class="s2">&quot;m3/s&quot;</span><span class="p">,</span>
@@ -1011,8 +1229,10 @@
     <span class="n">data_description</span><span class="o">=</span><span class="s2">&quot;Goodradigbee dummy flows&quot;</span><span class="p">,</span>
     <span class="n">location_type</span><span class="o">=</span><span class="n">LocationType</span><span class="o">.</span><span class="n">POINT</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="n">var_attrs</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">var_attrs</span><span class="p">)</span>
 </code></pre></div>
+{'long_name': 'synthetic streamflow', 'units': 'm3/s', '_FillValue': -9999.0, 'type': 3, 'type_description': 'averaged over the preceding interval', 'dat_type': 'sim', 'dat_type_description': 'Goodradigbee dummy flows', 'location_type': 'Point'}
+
 <div class="highlight"><pre><span></span><code><span class="n">new_var_4</span> <span class="o">=</span> <span class="n">eds</span><span class="o">.</span><span class="n">new_variable</span><span class="p">(</span>
     <span class="n">varname</span><span class="o">=</span><span class="s2">&quot;streamflow&quot;</span><span class="p">,</span>
     <span class="n">dim_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
@@ -1020,6 +1240,8 @@
     <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">station_ids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">issue_times</span><span class="p">)),</span>
 <span class="p">)</span>
 </code></pre></div>
+
+<p>We can check this is indeed valid to write out:</p>
 <div class="highlight"><pre><span></span><code><span class="n">eds</span><span class="o">.</span><span class="n">writeable_to_stf2</span><span class="p">()</span>
 </code></pre></div>
 
@@ -1030,9 +1252,6 @@
 
 
 
-
-  
-  
 
 
 
@@ -1167,6 +1386,44 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../../license/" class="md-footer__link md-footer__link--prev" aria-label="Previous: License">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                License
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../reference/api/" class="md-footer__link md-footer__link--next" aria-label="Next: API reference">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                API reference
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">

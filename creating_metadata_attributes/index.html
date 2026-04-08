@@ -1,0 +1,1464 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Ensemble forecast time series">
+      
+      
+        <meta name="author" content="J-M">
+      
+      
+        <link rel="canonical" href="https://csiro-hydroinformatics.github.io/efts-io/creating_metadata_attributes/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.32">
+    
+    
+      
+        <title>Creating Metadata Attributes for Variables - efts-io</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.53a7feaf.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.dfe2e883.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../css/apidocs.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,a=__md_scope)=>JSON.parse(t.getItem(a.pathname+"."+e)),__md_set=(e,t,a=localStorage,_=__md_scope)=>{try{a.setItem(_.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+  
+
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#creating-metadata-attributes-for-variables" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="efts-io" class="md-header__button md-logo" aria-label="efts-io" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            efts-io
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Creating Metadata Attributes for Variables
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="lime"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/csiro-hydroinformatics/efts-io" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    csiro-hydroinformatics/efts-io
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="./.." class="md-tabs__link">
+          
+  
+  Home
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../nb/basic_usage_exec/" class="md-tabs__link">
+        
+  
+  Examples
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../reference/api/" class="md-tabs__link">
+        
+  
+  API reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../contributing/" class="md-tabs__link">
+          
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="efts-io" class="md-nav__button md-logo" aria-label="efts-io" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+
+    </a>
+    efts-io
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/csiro-hydroinformatics/efts-io" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    csiro-hydroinformatics/efts-io
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="./.." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Home
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../credits/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Credits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nb/basic_usage_exec/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_of_conduct/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-challenge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Challenge
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-solution-type-safe-enumerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution: Type-Safe Enumerations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#approach-1-create-complete-attributes-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Approach 1: Create Complete Attributes (Recommended)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#approach-2-start-with-a-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Approach 2: Start with a Template
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#available-enumeration-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available Enumeration Values
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Available Enumeration Values">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#timeseriestype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TimeSeriesType
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dataorigintype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DataOriginType
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locationtype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LocationType
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-with-eftsdataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using with EftsDataSet
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benefits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migration Guide
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quality-code-variable-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quality Code Variable Attributes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-variable-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State Variable Attributes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Attributes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#attribute-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attribute Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+    <a href="https://github.com/csiro-hydroinformatics/efts-io/edit/master/docs/creating_metadata_attributes.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v9.34"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10.378 12.622a1 1 0 0 1 3 3.003L8.36 20.637a2 2 0 0 1-.854.506l-2.867.837a.5.5 0 0 1-.62-.62l.836-2.869a2 2 0 0 1 .506-.853z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/csiro-hydroinformatics/efts-io/raw/master/docs/creating_metadata_attributes.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-code-2" viewBox="0 0 24 24"><path d="M4 12.15V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2h-3.35"/><path d="M14 2v5a1 1 0 0 0 1 1h5M5 16l-3 3 3 3M9 22l3-3-3-3"/></svg>
+    </a>
+  
+
+
+<h1 id="creating-metadata-attributes-for-variables">Creating Metadata Attributes for Variables<a class="headerlink" href="#creating-metadata-attributes-for-variables" title="Permanent link">&para;</a></h1>
+<p>When working with <code>efts-io</code>, you need to provide metadata attributes for each data variable you create. These attributes must comply with the <a href="https://csiro-hydroinformatics.github.io/efts-io/netcdf_for_water_forecasting/">STF 2.0 conventions</a>.</p>
+<h2 id="the-challenge">The Challenge<a class="headerlink" href="#the-challenge" title="Permanent link">&para;</a></h2>
+<p>STF 2.0 conventions use numeric codes and string identifiers that can be cryptic:
+- Type codes: <code>1</code> (instantaneous), <code>2</code> (accumulated), <code>3</code> (averaged), etc.
+- Data origin codes: <code>"obs"</code>, <code>"der"</code>, <code>"sim"</code>, <code>"fct"</code>
+- Location types: <code>"Point"</code>, <code>"Area"</code></p>
+<p>Remembering these codes and their meanings is error-prone.</p>
+<h2 id="the-solution-type-safe-enumerations">The Solution: Type-Safe Enumerations<a class="headerlink" href="#the-solution-type-safe-enumerations" title="Permanent link">&para;</a></h2>
+<p><code>efts-io</code> provides enumeration classes that make attribute creation intuitive and type-safe:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.attributes</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TimeSeriesType</span><span class="p">,</span>      <span class="c1"># How data is aggregated</span>
+    <span class="n">DataOriginType</span><span class="p">,</span>      <span class="c1"># Where data comes from</span>
+    <span class="n">LocationType</span><span class="p">,</span>        <span class="c1"># Point or area measurement</span>
+    <span class="n">create_variable_attributes</span>
+<span class="p">)</span>
+</code></pre></div>
+<h2 id="approach-1-create-complete-attributes-recommended">Approach 1: Create Complete Attributes (Recommended)<a class="headerlink" href="#approach-1-create-complete-attributes-recommended" title="Permanent link">&para;</a></h2>
+<p>Use <code>create_variable_attributes()</code> to create all attributes in one call:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.attributes</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">create_variable_attributes</span><span class="p">,</span>
+    <span class="n">TimeSeriesType</span><span class="p">,</span>
+    <span class="n">DataOriginType</span><span class="p">,</span>
+    <span class="n">LocationType</span>
+<span class="p">)</span>
+
+<span class="c1"># Create attributes for observed rainfall (accumulated)</span>
+<span class="n">rain_attrs</span> <span class="o">=</span> <span class="n">create_variable_attributes</span><span class="p">(</span>
+    <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;observed rainfall&quot;</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;mm&quot;</span><span class="p">,</span>
+    <span class="n">time_series_type</span><span class="o">=</span><span class="n">TimeSeriesType</span><span class="o">.</span><span class="n">ACCUMULATED</span><span class="p">,</span>
+    <span class="n">data_origin</span><span class="o">=</span><span class="n">DataOriginType</span><span class="o">.</span><span class="n">OBSERVED</span><span class="p">,</span>
+    <span class="n">data_description</span><span class="o">=</span><span class="s2">&quot;gauge measurements from station network&quot;</span><span class="p">,</span>
+    <span class="n">location_type</span><span class="o">=</span><span class="n">LocationType</span><span class="o">.</span><span class="n">POINT</span><span class="p">,</span>
+    <span class="n">fill_value</span><span class="o">=-</span><span class="mf">9999.0</span>
+<span class="p">)</span>
+
+<span class="c1"># Create attributes for simulated streamflow (averaged)</span>
+<span class="n">flow_attrs</span> <span class="o">=</span> <span class="n">create_variable_attributes</span><span class="p">(</span>
+    <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;simulated streamflow&quot;</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;m3/s&quot;</span><span class="p">,</span>
+    <span class="n">time_series_type</span><span class="o">=</span><span class="n">TimeSeriesType</span><span class="o">.</span><span class="n">AVERAGED</span><span class="p">,</span>
+    <span class="n">data_origin</span><span class="o">=</span><span class="n">DataOriginType</span><span class="o">.</span><span class="n">SIMULATED</span><span class="p">,</span>
+    <span class="n">data_description</span><span class="o">=</span><span class="s2">&quot;GR4H model output forced with observed rainfall&quot;</span><span class="p">,</span>
+    <span class="n">location_type</span><span class="o">=</span><span class="n">LocationType</span><span class="o">.</span><span class="n">POINT</span>
+<span class="p">)</span>
+
+<span class="c1"># Create attributes for forecast streamflow</span>
+<span class="n">forecast_attrs</span> <span class="o">=</span> <span class="n">create_variable_attributes</span><span class="p">(</span>
+    <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;forecast streamflow&quot;</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;m3/s&quot;</span><span class="p">,</span>
+    <span class="n">time_series_type</span><span class="o">=</span><span class="n">TimeSeriesType</span><span class="o">.</span><span class="n">AVERAGED</span><span class="p">,</span>
+    <span class="n">data_origin</span><span class="o">=</span><span class="n">DataOriginType</span><span class="o">.</span><span class="n">FORECAST</span><span class="p">,</span>
+    <span class="n">data_description</span><span class="o">=</span><span class="s2">&quot;GR4H model forecast forced with NWP rainfall&quot;</span><span class="p">,</span>
+    <span class="n">location_type</span><span class="o">=</span><span class="n">LocationType</span><span class="o">.</span><span class="n">POINT</span>
+<span class="p">)</span>
+</code></pre></div>
+<h2 id="approach-2-start-with-a-template">Approach 2: Start with a Template<a class="headerlink" href="#approach-2-start-with-a-template" title="Permanent link">&para;</a></h2>
+<p>If you prefer a step-by-step approach, use <code>template_variable_attributes()</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">efts_io</span><span class="w"> </span><span class="kn">import</span> <span class="n">template_variable_attributes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.attributes</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimeSeriesType</span><span class="p">,</span> <span class="n">DataOriginType</span>
+
+<span class="c1"># Get a blank template</span>
+<span class="n">attrs</span> <span class="o">=</span> <span class="n">template_variable_attributes</span><span class="p">()</span>
+<span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;long_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;observed rainfall&quot;</span>
+<span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;mm&quot;</span>
+<span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># Still need to know the code</span>
+<span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;type_description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;accumulated over the preceding interval&quot;</span>
+<span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;dat_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;obs&quot;</span>
+<span class="c1"># ... and so on</span>
+
+<span class="c1"># OR get a partially pre-filled template (better!)</span>
+<span class="n">attrs</span> <span class="o">=</span> <span class="n">template_variable_attributes</span><span class="p">(</span>
+    <span class="n">time_series_type</span><span class="o">=</span><span class="n">TimeSeriesType</span><span class="o">.</span><span class="n">ACCUMULATED</span><span class="p">,</span>
+    <span class="n">data_origin</span><span class="o">=</span><span class="n">DataOriginType</span><span class="o">.</span><span class="n">OBSERVED</span>
+<span class="p">)</span>
+<span class="c1"># Now type, type_description, dat_type are already filled</span>
+<span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;long_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;observed rainfall&quot;</span>
+<span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;mm&quot;</span>
+<span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;dat_type_description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;gauge measurements&quot;</span>
+</code></pre></div>
+<h2 id="available-enumeration-values">Available Enumeration Values<a class="headerlink" href="#available-enumeration-values" title="Permanent link">&para;</a></h2>
+<h3 id="timeseriestype">TimeSeriesType<a class="headerlink" href="#timeseriestype" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.attributes</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimeSeriesType</span>
+
+<span class="c1"># Common types for water forecasting</span>
+<span class="n">TimeSeriesType</span><span class="o">.</span><span class="n">INSTANTANEOUS</span>          <span class="c1"># Code: 1 - e.g., stage height</span>
+<span class="n">TimeSeriesType</span><span class="o">.</span><span class="n">ACCUMULATED</span>            <span class="c1"># Code: 2 - e.g., rainfall</span>
+<span class="n">TimeSeriesType</span><span class="o">.</span><span class="n">AVERAGED</span>               <span class="c1"># Code: 3 - e.g., flow, average temp</span>
+<span class="n">TimeSeriesType</span><span class="o">.</span><span class="n">ACCUMULATED_FORECAST</span>   <span class="c1"># Code: 4 - e.g., cumulative flow</span>
+<span class="n">TimeSeriesType</span><span class="o">.</span><span class="n">POINT_IN_INTERVAL</span>      <span class="c1"># Code: 5 - e.g., max/min temp</span>
+
+<span class="c1"># Climatology variants (11-15)</span>
+<span class="n">TimeSeriesType</span><span class="o">.</span><span class="n">CLIMATOLOGY_INSTANTANEOUS</span>
+<span class="n">TimeSeriesType</span><span class="o">.</span><span class="n">CLIMATOLOGY_ACCUMULATED</span>
+<span class="c1"># ... and so on</span>
+</code></pre></div>
+<h3 id="dataorigintype">DataOriginType<a class="headerlink" href="#dataorigintype" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.attributes</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataOriginType</span>
+
+<span class="n">DataOriginType</span><span class="o">.</span><span class="n">OBSERVED</span>   <span class="c1"># Code: &quot;obs&quot; - direct observations</span>
+<span class="n">DataOriginType</span><span class="o">.</span><span class="n">DERIVED</span>    <span class="c1"># Code: &quot;der&quot; - derived from observations</span>
+<span class="n">DataOriginType</span><span class="o">.</span><span class="n">SIMULATED</span>  <span class="c1"># Code: &quot;sim&quot; - simulated from historical data</span>
+<span class="n">DataOriginType</span><span class="o">.</span><span class="n">FORECAST</span>   <span class="c1"># Code: &quot;fct&quot; - forecast from predictions</span>
+</code></pre></div>
+<h3 id="locationtype">LocationType<a class="headerlink" href="#locationtype" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.attributes</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocationType</span>
+
+<span class="n">LocationType</span><span class="o">.</span><span class="n">POINT</span>  <span class="c1"># Point measurement (e.g., gauge)</span>
+<span class="n">LocationType</span><span class="o">.</span><span class="n">AREA</span>   <span class="c1"># Area-averaged (e.g., subcatchment)</span>
+</code></pre></div>
+<h2 id="using-with-eftsdataset">Using with EftsDataSet<a class="headerlink" href="#using-with-eftsdataset" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">efts_io</span><span class="w"> </span><span class="kn">import</span> <span class="n">xr_efts</span><span class="p">,</span> <span class="n">EftsDataSet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.attributes</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">create_variable_attributes</span><span class="p">,</span>
+    <span class="n">TimeSeriesType</span><span class="p">,</span>
+    <span class="n">DataOriginType</span>
+<span class="p">)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="c1"># Create a dataset</span>
+<span class="n">times</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s2">&quot;2024-01-01&quot;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">)</span>
+<span class="n">station_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;station_1&quot;</span><span class="p">,</span> <span class="s2">&quot;station_2&quot;</span><span class="p">]</span>
+
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">xr_efts</span><span class="p">(</span>
+    <span class="n">issue_times</span><span class="o">=</span><span class="n">times</span><span class="p">,</span>
+    <span class="n">station_ids</span><span class="o">=</span><span class="n">station_ids</span><span class="p">,</span>
+    <span class="n">nc_attributes</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Example dataset&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;institution&quot;</span><span class="p">:</span> <span class="s2">&quot;My Organization&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s2">&quot;Hydrological model&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;catchment&quot;</span><span class="p">:</span> <span class="s2">&quot;Test_Catchment&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;comment&quot;</span><span class="p">:</span> <span class="s2">&quot;Example data&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;history&quot;</span><span class="p">:</span> <span class="s2">&quot;Created for documentation&quot;</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+
+<span class="n">eds</span> <span class="o">=</span> <span class="n">EftsDataSet</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+
+<span class="c1"># Create variable with our new attributes</span>
+<span class="n">rain_attrs</span> <span class="o">=</span> <span class="n">create_variable_attributes</span><span class="p">(</span>
+    <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;observed rainfall&quot;</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;mm&quot;</span><span class="p">,</span>
+    <span class="n">time_series_type</span><span class="o">=</span><span class="n">TimeSeriesType</span><span class="o">.</span><span class="n">ACCUMULATED</span><span class="p">,</span>
+    <span class="n">data_origin</span><span class="o">=</span><span class="n">DataOriginType</span><span class="o">.</span><span class="n">OBSERVED</span><span class="p">,</span>
+    <span class="n">data_description</span><span class="o">=</span><span class="s2">&quot;gauge measurements&quot;</span>
+<span class="p">)</span>
+
+<span class="n">eds</span><span class="o">.</span><span class="n">new_variable</span><span class="p">(</span>
+    <span class="n">varname</span><span class="o">=</span><span class="s2">&quot;rain_obs&quot;</span><span class="p">,</span>
+    <span class="n">dim_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+    <span class="n">var_attributes</span><span class="o">=</span><span class="n">rain_attrs</span><span class="p">,</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">station_ids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">))</span> <span class="o">*</span> <span class="mi">10</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">eds</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;rain_obs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="benefits">Benefits<a class="headerlink" href="#benefits" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Type Safety</strong>: Enums prevent typos and invalid codes</li>
+<li><strong>Autocomplete</strong>: IDEs can suggest valid options</li>
+<li><strong>Self-Documenting</strong>: Code is more readable</li>
+<li><strong>Error Prevention</strong>: Compiler catches invalid combinations</li>
+<li><strong>Backwards Compatible</strong>: Old API still works</li>
+</ol>
+<h2 id="migration-guide">Migration Guide<a class="headerlink" href="#migration-guide" title="Permanent link">&para;</a></h2>
+<p>If you have existing code using numeric codes:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Old way (still works but not recommended)</span>
+<span class="n">attrs</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;rainfall&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;mm&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;_FillValue&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">9999.0</span><span class="p">,</span>
+    <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>  <span class="c1"># What does 2 mean?</span>
+    <span class="s1">&#39;type_description&#39;</span><span class="p">:</span> <span class="s1">&#39;accumulated over the preceding interval&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;dat_type&#39;</span><span class="p">:</span> <span class="s1">&#39;obs&#39;</span><span class="p">,</span>  <span class="c1"># Easy to typo as &quot;obd&quot; or &quot;obc&quot;</span>
+    <span class="s1">&#39;dat_type_description&#39;</span><span class="p">:</span> <span class="s1">&#39;gauge data&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;location_type&#39;</span><span class="p">:</span> <span class="s1">&#39;Point&#39;</span>
+<span class="p">}</span>
+
+<span class="c1"># New way (recommended)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.attributes</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_variable_attributes</span><span class="p">,</span> <span class="n">TimeSeriesType</span><span class="p">,</span> <span class="n">DataOriginType</span>
+
+<span class="n">attrs</span> <span class="o">=</span> <span class="n">create_variable_attributes</span><span class="p">(</span>
+    <span class="n">long_name</span><span class="o">=</span><span class="s1">&#39;rainfall&#39;</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s1">&#39;mm&#39;</span><span class="p">,</span>
+    <span class="n">time_series_type</span><span class="o">=</span><span class="n">TimeSeriesType</span><span class="o">.</span><span class="n">ACCUMULATED</span><span class="p">,</span>  <span class="c1"># Clear and explicit</span>
+    <span class="n">data_origin</span><span class="o">=</span><span class="n">DataOriginType</span><span class="o">.</span><span class="n">OBSERVED</span><span class="p">,</span>           <span class="c1"># No typos possible</span>
+    <span class="n">data_description</span><span class="o">=</span><span class="s1">&#39;gauge data&#39;</span>
+<span class="p">)</span>
+</code></pre></div>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://csiro-hydroinformatics.github.io/efts-io/netcdf_for_water_forecasting/">STF 2.0 Conventions</a></li>
+<li><a data-preview="" href="../../reference/api/">API Reference</a></li>
+<li><a href="../nb/basic_usage.ipynb">Basic Usage Tutorial</a></li>
+</ul>
+<h2 id="quality-code-variable-attributes">Quality Code Variable Attributes<a class="headerlink" href="#quality-code-variable-attributes" title="Permanent link">&para;</a></h2>
+<p>Quality code variables (e.g., <code>rain_obs_qual</code>, <code>q_sim_qual</code>) have distinct attributes from data variables. Use <code>create_quality_variable_attributes()</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.attributes</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_quality_variable_attributes</span>
+
+<span class="n">attrs</span> <span class="o">=</span> <span class="n">create_quality_variable_attributes</span><span class="p">(</span>
+    <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;Quality of observed rainfall&quot;</span><span class="p">,</span>
+    <span class="n">quality_code_standard</span><span class="o">=</span><span class="s2">&quot;ABC Quality coding&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1"># Result: {&#39;long_name&#39;: &#39;Quality of observed rainfall&#39;, &#39;units&#39;: &#39;ABC Quality coding&#39;, &#39;_FillValue&#39;: -1}</span>
+</code></pre></div>
+<p>Key differences from data variables:</p>
+<ul>
+<li><code>units</code> holds the quality code standard name, not physical units</li>
+<li><code>_FillValue</code> is an <strong>integer</strong> (default: -1), not a float</li>
+</ul>
+<h2 id="state-variable-attributes">State Variable Attributes<a class="headerlink" href="#state-variable-attributes" title="Permanent link">&para;</a></h2>
+<p>State variables (<code>sv1</code>, <code>sv2</code>, ...) store internal model states. Use <code>create_state_variable_attributes()</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.attributes</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_state_variable_attributes</span>
+
+<span class="n">attrs</span> <span class="o">=</span> <span class="n">create_state_variable_attributes</span><span class="p">(</span>
+    <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;state var 1&quot;</span><span class="p">,</span>
+    <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;GR4H_RR&quot;</span><span class="p">,</span>
+    <span class="n">sv_name</span><span class="o">=</span><span class="s2">&quot;UH_Inflow&quot;</span><span class="p">,</span>
+    <span class="n">sv_description</span><span class="o">=</span><span class="s2">&quot;Total inflow to Unit Hydrographs in GR4H&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1"># Result: {&#39;long_name&#39;: &#39;state var 1&#39;, &#39;model_name&#39;: &#39;GR4H_RR&#39;,</span>
+<span class="c1">#          &#39;sv_name&#39;: &#39;UH_Inflow&#39;, &#39;sv_description&#39;: &#39;...&#39;, &#39;_FillValue&#39;: -9999.0}</span>
+</code></pre></div>
+<h2 id="global-attributes">Global Attributes<a class="headerlink" href="#global-attributes" title="Permanent link">&para;</a></h2>
+<p><code>create_global_attributes()</code> now produces all 8 STF 2.0 required global attributes:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.attributes</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_global_attributes</span>
+
+<span class="n">attrs</span> <span class="o">=</span> <span class="n">create_global_attributes</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Rainfall forecasts generated by ACCESS&quot;</span><span class="p">,</span>
+    <span class="n">institution</span><span class="o">=</span><span class="s2">&quot;CSIRO Land &amp; Water&quot;</span><span class="p">,</span>
+    <span class="n">source</span><span class="o">=</span><span class="s2">&quot;https://example.com/data-reference&quot;</span><span class="p">,</span>
+    <span class="n">catchment</span><span class="o">=</span><span class="s2">&quot;South_Esk&quot;</span><span class="p">,</span>
+    <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;Example dataset&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1"># Includes STF_convention_version=2.0, STF_nc_spec=&lt;URL&gt;, history=&quot;&quot;</span>
+</code></pre></div>
+<p>The three new keys (<code>STF_convention_version</code>, <code>STF_nc_spec</code>, <code>history</code>) have sensible defaults, so existing code continues to work unchanged.</p>
+<h2 id="attribute-validation">Attribute Validation<a class="headerlink" href="#attribute-validation" title="Permanent link">&para;</a></h2>
+<p>Validate attribute dictionaries before writing to file using the <code>validate_*</code> functions. Each returns a list of error strings (empty = valid):</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">efts_io.attributes</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">create_variable_attributes</span><span class="p">,</span>
+    <span class="n">create_quality_variable_attributes</span><span class="p">,</span>
+    <span class="n">create_global_attributes</span><span class="p">,</span>
+    <span class="n">validate_variable_attributes</span><span class="p">,</span>
+    <span class="n">validate_quality_variable_attributes</span><span class="p">,</span>
+    <span class="n">validate_state_variable_attributes</span><span class="p">,</span>
+    <span class="n">validate_global_attributes</span><span class="p">,</span>
+    <span class="n">TimeSeriesType</span><span class="p">,</span>
+    <span class="n">DataOriginType</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Validate data variable attributes</span>
+<span class="n">attrs</span> <span class="o">=</span> <span class="n">create_variable_attributes</span><span class="p">(</span>
+    <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;observed rainfall&quot;</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;mm&quot;</span><span class="p">,</span>
+    <span class="n">time_series_type</span><span class="o">=</span><span class="n">TimeSeriesType</span><span class="o">.</span><span class="n">ACCUMULATED</span><span class="p">,</span>
+    <span class="n">data_origin</span><span class="o">=</span><span class="n">DataOriginType</span><span class="o">.</span><span class="n">OBSERVED</span><span class="p">,</span>
+    <span class="n">data_description</span><span class="o">=</span><span class="s2">&quot;gauge measurements&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">errors</span> <span class="o">=</span> <span class="n">validate_variable_attributes</span><span class="p">(</span><span class="n">attrs</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">errors</span> <span class="o">==</span> <span class="p">[]</span>  <span class="c1"># No errors</span>
+
+<span class="c1"># Catch mistakes in hand-built dicts</span>
+<span class="n">bad_attrs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;long_name&quot;</span><span class="p">:</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="mi">99</span><span class="p">}</span>  <span class="c1"># missing keys, invalid type code</span>
+<span class="n">errors</span> <span class="o">=</span> <span class="n">validate_variable_attributes</span><span class="p">(</span><span class="n">bad_attrs</span><span class="p">)</span>
+<span class="c1"># errors: [&#39;Missing required attribute ...&#39;, &quot;Attribute &#39;type&#39; has value 99, ...&quot;]</span>
+
+<span class="c1"># Validate quality variable attributes</span>
+<span class="n">qul_attrs</span> <span class="o">=</span> <span class="n">create_quality_variable_attributes</span><span class="p">(</span><span class="s2">&quot;Quality of observed rainfall&quot;</span><span class="p">,</span> <span class="s2">&quot;ABC Quality coding&quot;</span><span class="p">)</span>
+<span class="n">errors</span> <span class="o">=</span> <span class="n">validate_quality_variable_attributes</span><span class="p">(</span><span class="n">qul_attrs</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">errors</span> <span class="o">==</span> <span class="p">[]</span>
+
+<span class="c1"># Validate global attributes</span>
+<span class="n">global_attrs</span> <span class="o">=</span> <span class="n">create_global_attributes</span><span class="p">(</span><span class="s2">&quot;Title&quot;</span><span class="p">,</span> <span class="s2">&quot;Inst&quot;</span><span class="p">,</span> <span class="s2">&quot;Src&quot;</span><span class="p">,</span> <span class="s2">&quot;Catch&quot;</span><span class="p">,</span> <span class="s2">&quot;Comment&quot;</span><span class="p">)</span>
+<span class="n">errors</span> <span class="o">=</span> <span class="n">validate_global_attributes</span><span class="p">(</span><span class="n">global_attrs</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">errors</span> <span class="o">==</span> <span class="p">[]</span>
+</code></pre></div>
+<p>Available validators:</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Checks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>validate_variable_attributes()</code></td>
+<td>8 required keys, valid type codes (1-5, 11-15), valid dat_type codes, valid location_type</td>
+</tr>
+<tr>
+<td><code>validate_quality_variable_attributes()</code></td>
+<td>3 required keys, <code>_FillValue</code> is int</td>
+</tr>
+<tr>
+<td><code>validate_state_variable_attributes()</code></td>
+<td>5 required keys, <code>_FillValue</code> is numeric</td>
+</tr>
+<tr>
+<td><code>validate_global_attributes()</code></td>
+<td>8 required keys, <code>STF_convention_version</code> is numeric, <code>title</code> non-empty</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  <form class="md-feedback" name="feedback" hidden>
+    <fieldset>
+      <legend class="md-feedback__title">
+        Was this page helpful?
+      </legend>
+      <div class="md-feedback__inner">
+        <div class="md-feedback__list">
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m7 0c0 .8-.7 1.5-1.5 1.5S14 10.3 14 9.5 14.7 8 15.5 8s1.5.7 1.5 1.5m-5 7.73c-1.75 0-3.29-.73-4.19-1.81L9.23 14c.45.72 1.52 1.23 2.77 1.23s2.32-.51 2.77-1.23l1.42 1.42c-.9 1.08-2.44 1.81-4.19 1.81"/></svg>
+            </button>
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10m-6.5-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5-1.5-.7-1.5-1.5.7-1.5 1.5-1.5M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m2 4.5c1.75 0 3.29.72 4.19 1.81l-1.42 1.42C14.32 16.5 13.25 16 12 16s-2.32.5-2.77 1.23l-1.42-1.42C8.71 14.72 10.25 14 12 14"/></svg>
+            </button>
+          
+        </div>
+        <div class="md-feedback__note">
+          
+            <div data-md-value="1" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thank you for your feedback!
+            </div>
+          
+            <div data-md-value="0" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Let us know how we can improve this page.
+            </div>
+          
+        </div>
+      </div>
+    </fieldset>
+  </form>
+
+<!-- Giscus -->
+<!-- https://zensical.org/docs/setup/comment-system/#giscus-integration -->
+<div id="feedback" style="display: none;">
+    <h2 id="__comments">Feedback</h2>
+    <script src="https://giscus.app/client.js"
+        data-repo="csiro-hydroinformatics/efts-io"
+        data-repo-id="REPLACE WITH REPOSITORY NODE ID"
+        data-category="Documentation"
+        data-category-id="REPLACE WITH DISCUSSION CATEGORY ID"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="0"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+    </script>
+
+    <!-- Synchronize Giscus theme with palette -->
+    <script>
+        var giscus = document.querySelector("script[src*=giscus]")
+
+        // Set palette on initial load
+        var palette = __md_get("__palette")
+        if (palette && typeof palette.color === "object") {
+            var theme = palette.color.scheme === "slate"
+                ? "transparent_dark"
+                : "light"
+
+            // Instruct Giscus to set theme
+            giscus.setAttribute("data-theme", theme)
+        }
+
+        // Register event handlers after documented loaded
+        document.addEventListener("DOMContentLoaded", function() {
+            var ref = document.querySelector("[data-md-component=palette]")
+            ref.addEventListener("change", function() {
+                var palette = __md_get("__palette")
+                if (palette && typeof palette.color === "object") {
+                    var theme = palette.color.scheme === "slate"
+                        ? "transparent_dark"
+                        : "light"
+
+                    // Instruct Giscus to change theme
+                    var frame = document.querySelector(".giscus-frame")
+                    frame.contentWindow.postMessage(
+                        { giscus: { setConfig: { theme } } },
+                        "https://giscus.app"
+                    )
+                }
+            })
+        })
+    </script>
+</div>
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 CSIRO
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/jmp75" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/pawamoy" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M459.4 151.7c.3 4.5.3 9.1.3 13.6 0 138.7-105.6 298.6-298.6 298.6-59.5 0-114.7-17.2-161.1-47.1 8.4 1 16.6 1.3 25.3 1.3 49.1 0 94.2-16.6 130.3-44.8-46.1-1-84.8-31.2-98.1-72.8 6.5 1 13 1.6 19.8 1.6 9.4 0 18.8-1.3 27.6-3.6-48.1-9.7-84.1-52-84.1-103v-1.3c14 7.8 30.2 12.7 47.4 13.3-28.3-18.8-46.8-51-46.8-87.4 0-19.5 5.2-37.4 14.3-53C87.4 130.8 165 172.4 252.1 176.9c-1.6-7.8-2.6-15.9-2.6-24C249.5 95.1 296.3 48 354.4 48c30.2 0 57.5 12.7 76.7 33.1 23.7-4.5 46.5-13.3 66.6-25.3-7.8 24.4-24.4 44.8-46.1 57.8 21.1-2.3 41.6-8.1 60.4-16.2-14.3 20.8-32.2 39.3-52.6 54.3"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://gitter.im/efts-io/community" target="_blank" rel="noopener" title="gitter.im" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M66.4 322.5H16V0h50.4zM166.9 76.1h-50.4V512h50.4zm100.6 0h-50.4V512h50.4zM368 76h-50.4v247H368z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/efts-io/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["announce.dismiss","content.action.edit","content.action.view","content.code.annotate","content.code.copy","content.code.select","content.footnote.tooltips","content.tabs.link","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.tabs","navigation.tabs.sticky","navigation.top","search.highlight","toc.follow"],"search":"../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.91a19a9e.min.js"></script>
+      
+        <script src="../js/feedback.js"></script>
+      
+    
+  </body>
+</html>
