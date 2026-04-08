@@ -57,7 +57,7 @@ def create_var_attribute_definition(
     Returns:
         Dictionary of type-related attributes
 
-    Example:
+    Examples:
         >>> # Old way (still works but not recommended)
         >>> attrs = create_var_attribute_definition(
         ...     data_type_code=2,
@@ -111,7 +111,7 @@ def create_variable_attributes(
     Returns:
         Dictionary of attributes ready to use with xarray DataArray or EftsDataSet.new_variable()
 
-    Example:
+    Examples:
         >>> from efts_io.attributes import (
         ...     create_variable_attributes,
         ...     TimeSeriesType,
@@ -172,7 +172,7 @@ def template_variable_attributes(
     Returns:
         Dictionary with all required attribute keys
 
-    Example:
+    Examples:
         >>> from efts_io import EftsDataSet
         >>> from efts_io.attributes import TimeSeriesType, DataOriginType
         >>>
@@ -230,7 +230,7 @@ def _create_template_variable_attributes(
     Returns:
         Dictionary with all required attribute keys, some pre-filled based on arguments
 
-    Example:
+    Examples:
         >>> from efts_io.attributes import template_variable_attributes, TimeSeriesType, DataOriginType
         >>>
         >>> # Get a blank template
@@ -435,7 +435,7 @@ def create_quality_variable_attributes(
     Returns:
         Dictionary of attributes ready to use with xarray DataArray or EftsDataSet.new_variable()
 
-    Example:
+    Examples:
         >>> attrs = create_quality_variable_attributes(
         ...     long_name="Quality of observed rainfall",
         ...     quality_code_standard="ABC Quality coding",
@@ -473,7 +473,7 @@ def create_state_variable_attributes(
     Returns:
         Dictionary of attributes ready to use with xarray DataArray or EftsDataSet.new_variable()
 
-    Example:
+    Examples:
         >>> attrs = create_state_variable_attributes(
         ...     long_name="state var 1",
         ...     model_name="GR4H_RR",
@@ -512,7 +512,7 @@ def validate_variable_attributes(attrs: dict[str, Any]) -> list[str]:
     Returns:
         List of error message strings. Empty list means valid.
 
-    Example:
+    Examples:
         >>> errors = validate_variable_attributes({})
         >>> len(errors) > 0
         True
@@ -568,7 +568,7 @@ def validate_quality_variable_attributes(attrs: dict[str, Any]) -> list[str]:
     Returns:
         List of error message strings. Empty list means valid.
 
-    Example:
+    Examples:
         >>> from efts_io.attributes import create_quality_variable_attributes
         >>> attrs = create_quality_variable_attributes("Quality of observed rainfall", "ABC Quality coding")
         >>> validate_quality_variable_attributes(attrs)
@@ -601,7 +601,7 @@ def validate_state_variable_attributes(attrs: dict[str, Any]) -> list[str]:
     Returns:
         List of error message strings. Empty list means valid.
 
-    Example:
+    Examples:
         >>> from efts_io.attributes import create_state_variable_attributes
         >>> attrs = create_state_variable_attributes("sv1", "GR4H_RR", "UH_Inflow", "desc")
         >>> validate_state_variable_attributes(attrs)
@@ -637,7 +637,7 @@ def validate_global_attributes(attrs: dict[str, Any]) -> list[str]:
     Returns:
         List of error message strings. Empty list means valid.
 
-    Example:
+    Examples:
         >>> from efts_io.attributes import create_global_attributes
         >>> attrs = create_global_attributes("Title", "Inst", "Src", "Catch", "Comment")
         >>> validate_global_attributes(attrs)

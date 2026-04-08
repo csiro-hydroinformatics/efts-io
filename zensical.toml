@@ -15,7 +15,7 @@ nav = [
     { "Credits" = "credits.md" },
     { "License" = "license.md" },
   ] },
-  { "Examples" = "nb/basic_usage.ipynb" },
+  { "Examples" = "nb/basic_usage_exec.md" },
   { "API reference" = "reference/api.md" },
   { "Development" = [
     { "Contributing" = "contributing.md" },

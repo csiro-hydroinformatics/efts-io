@@ -958,9 +958,9 @@ def extract_utc_offset_string(timestamps_or_tz: Union[pd.DatetimeIndex, pd.Times
         from datetime import (
             timezone,  # Note: I need to import. if I test isinstance for datetime.timezone, it throws an error. Weird.
         )
+        from zoneinfo import ZoneInfo
 
         from dateutil import tz as dateutil_tz
-        from zoneinfo import ZoneInfo
 
         # test whether it's one of the timezone object (zoneinfo.ZoneInfo, pytz.timezone, dateutil.tz)
         if isinstance(timestamps_or_tz, (ZoneInfo, dateutil_tz.tzfile, dateutil_tz.tzoffset, timezone)):
@@ -1059,7 +1059,7 @@ class TimeSeriesType(Enum):
         CLIMATOLOGY_ACCUMULATED_FORECAST: Climatology of forecast-accumulated data
         CLIMATOLOGY_POINT: Climatology of point-in-interval data
 
-    Example:
+    Examples:
         >>> from efts_io.attributes import TimeSeriesType
         >>> ts_type = TimeSeriesType.ACCUMULATED
         >>> ts_type.code
@@ -1102,7 +1102,7 @@ class DataOriginType(Enum):
         SIMULATED: Data simulated from historical observations (e.g., flow from GR4H with obs forcing)
         FORECAST: Data forecast/simulated from predictions (e.g., flow from GR4H with NWP forcing)
 
-    Example:
+    Examples:
         >>> from efts_io.attributes import DataOriginType
         >>> origin = DataOriginType.OBSERVED
         >>> origin.code
@@ -1137,7 +1137,7 @@ class LocationType(Enum):
         POINT: Point measurement (e.g., rain gauge, stream gauge)
         AREA: Area-averaged measurement (e.g., subcatchment area)
 
-    Example:
+    Examples:
         >>> from efts_io.attributes import LocationType
         >>> loc = LocationType.POINT
         >>> loc.value
