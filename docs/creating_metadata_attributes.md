@@ -231,7 +231,7 @@ attrs = create_variable_attributes(
 
 ## Quality Code Variable Attributes
 
-Quality code variables (e.g., `rain_obs_qul`, `q_sim_qul`) have distinct attributes from data variables. Use `create_quality_variable_attributes()`:
+Quality code variables (e.g., `rain_obs_qual`, `q_sim_qual`) have distinct attributes from data variables. Use `create_quality_variable_attributes()`:
 
 ```python
 from efts_io.attributes import create_quality_variable_attributes
