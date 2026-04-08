@@ -105,7 +105,9 @@ SV_DESCRIPTION_ATTR_KEY = "sv_description"
 # We use a URL at a specific commit point, to be used as a file attribute.
 # STF_2_0_URL = "https://github.com/csiro-hydroinformatics/efts/blob/d7d43a995fb5e459bcb894e09b7bb89de03e285c/docs/netcdf_for_water_forecasting.md"
 # July 2025, set a new location/commit point:
-STF_2_0_URL = "https://github.com/csiro-hydroinformatics/efts-io/blob/42ee35f0f019e9bad48b94914429476a7e8278dc/docs/netcdf_for_water_forecasting.md"
+# STF_2_0_URL = "https://github.com/csiro-hydroinformatics/efts-io/blob/42ee35f0f019e9bad48b94914429476a7e8278dc/docs/netcdf_for_water_forecasting.md"
+# March 2026, update to a new commit point, with fixes and changes ported from the latest version of the specs on CSIRO confluence:
+STF_2_0_URL = "https://github.com/csiro-hydroinformatics/efts-io/blob/1ce25adbda8b49f383150f268e76c8c415746592/docs/netcdf_for_water_forecasting.md"
 
 
 mandatory_global_attributes_xr = [
