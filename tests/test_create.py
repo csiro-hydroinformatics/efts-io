@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 import pytest
+
 from efts_io._ncdf_stf2 import StfVariable
 from efts_io.attributes import template_variable_attributes
 from efts_io.conventions import DataOriginType
@@ -56,7 +57,7 @@ def test_create_new_efts_stf2():
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
     assert w.writeable_to_stf2()
     # create a temporary file
@@ -126,7 +127,7 @@ def test_create_new_efts_future_station_ids():
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
     # 2025-11 It has been decided to support transparent conversion of string station
     # IDs to integers on save for STF2.0.
@@ -188,7 +189,7 @@ def _saving_to_stf2(station_ids, intdata_type="i4", delete=True):
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
     assert eds.writeable_to_stf2()
     # create a temporary file

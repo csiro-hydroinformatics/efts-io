@@ -30,8 +30,8 @@ from efts_io.conventions import (
     ENS_MEMBER_DIMNAME,
     LAT_VARNAME,
     LEAD_TIME_DIMNAME,
-    LONG_NAME_ATTR_KEY,
     LON_VARNAME,
+    LONG_NAME_ATTR_KEY,
     STANDARD_NAME_ATTR_KEY,
     STATION_ID_VARNAME,
     STATION_NAME_VARNAME,
@@ -139,7 +139,7 @@ def stf2_nc():
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
     eds.data["q_var"].loc[:, :, :, :] = np.ones((3, 2, 3, 5)) * 1.5
 
@@ -182,7 +182,7 @@ class TestTimeVariableAttributes:
         assert stf2_nc.variables[TIME_DIMNAME].getncattr(AXIS_ATTR_KEY) == EXPECTED_TIME_AXIS
 
     def test_time_units_present(self, stf2_nc):
-        """units must be present and contain 'since' in CF-time format."""
+        """Units must be present and contain 'since' in CF-time format."""
         units = stf2_nc.variables[TIME_DIMNAME].getncattr(UNITS_ATTR_KEY)
         assert "since" in units
 
@@ -211,7 +211,7 @@ class TestEnsMemberVariableAttributes:
         assert stf2_nc.variables[ENS_MEMBER_DIMNAME].getncattr(LONG_NAME_ATTR_KEY) == EXPECTED_ENS_MEMBER_LONG_NAME
 
     def test_ens_member_units(self, stf2_nc):
-        """units must be 'member id'."""
+        """Units must be 'member id'."""
         assert stf2_nc.variables[ENS_MEMBER_DIMNAME].getncattr(UNITS_ATTR_KEY) == EXPECTED_ENS_MEMBER_UNITS
 
     def test_ens_member_axis(self, stf2_nc):
@@ -258,7 +258,7 @@ class TestLatVariableAttributes:
         assert stf2_nc.variables[LAT_VARNAME].getncattr(LONG_NAME_ATTR_KEY) == EXPECTED_LAT_LONG_NAME
 
     def test_lat_units(self, stf2_nc):
-        """units must be 'degrees_north'."""
+        """Units must be 'degrees_north'."""
         assert stf2_nc.variables[LAT_VARNAME].getncattr(UNITS_ATTR_KEY) == EXPECTED_LAT_UNITS
 
     def test_lat_axis(self, stf2_nc):
@@ -279,7 +279,7 @@ class TestLonVariableAttributes:
         assert stf2_nc.variables[LON_VARNAME].getncattr(LONG_NAME_ATTR_KEY) == EXPECTED_LON_LONG_NAME
 
     def test_lon_units(self, stf2_nc):
-        """units must be 'degrees_east'."""
+        """Units must be 'degrees_east'."""
         assert stf2_nc.variables[LON_VARNAME].getncattr(UNITS_ATTR_KEY) == EXPECTED_LON_UNITS
 
     def test_lon_axis(self, stf2_nc):
@@ -296,7 +296,7 @@ class TestStrLenDimension:
     """Convention §Dimensions: strLen is fixed at 30."""
 
     def test_strlen_dimension_is_present(self, stf2_nc):
-        """strLen dimension must exist in written file."""
+        """StrLen dimension must exist in written file."""
         assert STR_LEN_DIMNAME in stf2_nc.dimensions
 
     def test_strlen_dimension_equals_30(self, stf2_nc):
@@ -350,7 +350,7 @@ def stf2_nc_hourly():
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
     eds.data["q_var"].loc[:, :, :, :] = np.ones((3, 2, 2, 5)) * 1.5
 
@@ -388,23 +388,16 @@ class TestLeadTimeVariableAttributes:
     def test_lead_time_standard_name(self, stf2_nc):
         """standard_name must be 'lead time'."""
         assert (
-            stf2_nc.variables[LEAD_TIME_DIMNAME].getncattr(STANDARD_NAME_ATTR_KEY)
-            == EXPECTED_LEAD_TIME_STANDARD_NAME
+            stf2_nc.variables[LEAD_TIME_DIMNAME].getncattr(STANDARD_NAME_ATTR_KEY) == EXPECTED_LEAD_TIME_STANDARD_NAME
         )
 
     def test_lead_time_long_name(self, stf2_nc):
         """long_name must be 'forecast lead time'."""
-        assert (
-            stf2_nc.variables[LEAD_TIME_DIMNAME].getncattr(LONG_NAME_ATTR_KEY)
-            == EXPECTED_LEAD_TIME_LONG_NAME
-        )
+        assert stf2_nc.variables[LEAD_TIME_DIMNAME].getncattr(LONG_NAME_ATTR_KEY) == EXPECTED_LEAD_TIME_LONG_NAME
 
     def test_lead_time_axis(self, stf2_nc):
         """Convention axis label for lead_time is 'v'."""
-        assert (
-            stf2_nc.variables[LEAD_TIME_DIMNAME].getncattr(AXIS_ATTR_KEY)
-            == EXPECTED_LEAD_TIME_AXIS
-        )
+        assert stf2_nc.variables[LEAD_TIME_DIMNAME].getncattr(AXIS_ATTR_KEY) == EXPECTED_LEAD_TIME_AXIS
 
     def test_lead_time_units_days(self, stf2_nc):
         """Convention: units must be 'days since time' when timestep='days'.
@@ -412,10 +405,7 @@ class TestLeadTimeVariableAttributes:
         The daily fixture (stf2_nc) is saved with timestep='days'.
         The hardcoded implementation already produces 'days since time', so this passes.
         """
-        assert (
-            stf2_nc.variables[LEAD_TIME_DIMNAME].getncattr(UNITS_ATTR_KEY)
-            == EXPECTED_LEAD_TIME_UNITS_DAYS
-        )
+        assert stf2_nc.variables[LEAD_TIME_DIMNAME].getncattr(UNITS_ATTR_KEY) == EXPECTED_LEAD_TIME_UNITS_DAYS
 
     # @pytest.mark.xfail(
     #     strict=True,
@@ -435,10 +425,7 @@ class TestLeadTimeVariableAttributes:
         match).  The current implementation hardcodes 'days since time', so this
         test is expected to fail until the bug is resolved.
         """
-        assert (
-            stf2_nc_hourly.variables[LEAD_TIME_DIMNAME].getncattr(UNITS_ATTR_KEY)
-            == EXPECTED_LEAD_TIME_UNITS_HOURS
-        )
+        assert stf2_nc_hourly.variables[LEAD_TIME_DIMNAME].getncattr(UNITS_ATTR_KEY) == EXPECTED_LEAD_TIME_UNITS_HOURS
 
 
 # ---------------------------------------------------------------------------
@@ -475,7 +462,7 @@ class TestOptionalGeolocationVariableAttributes:
 
     @pytest.mark.parametrize("var_name", _OPTIONAL_GEOLOCATION_VARS)
     def test_optional_var_has_units(self, stf2_nc, var_name):
-        """units attribute must be present on optional geolocation variable."""
+        """Units attribute must be present on optional geolocation variable."""
         assert var_name in stf2_nc.variables, f"Variable '{var_name}' not found in written file."
         assert UNITS_ATTR_KEY in stf2_nc.variables[var_name].ncattrs(), (
             f"Missing 'units' on optional variable '{var_name}'."

@@ -8,22 +8,21 @@ not from the implementation.
 import pytest
 
 from efts_io.attributes import (
-    create_variable_attributes,
-    template_variable_attributes,
+    create_global_attributes,
     create_quality_variable_attributes,
     create_state_variable_attributes,
-    create_global_attributes,
-    validate_variable_attributes,
+    create_variable_attributes,
+    template_variable_attributes,
+    validate_global_attributes,
     validate_quality_variable_attributes,
     validate_state_variable_attributes,
-    validate_global_attributes,
+    validate_variable_attributes,
 )
 from efts_io.conventions import (
     DataOriginType,
     LocationType,
     TimeSeriesType,
 )
-
 
 # ---------------------------------------------------------------------------
 # Convention-defined expected values (from the STF 2.0 spec tables)
@@ -143,7 +142,16 @@ class TestCreateVariableAttributes:
             data_description="x",
         )
         # These exact strings come from the convention's attribute tables
-        for key in ["long_name", "units", "_FillValue", "type", "type_description", "dat_type", "dat_type_description", "location_type"]:
+        for key in [
+            "long_name",
+            "units",
+            "_FillValue",
+            "type",
+            "type_description",
+            "dat_type",
+            "dat_type_description",
+            "location_type",
+        ]:
             assert key in attrs, f"Missing convention-required key '{key}'"
 
     # -- Time series types (parametrized over all enum members) --
@@ -644,9 +652,14 @@ class TestCreateGlobalAttributes:
     """Tests for create_global_attributes driven by STF 2.0 conventions."""
 
     REQUIRED_GLOBAL_ATTR_KEYS = {
-        "title", "institution", "source", "catchment",
-        "STF_convention_version", "STF_nc_spec",
-        "comment", "history",
+        "title",
+        "institution",
+        "source",
+        "catchment",
+        "STF_convention_version",
+        "STF_nc_spec",
+        "comment",
+        "history",
     }
 
     def test_output_contains_all_required_keys(self):
@@ -687,21 +700,33 @@ class TestCreateGlobalAttributes:
 
     def test_custom_stf_convention_version(self):
         attrs = create_global_attributes(
-            "Title", "Inst", "Src", "Catch", "Comment",
+            "Title",
+            "Inst",
+            "Src",
+            "Catch",
+            "Comment",
             stf_convention_version=3.0,
         )
         assert attrs["STF_convention_version"] == 3.0
 
     def test_custom_stf_nc_spec(self):
         attrs = create_global_attributes(
-            "Title", "Inst", "Src", "Catch", "Comment",
+            "Title",
+            "Inst",
+            "Src",
+            "Catch",
+            "Comment",
             stf_nc_spec="https://example.com/spec",
         )
         assert attrs["STF_nc_spec"] == "https://example.com/spec"
 
     def test_custom_history(self):
         attrs = create_global_attributes(
-            "Title", "Inst", "Src", "Catch", "Comment",
+            "Title",
+            "Inst",
+            "Src",
+            "Catch",
+            "Comment",
             history="2024-01-01 Created",
         )
         assert attrs["history"] == "2024-01-01 Created"

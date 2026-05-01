@@ -1,7 +1,8 @@
 """Functions to create and manipulate dimensions for netCDF files."""
 
+from collections.abc import Iterable
 from datetime import datetime
-from typing import Any, Dict, Iterable, Optional, Tuple, Union
+from typing import Any
 
 # import netCDF4
 import numpy as np
@@ -65,7 +66,7 @@ def check_is_utc(d: Any) -> bool:
 #'   min = 0, sec = 0, tz = 'Australia/Sydney')
 #' create_netcdf_time_axis(d=start_time, tzoffset='+1000')
 #'
-def create_netcdf_time_axis(d: Any, time_step: str = "hours since", tzoffset: Optional[str] = None) -> str:
+def create_netcdf_time_axis(d: Any, time_step: str = "hours since", tzoffset: str | None = None) -> str:
     """Create a time axis unit known to work for netCDF."""
     if tzoffset is None:
         if not check_is_utc(d):
@@ -74,7 +75,7 @@ def create_netcdf_time_axis(d: Any, time_step: str = "hours since", tzoffset: Op
     return " ".join([time_step, iso_date_time_str(as_naive_timestamp(d)), tzoffset])
 
 
-def as_naive_timestamp(d: Union[datetime, pd.Timestamp]) -> pd.Timestamp:
+def as_naive_timestamp(d: datetime | pd.Timestamp) -> pd.Timestamp:
     """Convert a date-time object to a naive timestamp."""
     return pd.Timestamp(
         year=d.year,
@@ -116,8 +117,8 @@ def create_time_info(
     n: int,
     time_step: str = "hours since",
     time_step_delta: int = 1,
-    tzoffset: Optional[str] = None,
-) -> Dict[str, Any]:
+    tzoffset: str | None = None,
+) -> dict[str, Any]:
     """Helper function to create the definition of the time dimension for use in a netCDF file."""
     return {
         UNITS_ATTR_KEY: create_netcdf_time_axis(
@@ -292,7 +293,7 @@ def create_time_info(
 # }
 
 
-def _cftime_to_pdtstamp(t: pd.Timestamp, tz_str: Optional[str]) -> pd.Timestamp:
+def _cftime_to_pdtstamp(t: pd.Timestamp, tz_str: str | None) -> pd.Timestamp:
     # cftime decoder returns UTC times as naive timestamps.
     # First localize to UTC, then convert to target timezone.
     ts_utc = pd.Timestamp(t.isoformat()).tz_localize("UTC")
@@ -306,15 +307,15 @@ _as_tstamps = np.vectorize(_cftime_to_pdtstamp)
 
 def cftimes_to_pdtstamps(
     cftimes: Iterable[DatetimeGregorian],
-    tz_str: Optional[str] = None,
+    tz_str: str | None = None,
 ) -> np.ndarray[pd.Timestamp, pd.Timestamp]:
     """Convert one or more Climate and Forecast (CF) times to timestamps."""
     return _as_tstamps(cftimes, tz_str)
 
 
 def create_timestamps(
-    time_dim_info: Dict[str, Any],
-    tz_str: Optional[str] = None,
+    time_dim_info: dict[str, Any],
+    tz_str: str | None = None,
 ) -> np.ndarray[pd.Timestamp, pd.Timestamp]:
     """Create time axis timestamps given the time dimension information."""
     import xarray as xr
@@ -350,12 +351,12 @@ def create_timestamps(
 #' @seealso See
 #'    \code{\link{create_efts}} for examples
 def _create_nc_dims(
-    time_dim_info: Dict[str, Any],
+    time_dim_info: dict[str, Any],
     str_len: int = 30,
     lead_length: int = 1,
     ensemble_length: int = 1,
     num_stations: int = 1,
-) -> Dict[str, Tuple[str, np.ndarray, Dict[str, str]]]:
+) -> dict[str, tuple[str, np.ndarray, dict[str, str]]]:
     """Creates dimensions for a netCDF EFTS data set."""
     time_dim = (
         TIME_DIMNAME,
