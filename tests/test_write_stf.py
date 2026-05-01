@@ -1,25 +1,26 @@
 from os import read
 from typing import Iterable
-import pytest
+
 import numpy as np
+import pandas as pd
+import pytest
 import pytz
 import xarray as xr
-from efts_io._ncdf_stf2 import make_ready_for_saving
-import pandas as pd
 
+from efts_io._ncdf_stf2 import make_ready_for_saving
 from efts_io.conventions import (
     ENS_MEMBER_DIMNAME,
-    STATION_DIMNAME,
-    TIME_DIMNAME,
-    STATION_ID_DIMNAME,
-    LEAD_TIME_DIMNAME,
-    REALISATION_DIMNAME,
-    STATION_NAME_VARNAME,
     LAT_VARNAME,
+    LEAD_TIME_DIMNAME,
     LON_VARNAME,
+    REALISATION_DIMNAME,
+    STATION_DIMNAME,
+    STATION_ID_DIMNAME,
+    STATION_NAME_VARNAME,
+    TIME_DIMNAME,
     DataOriginType,
-    xr_to_stf_dims,
     stf_to_xr_dims,
+    xr_to_stf_dims,
 )
 
 
@@ -345,9 +346,9 @@ def test_exportable_to_stf2_rejects_zero_lead_time():
 
 def _temporary_named_file():
     """Create a temporary file, using RAM disk (/dev/shm) on Linux for faster tests."""
+    import os
     import platform
     import tempfile
-    import os
 
     # Use RAM disk on Linux if available
     if platform.system() == "Linux" and os.path.exists("/dev/shm"):
@@ -369,11 +370,12 @@ def test_station_id_int64_preserved_on_read():
     4. Validates that station_id has incorrect float64 dtype (reproducing the bug)
     5. Validates that with mask_and_scale=False, int64 is preserved (the fix)
     """
-    import tempfile
     import os
-    from efts_io.wrapper import EftsDataSet, xr_efts
+    import tempfile
+
     from efts_io._ncdf_stf2 import StfVariable
     from efts_io.conventions import STATION_ID_VARNAME
+    from efts_io.wrapper import EftsDataSet, xr_efts
 
     # 1. Create test data with large int64 station IDs that exceed int32 range
     issue_times = pd.date_range("2023-01-01", periods=10, freq="D")
@@ -486,11 +488,12 @@ def test_station_id_int32_preserved_on_read():
     Tests with smaller station IDs that fit in int32 range to ensure the fix
     works for both i4 and i8 data types.
     """
-    import tempfile
     import os
-    from efts_io.wrapper import EftsDataSet, xr_efts
+    import tempfile
+
     from efts_io._ncdf_stf2 import StfVariable
     from efts_io.conventions import STATION_ID_VARNAME
+    from efts_io.wrapper import EftsDataSet, xr_efts
 
     # Create test data with small int32 station IDs
     issue_times = pd.date_range("2023-01-01", periods=5, freq="D")
@@ -605,20 +608,22 @@ def test_save_to_stf2_preserves_data_array_attributes():
     - DAT_TYPE_ATTR_KEY
     - LOCATION_TYPE_ATTR_KEY
     """
-    import tempfile
     import os
+    import tempfile
+
     import netCDF4 as nc
-    from efts_io.wrapper import EftsDataSet, xr_efts
+
     from efts_io._ncdf_stf2 import StfVariable
     from efts_io.conventions import (
-        UNITS_ATTR_KEY,
-        LONG_NAME_ATTR_KEY,
+        DAT_TYPE_ATTR_KEY,
         FILLVALUE_ATTR_KEY,
+        LOCATION_TYPE_ATTR_KEY,
+        LONG_NAME_ATTR_KEY,
         TYPE_ATTR_KEY,
         TYPE_DESCRIPTION_ATTR_KEY,
-        DAT_TYPE_ATTR_KEY,
-        LOCATION_TYPE_ATTR_KEY,
+        UNITS_ATTR_KEY,
     )
+    from efts_io.wrapper import EftsDataSet, xr_efts
 
     # Create test dataset
     issue_times = pd.date_range("2023-01-01", periods=5, freq="D")
@@ -802,16 +807,18 @@ def test_stf2_default_attributes_match_conventions():
     - quality variable name suffix is "_qual" per updated STF 2.0 convention
     """
     import os
+
     import netCDF4 as nc
-    from efts_io.wrapper import EftsDataSet, xr_efts
+
     from efts_io._ncdf_stf2 import StfVariable
     from efts_io.conventions import (
-        UNITS_ATTR_KEY,
-        TYPE_ATTR_KEY,
-        TYPE_DESCRIPTION_ATTR_KEY,
         DAT_TYPE_ATTR_KEY,
         DAT_TYPE_DESCRIPTION_ATTR_KEY,
+        TYPE_ATTR_KEY,
+        TYPE_DESCRIPTION_ATTR_KEY,
+        UNITS_ATTR_KEY,
     )
+    from efts_io.wrapper import EftsDataSet, xr_efts
 
     # Create test dataset
     issue_times = pd.date_range("2023-01-01", periods=5, freq="D")
@@ -963,9 +970,11 @@ def test_quality_variable_name_suffix_matches_convention():
     The updated convention names quality variables as e.g. 'rain_obs_qual'.
     """
     import os
+
     import netCDF4 as nc
-    from efts_io.wrapper import EftsDataSet, xr_efts
+
     from efts_io._ncdf_stf2 import StfVariable
+    from efts_io.wrapper import EftsDataSet, xr_efts
 
     issue_times = pd.date_range("2023-01-01", periods=5, freq="D")
     station_ids = [100, 200]
@@ -1054,12 +1063,14 @@ def _verify_time_attributes_preservation(timezone_str: str):
     3. The time units string includes proper timezone offset
     4. Time values remain consistent when read back
     """
-    import tempfile
     import os
+    import tempfile
+
     import netCDF4 as nc
-    from efts_io.wrapper import EftsDataSet, xr_efts
+
     from efts_io._ncdf_stf2 import StfVariable
     from efts_io.conventions import TIME_STANDARD_ATTR_KEY, UNITS_ATTR_KEY
+    from efts_io.wrapper import EftsDataSet, xr_efts
 
     # Create test dataset with explicit timezone timestamps
     # Using daily timesteps with distinct dates
@@ -1097,8 +1108,8 @@ def _verify_time_attributes_preservation(timezone_str: str):
     # Create a simple data variable
     eds.create_data_variables(
         {
-            "temp_obs": {
-                "name": "temp_obs",
+            "tmax_obs": {
+                "name": "tmax_obs",
                 "longname": "Temperature",
                 "units": "degC",
                 "dim_type": "4",
@@ -1109,8 +1120,10 @@ def _verify_time_attributes_preservation(timezone_str: str):
         }
     )
 
-    # Populate with test data
-    eds.data["temp_obs"].loc[:, :, :, :] = np.random.rand(3, 2, 1, 7) * 20.0 + 10.0
+    # Populate with deterministic sentinel values: value = (time_index + 1) * 10.0
+    # Same value across all spatial dims, unique per time step — detects any time-axis shift on read-back
+    sentinel_values = np.arange(1, 8, dtype=float) * 10.0
+    eds.data["tmax_obs"].loc[:, :, :, :] = sentinel_values  # broadcasts over (lead, station, ens) dims
 
     # Save to STF2 file
     with _temporary_named_file() as tmp:
@@ -1119,7 +1132,7 @@ def _verify_time_attributes_preservation(timezone_str: str):
     try:
         eds.save_to_stf2(
             path=filename,
-            variable_name="temp_obs",
+            variable_name="tmax_obs",
             var_type=StfVariable.MAXIMUM_TEMPERATURE,
             data_type=DataOriginType.OBSERVED,
             timestep="days",
@@ -1200,6 +1213,17 @@ def _verify_time_attributes_preservation(timezone_str: str):
         # Check that all timestamps match exactly
         for i, (orig, read) in enumerate(zip(original_times, read_back_times)):
             assert orig == read, f"Time coordinate mismatch at index {i}: original={orig}, read_back={read}"
+
+        # Verify data values are not shifted: each time slice should equal its sentinel value.
+        # A timezone-encoding bug could produce correct-looking timestamps while silently shifting
+        # which data lands at which time position.
+        read_data = eds_read.data["tmax_obs"]
+        for t_idx, expected in enumerate(sentinel_values):
+            actual = float(read_data.isel({TIME_DIMNAME: t_idx}).mean())
+            assert actual == expected, (
+                f"Data value mismatch at time index {t_idx}: expected {expected}, got {actual} "
+                f"(possible time-axis shift due to timezone encoding)"
+            )
 
     finally:
         # Clean up temporary file
@@ -1385,12 +1409,14 @@ def test_timezone_naive_timestamps_localized_to_utc():
     This test verifies the default behavior when creating datasets with timezone-naive
     pandas timestamps. The expected behavior is that they are localized to UTC.
     """
-    import tempfile
     import os
+    import tempfile
+
     import netCDF4 as nc
-    from efts_io.wrapper import EftsDataSet, xr_efts
+
     from efts_io._ncdf_stf2 import StfVariable
     from efts_io.conventions import TIME_STANDARD_ATTR_KEY, UNITS_ATTR_KEY
+    from efts_io.wrapper import EftsDataSet, xr_efts
 
     # Create test dataset with timezone-naive timestamps (no tz parameter)
     issue_times = pd.date_range("2024-02-15", periods=5, freq="D")  # No tz - naive
@@ -1476,10 +1502,11 @@ def test_invalid_timezone_string_raises_error():
 
     This test verifies error handling for malformed or non-existent timezone strings.
     """
-    import tempfile
     import os
-    from efts_io.wrapper import EftsDataSet, xr_efts
+    import tempfile
+
     from efts_io._ncdf_stf2 import StfVariable
+    from efts_io.wrapper import EftsDataSet, xr_efts
 
     invalid_timezones = [
         "Invalid/Timezone",
@@ -1568,10 +1595,11 @@ def test_roundtrip_precision_with_hourly_timestep():
     This test verifies that timestamps are exactly preserved through the save/load
     cycle when using hourly timestep (not just daily).
     """
-    import tempfile
     import os
-    from efts_io.wrapper import EftsDataSet, xr_efts
+    import tempfile
+
     from efts_io._ncdf_stf2 import StfVariable
+    from efts_io.wrapper import EftsDataSet, xr_efts
 
     # Create hourly timestamps
     issue_times = pd.date_range("2024-04-10 00:00", periods=24, freq="h", tz="UTC+05:00")
@@ -1649,10 +1677,11 @@ def test_roundtrip_precision_with_minute_timestep():
     This test verifies that timestamps are exactly preserved with even finer
     temporal resolution (minutes).
     """
-    import tempfile
     import os
-    from efts_io.wrapper import EftsDataSet, xr_efts
+    import tempfile
+
     from efts_io._ncdf_stf2 import StfVariable
+    from efts_io.wrapper import EftsDataSet, xr_efts
 
     # Create minute-resolution timestamps
     issue_times = pd.date_range("2024-05-15 12:00", periods=60, freq="min", tz="UTC-07:00")
@@ -1734,10 +1763,11 @@ def test_single_station_single_ensemble_single_leadtime():
 
     The fix uses np.atleast_1d() to ensure coordinate arrays are always 1D.
     """
-    import tempfile
     import os
-    from efts_io.wrapper import EftsDataSet, xr_efts, load_from_stf2_file
+    import tempfile
+
     from efts_io._ncdf_stf2 import StfVariable
+    from efts_io.wrapper import EftsDataSet, load_from_stf2_file, xr_efts
 
     # Create test data with single station, single ensemble, single lead time
     issue_times = pd.date_range("2023-06-01", periods=10, freq="D")
