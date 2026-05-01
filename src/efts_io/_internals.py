@@ -1,11 +1,11 @@
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import xarray as xr
 
 from efts_io.conventions import FILLVALUE_ATTR_KEY, UNITS_ATTR_KEY
 
 
-def create_data_variable(data_var_def: Dict[str, Any], dimensions: Tuple[str, Tuple]) -> xr.Variable:
+def create_data_variable(data_var_def: dict[str, Any], dimensions: tuple[str, tuple]) -> xr.Variable:
     import numpy as np
     import xarray as xr
 

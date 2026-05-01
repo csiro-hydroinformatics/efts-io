@@ -37,7 +37,6 @@ from efts_io.conventions import (
 )
 from efts_io.wrapper import EftsDataSet, xr_efts
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -85,7 +84,7 @@ def _write_valid_stf2_file(filename: str) -> None:
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
     eds.data["q_var"].loc[:, :, :, :] = np.ones((3, 2, 2, 4)) * 1.0
     eds.save_to_stf2(
@@ -189,7 +188,8 @@ class TestCheckStfComplianceValidFile:
 
 class TestCheckStfComplianceMissingDimension:
     """Convention §Dimensions: each of the 5 required dimensions must be present;
-    absence is reported as an ERROR."""
+    absence is reported as an ERROR.
+    """
 
     @pytest.mark.parametrize(
         "omit_dim",
@@ -197,15 +197,14 @@ class TestCheckStfComplianceMissingDimension:
     )
     def test_missing_dimension_reported_as_error(self, omit_dim):
         """A file missing a required dimension must have at least one ERROR
-        and that ERROR message must name the missing dimension."""
+        and that ERROR message must name the missing dimension.
+        """
         with _temporary_named_file() as tmp:
             filename = tmp.name
         try:
             _write_file_missing_dimension(filename, omit_dim)
             result = check_stf_compliance(filename)
-            assert len(result["ERROR"]) > 0, (
-                f"Expected an ERROR for missing dimension '{omit_dim}', got none."
-            )
+            assert len(result["ERROR"]) > 0, f"Expected an ERROR for missing dimension '{omit_dim}', got none."
             assert any(omit_dim in msg for msg in result["ERROR"]), (
                 f"Expected the ERROR message to mention '{omit_dim}'. Got: {result['ERROR']}"
             )
@@ -221,11 +220,13 @@ class TestCheckStfComplianceMissingDimension:
 
 class TestCheckStfComplianceMissingGlobalAttribute:
     """Convention §Global Attributes: missing global attribute is reported as a WARNING
-    (not an ERROR — the function's documented classification)."""
+    (not an ERROR — the function's documented classification).
+    """
 
     def test_missing_global_attribute_reported_as_warning(self):
         """A file whose catchment global attribute has been removed must produce
-        a WARNING that names the missing attribute."""
+        a WARNING that names the missing attribute.
+        """
         with _temporary_named_file() as tmp:
             filename = tmp.name
         try:
@@ -250,7 +251,8 @@ class TestCheckStfComplianceMissingGlobalAttribute:
 
 class TestCheckStfComplianceMissingVariable:
     """Convention §Mandatory Variables: each mandatory variable must be present;
-    absence is reported as an ERROR."""
+    absence is reported as an ERROR.
+    """
 
     @pytest.mark.parametrize(
         "omit_var",
@@ -258,15 +260,14 @@ class TestCheckStfComplianceMissingVariable:
     )
     def test_missing_mandatory_variable_reported_as_error(self, omit_var):
         """A file missing a mandatory variable must have at least one ERROR
-        and that ERROR message must name the missing variable."""
+        and that ERROR message must name the missing variable.
+        """
         with _temporary_named_file() as tmp:
             filename = tmp.name
         try:
             _write_file_missing_variable(filename, omit_var)
             result = check_stf_compliance(filename)
-            assert len(result["ERROR"]) > 0, (
-                f"Expected an ERROR for missing variable '{omit_var}', got none."
-            )
+            assert len(result["ERROR"]) > 0, f"Expected an ERROR for missing variable '{omit_var}', got none."
             assert any(omit_var in msg for msg in result["ERROR"]), (
                 f"Expected the ERROR message to mention '{omit_var}'. Got: {result['ERROR']}"
             )

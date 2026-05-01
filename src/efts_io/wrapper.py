@@ -1,7 +1,8 @@
 """A thin wrapper around xarray for reading and writing Ensemble Forecast Time Series (EFTS) data sets."""
 
+from collections.abc import Iterable
 from datetime import datetime
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any
 
 # import netCDF4
 import numpy as np
@@ -38,12 +39,11 @@ from efts_io.conventions import (
     UNITS_ATTR_KEY,
     ConvertibleToTimestamp,
     DataOriginType,
-    check_index_found,
 )
 from efts_io.dimensions import cftimes_to_pdtstamps
 
 
-def byte_to_string(x: Union[int, bytes]) -> str:
+def byte_to_string(x: int | bytes) -> str:
     """Convert a byte to a string."""
     if isinstance(x, int):
         if x > 255 or x < 0:  # noqa: PLR2004
@@ -174,7 +174,7 @@ class EftsDataSet:
     # stations_varname
     # name of the variable that stores the names of the stations for this data set.
 
-    def __init__(self, data: Union[str, xr.Dataset]) -> None:
+    def __init__(self, data: str | xr.Dataset) -> None:
         """Create a new EftsDataSet object."""
         self.time_dim = None
         self.time_zone = "UTC"
@@ -281,7 +281,7 @@ class EftsDataSet:
         """Gets/sets the history attribute of the dataset."""
         self.data.attrs[HISTORY_ATTR_KEY] = value
 
-    def append_history(self, message: str, timestamp: Optional[datetime] = None) -> None:
+    def append_history(self, message: str, timestamp: datetime | None = None) -> None:
         """Append a new entry to the `history` attribute with a timestamp.
 
         message: The message to append.
@@ -298,7 +298,7 @@ class EftsDataSet:
         else:
             self.data.attrs[HISTORY_ATTR_KEY] = f"{timestamp} - {message}"
 
-    def to_netcdf(self, path: str, version: Optional[str] = "2.0") -> None:
+    def to_netcdf(self, path: str, version: str | None = "2.0") -> None:
         """Write the data set to a netCDF file."""
         if version is None:
             self.data.to_netcdf(path)
@@ -357,12 +357,12 @@ class EftsDataSet:
     def save_to_stf2(
         self,
         path: str,
-        variable_name: Optional[str] = None,
+        variable_name: str | None = None,
         var_type: StfVariable = StfVariable.STREAMFLOW,
         data_type: DataOriginType = DataOriginType.OBSERVED,
         ens: bool = False,  # noqa: FBT001, FBT002
         timestep: str = "days",
-        data_qual: Optional[xr.DataArray] = None,
+        data_qual: xr.DataArray | None = None,
     ) -> None:
         """Save to file."""
         from efts_io._ncdf_stf2 import write_nc_stf2
@@ -394,7 +394,7 @@ class EftsDataSet:
             intdata_type=self.stf2_int_datatype,
         )
 
-    def create_data_variables(self, data_var_def: Dict[str, Dict[str, Any]]) -> None:
+    def create_data_variables(self, data_var_def: dict[str, dict[str, Any]]) -> None:
         """Create data variables in the data set.
 
         var_defs_dict["variable_1"].keys()
@@ -424,7 +424,7 @@ class EftsDataSet:
 
     def _new_variable_from_legacy_specs(
         self,
-        dim_shape: Tuple,
+        dim_shape: tuple,
         dims_names: Iterable[str],
         x: dict[str, Any],
         varname: str,
@@ -452,7 +452,7 @@ class EftsDataSet:
         varname: str,
         dim_names: Iterable[str],
         var_attributes: dict[str, Any],
-        data: Optional[np.ndarray] = None,
+        data: np.ndarray | None = None,
     ) -> xr.DataArray:
         """Create a new variable in the data set.
 
@@ -496,7 +496,7 @@ class EftsDataSet:
     def get_all_series(
         self,
         variable_name: str = "rain_obs",
-        dimension_id: Optional[str] = None,  # noqa: ARG002
+        dimension_id: str | None = None,  # noqa: ARG002
     ) -> xr.DataArray:
         """Return a multivariate time series, where each column is the series for one of the identifiers."""
         # Return a multivariate time series, where each column is the series for one of the identifiers (self, e.g. rainfall station identifiers):
@@ -521,7 +521,7 @@ class EftsDataSet:
         # colnames(v) = identifiers
         # return(v)
 
-    def get_dim_names(self) -> List[str]:
+    def get_dim_names(self) -> list[str]:
         """Gets the name of all dimensions in the data set."""
         return [x for x in self.data.sizes.keys()]  # noqa: C416, SIM118
         # Note: self._dim_size will return a list of str in the future
@@ -530,10 +530,10 @@ class EftsDataSet:
     def get_ensemble_for_stations(
         self,
         variable_name: str = "rain_sim",
-        identifier: Optional[str] = None,
+        identifier: str | None = None,
         dimension_id: str = ENS_MEMBER_DIMNAME,
         start_time: pd.Timestamp = None,
-        lead_time_count: Optional[int] = None,
+        lead_time_count: int | None = None,
     ) -> xr.DataArray:
         """Not yet implemented."""
         # Return a time series, representing a single ensemble member forecast for all stations over the lead time
@@ -542,10 +542,10 @@ class EftsDataSet:
     def get_ensemble_forecasts(
         self,
         variable_name: str = "rain_sim",
-        identifier: Optional[str] = None,
-        dimension_id: Optional[str] = None,
-        start_time: Optional[pd.Timestamp] = None,
-        lead_time_count: Optional[int] = None,
+        identifier: str | None = None,
+        dimension_id: str | None = None,
+        start_time: pd.Timestamp | None = None,
+        lead_time_count: int | None = None,
     ) -> xr.DataArray:
         """Not yet implemented. Gets an ensemble forecast for a variable."""
         # Return a time series, ensemble of forecasts over the lead time
@@ -598,8 +598,8 @@ class EftsDataSet:
     def get_single_series(
         self,
         variable_name: str = "rain_obs",
-        identifier: Optional[str] = None,
-        dimension_id: Optional[str] = None,
+        identifier: str | None = None,
+        dimension_id: str | None = None,
     ) -> xr.DataArray:
         """Return a single point time series for a station identifier."""
         # Return a single point time series for a station identifier. Falls back on def get_all_series if the argument "identifier" is missing
@@ -772,7 +772,7 @@ def open_efts(ncfile: Any) -> EftsDataSet:
     return EftsDataSet(ncfile)
 
 
-def nan_full(shape: Union[Tuple, int]) -> np.ndarray:
+def nan_full(shape: tuple | int) -> np.ndarray:
     """Create a full array of NaNs with the given shape."""
     if isinstance(shape, int):
         shape = (shape,)
@@ -782,15 +782,15 @@ def nan_full(shape: Union[Tuple, int]) -> np.ndarray:
 def xr_efts(
     issue_times: Iterable[ConvertibleToTimestamp],
     station_ids: Iterable[str],
-    lead_times: Optional[Iterable[int]] = None,
+    lead_times: Iterable[int] | None = None,
     lead_time_tstep: str = "hours",
     ensemble_size: int = 1,
     # variables
-    station_names: Optional[Iterable[str]] = None,
-    latitudes: Optional[Iterable[float]] = None,
-    longitudes: Optional[Iterable[float]] = None,
-    areas: Optional[Iterable[float]] = None,
-    nc_attributes: Optional[Dict[str, str]] = None,
+    station_names: Iterable[str] | None = None,
+    latitudes: Iterable[float] | None = None,
+    longitudes: Iterable[float] | None = None,
+    areas: Iterable[float] | None = None,
+    nc_attributes: dict[str, str] | None = None,
 ) -> xr.Dataset:
     """Create an xarray Dataset for EFTS data."""
     # Check that station ids are unique:
@@ -875,8 +875,8 @@ def create_mandatory_global_attributes(
     catchment: str,
     source: str,
     comment: str,
-    history: Optional[str] = None,
-) -> Dict[str, str]:
+    history: str | None = None,
+) -> dict[str, str]:
     """Create a dictionary of mandatory global attributes for an EFTS dataset.
 
     Args:
@@ -900,13 +900,16 @@ def create_mandatory_global_attributes(
     )
     return d  # noqa: RET504
 
+
 def __default_history_attval() -> str:
     try:
         from importlib.metadata import version
+
         pkg_version = version("efts-io")
     except Exception:  # noqa: BLE001
         pkg_version = "unknown"
     return f"Created on {pd.Timestamp.now(tz='UTC').isoformat()} by efts-io v{pkg_version}"
+
 
 def _stf2_mandatory_global_attributes(
     title: str = "not provided",
@@ -915,7 +918,7 @@ def _stf2_mandatory_global_attributes(
     source: str = "not provided",
     comment: str = "not provided",
     history: str = "not provided",
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Create a dictionary of mandatory global attributes for an EFTS dataset."""
     return {
         TITLE_ATTR_KEY: title,
@@ -927,4 +930,3 @@ def _stf2_mandatory_global_attributes(
         STF_CONVENTION_VERSION_ATTR_KEY: "2.0",
         STF_NC_SPEC_ATTR_KEY: STF_2_0_URL,
     }
-

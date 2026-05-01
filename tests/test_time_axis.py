@@ -1,8 +1,10 @@
 from datetime import datetime
-import pytest
-import pandas as pd
-import xarray as xr
+
 import numpy as np
+import pandas as pd
+import pytest
+import xarray as xr
+
 from efts_io._ncdf_stf2 import _create_cf_time_axis
 from efts_io.conventions import convert_to_datetime64_utc
 

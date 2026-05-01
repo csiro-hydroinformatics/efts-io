@@ -1,11 +1,12 @@
 """Tests for timezone utility functions."""
 
-import pytest
-import pandas as pd
-import numpy as np
 from datetime import datetime
 
-from efts_io.conventions import detect_timezone_info, validate_fixed_offset_timezone, extract_utc_offset_string
+import numpy as np
+import pandas as pd
+import pytest
+
+from efts_io.conventions import detect_timezone_info, extract_utc_offset_string, validate_fixed_offset_timezone
 
 
 class TestDetectTimezoneInfo:

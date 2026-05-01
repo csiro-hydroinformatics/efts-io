@@ -8,7 +8,7 @@ import os  # noqa: I001
 from dataclasses import dataclass
 from enum import Enum
 from types import TracebackType
-from typing import Any, Optional
+from typing import Any
 
 from typing_extensions import Self
 
@@ -242,11 +242,26 @@ def _stf1_data_type_long(data_type: DataOriginType) -> str:
 # ---------------------------------------------------------------------------
 
 _TIMESTEP_ALIASES: dict[str, str] = {
-    "weeks": "weeks", "w": "weeks", "wk": "weeks", "week": "weeks",
-    "days": "days", "d": "days", "ds": "days", "day": "days",
-    "hours": "hours", "h": "hours", "hr": "hours", "hour": "hours",
-    "minutes": "minutes", "m": "minutes", "min": "minutes", "minute": "minutes",
-    "seconds": "seconds", "s": "seconds", "sec": "seconds", "second": "seconds",
+    "weeks": "weeks",
+    "w": "weeks",
+    "wk": "weeks",
+    "week": "weeks",
+    "days": "days",
+    "d": "days",
+    "ds": "days",
+    "day": "days",
+    "hours": "hours",
+    "h": "hours",
+    "hr": "hours",
+    "hour": "hours",
+    "minutes": "minutes",
+    "m": "minutes",
+    "min": "minutes",
+    "minute": "minutes",
+    "seconds": "seconds",
+    "s": "seconds",
+    "sec": "seconds",
+    "second": "seconds",
 }
 
 
@@ -476,7 +491,7 @@ class _StfFileBuilder:
         stf_nc_vers: int,
         timestep_str: str,
         intdata_type: str,
-        data_qual: Optional[xr.DataArray],
+        data_qual: xr.DataArray | None,
     ) -> None:
         self._path = path
         self._dataset = dataset
@@ -487,7 +502,7 @@ class _StfFileBuilder:
         self._timestep_str = timestep_str
         self._intdata_type = intdata_type
         self._data_qual = data_qual
-        self._ncfile: Optional[Dataset] = None
+        self._ncfile: Dataset | None = None
 
     # -- context manager ------------------------------------------------------
 
@@ -534,7 +549,7 @@ class _StfFileBuilder:
         dims: tuple[str, ...],
         data: np.ndarray,
         fill_value: Any = -9999,
-        attrs: Optional[dict[str, Any]] = None,
+        attrs: dict[str, Any] | None = None,
     ) -> None:
         """Create a variable, set attributes, and assign data."""
         assert self._ncfile is not None  # noqa: S101
@@ -598,12 +613,16 @@ class _StfFileBuilder:
 
     def _write_geolocation(self) -> None:
         self._add_variable(
-            LAT_VARNAME, "f", (STATION_DIMNAME,),
+            LAT_VARNAME,
+            "f",
+            (STATION_DIMNAME,),
             self._dataset[LAT_VARNAME].values,
             attrs={LONG_NAME_ATTR_KEY: "latitude", UNITS_ATTR_KEY: "degrees_north", AXIS_ATTR_KEY: "y"},
         )
         self._add_variable(
-            LON_VARNAME, "f", (STATION_DIMNAME,),
+            LON_VARNAME,
+            "f",
+            (STATION_DIMNAME,),
             self._dataset[LON_VARNAME].values,
             attrs={LONG_NAME_ATTR_KEY: "longitude", UNITS_ATTR_KEY: "degrees_east", AXIS_ATTR_KEY: "x"},
         )
@@ -764,7 +783,7 @@ def write_nc_stf2(
     stf_nc_vers: int = 2,
     ens: bool = False,  # noqa: FBT001, FBT002
     timestep: str = "days",
-    data_qual: Optional[xr.DataArray] = None,
+    data_qual: xr.DataArray | None = None,
     overwrite: bool = True,  # noqa: FBT001, FBT002
     intdata_type: str = "i4",
 ) -> None:

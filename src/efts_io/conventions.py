@@ -1,7 +1,8 @@
 """Naming conventions for the EFTS netCDF file format."""
 
 from datetime import datetime  # noqa: I001
-from typing import Any, Dict, Iterable, List, Optional, Union
+from typing import Any, Union
+from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
@@ -167,7 +168,7 @@ class AttributesErrorLevel(Enum):
     # WARNING = 3
 
 
-def get_default_dim_order() -> List[str]:
+def get_default_dim_order() -> list[str]:
     """Default order of dimensions in the netCDF file.
 
     Returns:
@@ -182,7 +183,7 @@ def get_default_dim_order() -> List[str]:
 
 
 def check_index_found(
-    index_id: Optional[int],
+    index_id: int | None,
     identifier: str,
     dimension_id: str,
 ) -> None:
@@ -249,7 +250,7 @@ def _is_subset_required_dimensions(
         return d_set.intersection(set(mandatory_dimensions)) == d_set
 
 
-def has_required_stf2_dimensions(d: MdDatasetsType, mandatory_dimensions: Optional[Iterable[str]] = None) -> bool:
+def has_required_stf2_dimensions(d: MdDatasetsType, mandatory_dimensions: Iterable[str] | None = None) -> bool:
     """Has the dataset the required dimensions for STF conventions.
 
     Args:
@@ -313,7 +314,7 @@ def has_variable(d: MdDatasetsType, varname: str) -> bool:
     return varname in tested
 
 
-def check_stf_compliance(file_path: str) -> Dict[str, List[str]]:
+def check_stf_compliance(file_path: str) -> dict[str, list[str]]:
     """Checks the compliance of a netCDF file with the STF convention.
 
     Args:
@@ -439,7 +440,7 @@ def _extract_var_type(variable: Any) -> str:
 def _check_variable_attributes_obs(
     variable: Any,
     error_threshold: AttributesErrorLevel = AttributesErrorLevel.NONE,
-) -> List[str]:
+) -> list[str]:
     """Checks if the attributes of the observed variable comply with the conventions."""
     missing_attributes_messages = []
     required_attributes = {
@@ -457,7 +458,7 @@ def _check_variable_attributes_obs(
 def _check_variable_attributes_sim(
     variable: Any,
     error_threshold: AttributesErrorLevel = AttributesErrorLevel.NONE,
-) -> List[str]:
+) -> list[str]:
     """Checks if the attributes of the simulated variable comply with the conventions."""
     missing_attributes_messages = []
     required_attributes = {
@@ -475,7 +476,7 @@ def _check_variable_attributes_sim(
 def _check_variable_attributes_qual(
     variable: Any,
     error_threshold: AttributesErrorLevel = AttributesErrorLevel.NONE,
-) -> List[str]:
+) -> list[str]:
     """Checks if the attributes of the data quality code variable comply with the conventions."""
     missing_attributes_messages = []
     required_attributes = {
@@ -491,10 +492,10 @@ def _check_variable_attributes_qual(
 
 def _check_attrs_ncdataset(
     variable: Any,
-    required_attributes: Dict[str, type],
-    missing_attributes_messages: List[str],
+    required_attributes: dict[str, type],
+    missing_attributes_messages: list[str],
     error_threshold: AttributesErrorLevel = AttributesErrorLevel.NONE,
-) -> List[str]:
+) -> list[str]:
     for attr, attr_type in required_attributes.items():
         if attr not in variable.ncattrs():
             missing_attributes_messages.append(f"Missing required attribute '{attr}' for variable '{variable.name}'.")
@@ -513,10 +514,10 @@ def _check_attrs_ncdataset(
 
 def _check_attrs_xr(
     variable: MdDatasetsType,
-    required_attributes: Dict[str, type],
-    missing_attributes_messages: List[str],
+    required_attributes: dict[str, type],
+    missing_attributes_messages: list[str],
     error_threshold: AttributesErrorLevel = AttributesErrorLevel.NONE,
-) -> List[str]:
+) -> list[str]:
     for attr, attr_type in required_attributes.items():
         if attr not in variable.attrs:
             missing_attributes_messages.append(f"Missing required attribute '{attr}' for variable '{variable.name}'.")
@@ -535,17 +536,17 @@ def _check_attrs_xr(
 
 def _check_attrs(
     variable: Any,
-    required_attributes: Dict[str, type],
-    missing_attributes_messages: List[str],
+    required_attributes: dict[str, type],
+    missing_attributes_messages: list[str],
     error_threshold: AttributesErrorLevel = AttributesErrorLevel.NONE,
-) -> List[str]:
+) -> list[str]:
     if _is_ncdf4_withattrs(variable):
         return _check_attrs_ncdataset(variable, required_attributes, missing_attributes_messages, error_threshold)
     else:  # noqa: RET505
         return _check_attrs_xr(variable, required_attributes, missing_attributes_messages, error_threshold)
 
 
-def _check_variable_attributes(variable: Any) -> List[str]:
+def _check_variable_attributes(variable: Any) -> list[str]:
     """Checks if the attributes of a variable comply with the conventions depending on the type of variable.
 
     Args:
@@ -566,7 +567,7 @@ def _check_variable_attributes(variable: Any) -> List[str]:
     return []
 
 
-def check_hydrologic_variables(file_path: str) -> Dict[str, List[str]]:
+def check_hydrologic_variables(file_path: str) -> dict[str, list[str]]:
     """Checks if the variable names and attributes in a netCDF file comply with the STF convention.
 
     Args:
@@ -607,7 +608,7 @@ def check_hydrologic_variables(file_path: str) -> Dict[str, List[str]]:
 def check_optional_variable_attributes(
     variable: Any,
     error_threshold: AttributesErrorLevel = AttributesErrorLevel.NONE,
-) -> List[str]:
+) -> list[str]:
     """Checks if the attributes of the observed variable comply with the conventions."""
     missing_attributes_messages = []
     required_attributes = {
@@ -638,7 +639,7 @@ def convert_to_datetime64_utc(x: ConvertibleToTimestamp) -> np.datetime64:
 
 
 def detect_timezone_info(
-    timestamps: Union[pd.DatetimeIndex, Iterable[ConvertibleToTimestamp], ConvertibleToTimestamp],
+    timestamps: pd.DatetimeIndex | Iterable[ConvertibleToTimestamp] | ConvertibleToTimestamp,
 ) -> tuple[str, str]:
     """Detect timezone information from timestamps.
 
@@ -753,7 +754,7 @@ def detect_timezone_info(
 
 def validate_fixed_offset_timezone(
     timezone_string: str,
-    sample_timestamp: Optional[pd.Timestamp] = None,
+    sample_timestamp: pd.Timestamp | None = None,
 ) -> tuple[str, str]:
     """Validate that a timezone has a fixed UTC offset (no daylight saving time).
 
@@ -890,7 +891,7 @@ def validate_fixed_offset_timezone(
     return (timezone_string, offset_string)
 
 
-def extract_utc_offset_string(timestamps_or_tz: Union[pd.DatetimeIndex, pd.Timestamp, str, Any]) -> str:
+def extract_utc_offset_string(timestamps_or_tz: pd.DatetimeIndex | pd.Timestamp | str | Any) -> str:
     """Extract UTC offset string from timestamps or timezone object.
 
     This is a utility function that extracts the UTC offset from timezone-aware
@@ -1146,4 +1147,3 @@ class LocationType(Enum):
 
     POINT = "Point"
     AREA = "Area"
-

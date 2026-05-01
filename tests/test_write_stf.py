@@ -1,5 +1,4 @@
-from os import read
-from typing import Iterable
+from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
@@ -43,7 +42,8 @@ def sample_dataset(
         data_vars={
             # STATION_ID_VARNAME: xr.DataArray([1, 2, 3], dims=[STATION_ID_DIMNAME]),
             STATION_NAME_VARNAME: xr.DataArray(
-                [f"station_{i} name" for i in range(n_stations)], dims=[STATION_ID_DIMNAME]
+                [f"station_{i} name" for i in range(n_stations)],
+                dims=[STATION_ID_DIMNAME],
             ),
             LAT_VARNAME: xr.DataArray(1.1 * stations_nbs, dims=[STATION_ID_DIMNAME]),
             LON_VARNAME: xr.DataArray(100.0 + stations_nbs, dims=[STATION_ID_DIMNAME]),
@@ -60,10 +60,6 @@ def stf_dimensions_order():
 def xr_dimensions_order():
     """Return the corresponding xarray dimensions order."""
     return (TIME_DIMNAME, REALISATION_DIMNAME, STATION_ID_DIMNAME, LEAD_TIME_DIMNAME)
-
-
-import numpy as np
-import xarray as xr
 
 
 def create_data_array(
@@ -103,8 +99,7 @@ def create_data_array(
     if dataset is not None:
         coords = {dim: dataset[dim] if dim in dataset.coords else np.arange(2) for dim in xr_dimensions}
         return xr.DataArray(data, dims=xr_dimensions, coords=coords)
-    else:
-        return xr.DataArray(data, dims=xr_dimensions)
+    return xr.DataArray(data, dims=xr_dimensions)
 
 
 # mini tests for the test dataset creators:
@@ -215,7 +210,7 @@ def create_valid_stf2_dataset(time_zone=None):
             "catchment": "Test catchment",
             "comment": "Test comment",
             "history": "Test history",
-        }
+        },
     )
 
     return dataset
@@ -289,7 +284,7 @@ def test_exportable_to_stf2_string_station_ids():
             "catchment": "Test catchment",
             "comment": "Test comment",
             "history": "Test history",
-        }
+        },
     )
     # check the test dataset station_ids are strings
     assert np.issubdtype(dataset[STATION_ID_DIMNAME].values.dtype, np.str_) is True
@@ -313,7 +308,7 @@ def test_exportable_to_stf2_integer_station_ids():
             "catchment": "Test catchment",
             "comment": "Test comment",
             "history": "Test history",
-        }
+        },
     )
 
     assert exportable_to_stf2(dataset) is True
@@ -353,8 +348,7 @@ def _temporary_named_file():
     # Use RAM disk on Linux if available
     if platform.system() == "Linux" and os.path.exists("/dev/shm"):
         return tempfile.NamedTemporaryFile(suffix=".nc", delete=False, dir="/dev/shm")
-    else:
-        return tempfile.NamedTemporaryFile(suffix=".nc", delete=False)
+    return tempfile.NamedTemporaryFile(suffix=".nc", delete=False)
 
 
 def test_station_id_int64_preserved_on_read():
@@ -371,7 +365,6 @@ def test_station_id_int64_preserved_on_read():
     5. Validates that with mask_and_scale=False, int64 is preserved (the fix)
     """
     import os
-    import tempfile
 
     from efts_io._ncdf_stf2 import StfVariable
     from efts_io.conventions import STATION_ID_VARNAME
@@ -414,7 +407,7 @@ def test_station_id_int64_preserved_on_read():
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
 
     # populate some values for the data variable, a mix of missing values and real values
@@ -489,7 +482,6 @@ def test_station_id_int32_preserved_on_read():
     works for both i4 and i8 data types.
     """
     import os
-    import tempfile
 
     from efts_io._ncdf_stf2 import StfVariable
     from efts_io.conventions import STATION_ID_VARNAME
@@ -532,7 +524,7 @@ def test_station_id_int32_preserved_on_read():
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
 
     # populate some values for the data variable, a mix of missing values and real values
@@ -609,7 +601,6 @@ def test_save_to_stf2_preserves_data_array_attributes():
     - LOCATION_TYPE_ATTR_KEY
     """
     import os
-    import tempfile
 
     import netCDF4 as nc
 
@@ -675,7 +666,7 @@ def test_save_to_stf2_preserves_data_array_attributes():
                     LOCATION_TYPE_ATTR_KEY: custom_location_type,
                 },
             },
-        }
+        },
     )
 
     # Check that the data variable has the correct attributes before saving
@@ -773,8 +764,7 @@ def test_save_to_stf2_preserves_data_array_attributes():
         # Bug #6: station_name dimensions must be (strLen, station) per convention
         stn_name_var = nc_ds.variables["station_name"]
         assert stn_name_var.dimensions == ("strLen", "station"), (
-            f"station_name dimension order should be (strLen, station) per STF 2.0, "
-            f"got {stn_name_var.dimensions}"
+            f"station_name dimension order should be (strLen, station) per STF 2.0, got {stn_name_var.dimensions}"
         )
 
         # Bug #7: Convention specifies data variables as double precision
@@ -816,7 +806,6 @@ def test_stf2_default_attributes_match_conventions():
         DAT_TYPE_DESCRIPTION_ATTR_KEY,
         TYPE_ATTR_KEY,
         TYPE_DESCRIPTION_ATTR_KEY,
-        UNITS_ATTR_KEY,
     )
     from efts_io.wrapper import EftsDataSet, xr_efts
 
@@ -856,7 +845,7 @@ def test_stf2_default_attributes_match_conventions():
                 "precision": "double",
                 "attributes": {},  # No custom type/dat_type overrides
             },
-        }
+        },
     )
 
     eds.data["flow_var"].loc[:, :, :, :] = np.random.rand(3, 2, 2, 5) * 10.0
@@ -1010,7 +999,7 @@ def test_quality_variable_name_suffix_matches_convention():
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
 
     eds.data["rain_var"].loc[:, :, :, :] = np.random.rand(3, 2, 2, 5) * 10.0
@@ -1040,8 +1029,7 @@ def test_quality_variable_name_suffix_matches_convention():
         # Convention says quality variables are named e.g. "rain_obs_qual"
         all_vars = list(nc_ds.variables.keys())
         assert "rain_obs_qual" in all_vars, (
-            f"Expected quality variable 'rain_obs_qual' per STF 2.0 convention, "
-            f"found variables: {all_vars}"
+            f"Expected quality variable 'rain_obs_qual' per STF 2.0 convention, found variables: {all_vars}"
         )
 
         nc_ds.close()
@@ -1064,7 +1052,6 @@ def _verify_time_attributes_preservation(timezone_str: str):
     4. Time values remain consistent when read back
     """
     import os
-    import tempfile
 
     import netCDF4 as nc
 
@@ -1076,7 +1063,7 @@ def _verify_time_attributes_preservation(timezone_str: str):
     # Using daily timesteps with distinct dates
     try:
         issue_times = pd.date_range("2024-01-15", periods=7, freq="D", tz=timezone_str)
-    except pytz.exceptions.UnknownTimeZoneError as e:
+    except pytz.exceptions.UnknownTimeZoneError:
         # the error message is not overly terse, so warpping this.
         raise ValueError(f"Unknown timezone string '{timezone_str}'")
     station_ids = [1001, 2002]
@@ -1117,7 +1104,7 @@ def _verify_time_attributes_preservation(timezone_str: str):
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
 
     # Populate with deterministic sentinel values: value = (time_index + 1) * 10.0
@@ -1410,7 +1397,6 @@ def test_timezone_naive_timestamps_localized_to_utc():
     pandas timestamps. The expected behavior is that they are localized to UTC.
     """
     import os
-    import tempfile
 
     import netCDF4 as nc
 
@@ -1456,7 +1442,7 @@ def test_timezone_naive_timestamps_localized_to_utc():
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
 
     eds.data["precip_obs"].loc[:, :, :, :] = np.random.rand(3, 2, 1, 5) * 25.0
@@ -1503,7 +1489,6 @@ def test_invalid_timezone_string_raises_error():
     This test verifies error handling for malformed or non-existent timezone strings.
     """
     import os
-    import tempfile
 
     from efts_io._ncdf_stf2 import StfVariable
     from efts_io.wrapper import EftsDataSet, xr_efts
@@ -1552,7 +1537,7 @@ def test_invalid_timezone_string_raises_error():
                         "precision": "double",
                         "attributes": {},
                     },
-                }
+                },
             )
             eds.data["test_var"].loc[:, :, :, :] = 1.0
 
@@ -1596,7 +1581,6 @@ def test_roundtrip_precision_with_hourly_timestep():
     cycle when using hourly timestep (not just daily).
     """
     import os
-    import tempfile
 
     from efts_io._ncdf_stf2 import StfVariable
     from efts_io.wrapper import EftsDataSet, xr_efts
@@ -1635,7 +1619,7 @@ def test_roundtrip_precision_with_hourly_timestep():
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
 
     eds.data["flow_hourly"].loc[:, :, :, :] = np.random.rand(2, 1, 1, 24) * 50.0
@@ -1678,7 +1662,6 @@ def test_roundtrip_precision_with_minute_timestep():
     temporal resolution (minutes).
     """
     import os
-    import tempfile
 
     from efts_io._ncdf_stf2 import StfVariable
     from efts_io.wrapper import EftsDataSet, xr_efts
@@ -1717,7 +1700,7 @@ def test_roundtrip_precision_with_minute_timestep():
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
 
     eds.data["level_minute"].loc[:, :, :, :] = np.random.rand(2, 1, 1, 60) * 10.0
@@ -1806,7 +1789,7 @@ def test_single_station_single_ensemble_single_leadtime():
                 "precision": "double",
                 "attributes": {},
             },
-        }
+        },
     )
 
     # Populate with test data - shape is (lead_time, station, realisation, time)

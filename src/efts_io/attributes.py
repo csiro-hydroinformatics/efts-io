@@ -61,18 +61,22 @@ def create_var_attribute_definition(
         >>> # Old way (still works but not recommended)
         >>> attrs = create_var_attribute_definition(
         ...     data_type_code=2,
-        ...     type_description='accumulated over the preceding interval',
-        ...     dat_type='obs'
+        ...     type_description="accumulated over the preceding interval",
+        ...     dat_type="obs",
         ... )
         >>>
         >>> # New recommended way
-        >>> from efts_io.attributes import create_variable_attributes, TimeSeriesType, DataOriginType
+        >>> from efts_io.attributes import (
+        ...     create_variable_attributes,
+        ...     TimeSeriesType,
+        ...     DataOriginType,
+        ... )
         >>> attrs = create_variable_attributes(
         ...     long_name="observed rainfall",
         ...     units="mm",
         ...     time_series_type=TimeSeriesType.ACCUMULATED,
         ...     data_origin=DataOriginType.OBSERVED,
-        ...     data_description="gauge measurements"
+        ...     data_description="gauge measurements",
         ... )
     """
     return {
@@ -116,7 +120,7 @@ def create_variable_attributes(
         ...     create_variable_attributes,
         ...     TimeSeriesType,
         ...     DataOriginType,
-        ...     LocationType
+        ...     LocationType,
         ... )
         >>> attrs = create_variable_attributes(
         ...     long_name="observed rainfall",
@@ -124,13 +128,13 @@ def create_variable_attributes(
         ...     time_series_type=TimeSeriesType.ACCUMULATED,
         ...     data_origin=DataOriginType.OBSERVED,
         ...     data_description="gauge measurements from station network",
-        ...     location_type=LocationType.POINT
+        ...     location_type=LocationType.POINT,
         ... )
-        >>> attrs['type']
+        >>> attrs["type"]
         2
-        >>> attrs['type_description']
+        >>> attrs["type_description"]
         'accumulated over the preceding interval'
-        >>> attrs['dat_type']
+        >>> attrs["dat_type"]
         'obs'
 
     See Also:
@@ -179,10 +183,10 @@ def template_variable_attributes(
         >>> # Using type-safe enums (recommended)
         >>> attrs = template_variable_attributes(
         ...     time_series_type=TimeSeriesType.ACCUMULATED,
-        ...     data_origin=DataOriginType.OBSERVED
+        ...     data_origin=DataOriginType.OBSERVED,
         ... )
-        >>> attrs['long_name'] = "observed rainfall"
-        >>> attrs['units'] = "mm"
+        >>> attrs["long_name"] = "observed rainfall"
+        >>> attrs["units"] = "mm"
         >>>
         >>> # Or get a blank template
         >>> attrs = template_variable_attributes()
@@ -231,22 +235,26 @@ def _create_template_variable_attributes(
         Dictionary with all required attribute keys, some pre-filled based on arguments
 
     Examples:
-        >>> from efts_io.attributes import template_variable_attributes, TimeSeriesType, DataOriginType
+        >>> from efts_io.attributes import (
+        ...     template_variable_attributes,
+        ...     TimeSeriesType,
+        ...     DataOriginType,
+        ... )
         >>>
         >>> # Get a blank template
         >>> attrs = template_variable_attributes()
-        >>> attrs['long_name'] = "my variable"
-        >>> attrs['units'] = "mm"
+        >>> attrs["long_name"] = "my variable"
+        >>> attrs["units"] = "mm"
         >>>
         >>> # Get a partially filled template
         >>> attrs = template_variable_attributes(
         ...     time_series_type=TimeSeriesType.ACCUMULATED,
-        ...     data_origin=DataOriginType.OBSERVED
+        ...     data_origin=DataOriginType.OBSERVED,
         ... )
-        >>> attrs['type']
+        >>> attrs["type"]
         2
-        >>> attrs['long_name'] = "observed rainfall"
-        >>> attrs['units'] = "mm"
+        >>> attrs["long_name"] = "observed rainfall"
+        >>> attrs["units"] = "mm"
 
     See Also:
         - create_variable_attributes: For creating complete attributes in one call
@@ -440,7 +448,7 @@ def create_quality_variable_attributes(
         ...     long_name="Quality of observed rainfall",
         ...     quality_code_standard="ABC Quality coding",
         ... )
-        >>> attrs['_FillValue']
+        >>> attrs["_FillValue"]
         -1
     """
     return {
@@ -480,7 +488,7 @@ def create_state_variable_attributes(
         ...     sv_name="UH_Inflow",
         ...     sv_description="Total inflow to Unit Hydrographs in GR4H",
         ... )
-        >>> attrs['model_name']
+        >>> attrs["model_name"]
         'GR4H_RR'
     """
     return {
@@ -538,19 +546,31 @@ def validate_variable_attributes(attrs: dict[str, Any]) -> list[str]:
                 f" expected '{expected_type.__name__ if isinstance(expected_type, type) else ' or '.join(t.__name__ for t in expected_type)}'",
             )
 
-    if TYPE_ATTR_KEY in attrs and isinstance(attrs[TYPE_ATTR_KEY], int) and attrs[TYPE_ATTR_KEY] not in _VALID_TYPE_CODES:
+    if (
+        TYPE_ATTR_KEY in attrs
+        and isinstance(attrs[TYPE_ATTR_KEY], int)
+        and attrs[TYPE_ATTR_KEY] not in _VALID_TYPE_CODES
+    ):
         errors.append(
             f"Attribute '{TYPE_ATTR_KEY}' has value {attrs[TYPE_ATTR_KEY]},"
             f" expected one of {sorted(_VALID_TYPE_CODES)}",
         )
 
-    if DAT_TYPE_ATTR_KEY in attrs and isinstance(attrs[DAT_TYPE_ATTR_KEY], str) and attrs[DAT_TYPE_ATTR_KEY] not in _VALID_DAT_TYPE_CODES:
+    if (
+        DAT_TYPE_ATTR_KEY in attrs
+        and isinstance(attrs[DAT_TYPE_ATTR_KEY], str)
+        and attrs[DAT_TYPE_ATTR_KEY] not in _VALID_DAT_TYPE_CODES
+    ):
         errors.append(
             f"Attribute '{DAT_TYPE_ATTR_KEY}' has value '{attrs[DAT_TYPE_ATTR_KEY]}',"
             f" expected one of {sorted(_VALID_DAT_TYPE_CODES)}",
         )
 
-    if LOCATION_TYPE_ATTR_KEY in attrs and isinstance(attrs[LOCATION_TYPE_ATTR_KEY], str) and attrs[LOCATION_TYPE_ATTR_KEY] not in _VALID_LOCATION_TYPES:
+    if (
+        LOCATION_TYPE_ATTR_KEY in attrs
+        and isinstance(attrs[LOCATION_TYPE_ATTR_KEY], str)
+        and attrs[LOCATION_TYPE_ATTR_KEY] not in _VALID_LOCATION_TYPES
+    ):
         errors.append(
             f"Attribute '{LOCATION_TYPE_ATTR_KEY}' has value '{attrs[LOCATION_TYPE_ATTR_KEY]}',"
             f" expected one of {sorted(_VALID_LOCATION_TYPES)}",
@@ -570,7 +590,9 @@ def validate_quality_variable_attributes(attrs: dict[str, Any]) -> list[str]:
 
     Examples:
         >>> from efts_io.attributes import create_quality_variable_attributes
-        >>> attrs = create_quality_variable_attributes("Quality of observed rainfall", "ABC Quality coding")
+        >>> attrs = create_quality_variable_attributes(
+        ...     "Quality of observed rainfall", "ABC Quality coding"
+        ... )
         >>> validate_quality_variable_attributes(attrs)
         []
     """
