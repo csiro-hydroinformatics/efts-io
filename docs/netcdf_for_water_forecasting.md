@@ -96,7 +96,7 @@ Observations and simulations:
 * float q_sim (lead_time, station, ens_member, time)
 * float rain_sim (lead_time, station, ens_member, time)
 * float pet_sim (lead_time, station, ens_member, time)
-* float sv[#] (lead_time, station, ens_member, time)
+* float sv[state_number] (lead_time, station, ens_member, time)
 
 Quality codes:
 
@@ -391,7 +391,7 @@ The long name for the variable | long_name | String | Quality of observed rainfa
 Quality code standard | units | String | ABC quality coding
 Missing data value | _FillValue | int | -1
 
-### sv1/sv2/sv[#]
+### sv1/sv2/sv[state_number]
 
 Description: State variables (double)
 
