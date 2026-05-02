@@ -2,6 +2,7 @@
 
 from collections.abc import Iterable
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 # import netCDF4
@@ -83,14 +84,14 @@ def load_from_stf2_file(file_path: str, time_zone_timestamps: bool) -> xr.Datase
     Returns:
         _type_: xarray Dataset
     """
-    from xarray.coding import times
+    from xarray.coding import times  # noqa: PLC0415
 
     # work around https://jira.csiro.au/browse/WIRADA-635
     # lead_time can be a problem with xarray, so do not decode "times"
     # we also use mask_and_scale=False because of https://github.com/csiro-hydroinformatics/efts-io/issues/24
     x = xr.open_dataset(file_path, decode_times=False, mask_and_scale=False)
     # replace the time and station names coordinates values
-    # TODO This is probably not a long term solution for round-tripping a read/write or vice and versa
+    # TODO: This is probably not a long term solution for round-tripping a read/write or vice and versa
     decod = times.CFDatetimeCoder(use_cftime=True)
     var = xr.as_variable(x.coords[TIME_DIMNAME])
     time_zone = var.attrs[TIME_STANDARD_ATTR_KEY]
@@ -105,7 +106,7 @@ def load_from_stf2_file(file_path: str, time_zone_timestamps: bool) -> xr.Datase
     # station_names = byte_stations_to_str(x[STATION_NAME_VARNAME].values).astype(np.str_)
     # Use np.atleast_1d to handle the case where there's only one station/ensemble/lead_time,
     # which would otherwise result in a 0-dimensional array that xarray cannot use as a coordinate.
-    station_ids_strings = np.atleast_1d(x[STATION_ID_VARNAME].values.astype(np.str_))
+    station_ids_strings = np.atleast_1d(x[STATION_ID_VARNAME].values.astype(np.str_))  # noqa: PD011
     ens_member_values = np.atleast_1d(x[ENS_MEMBER_DIMNAME].values)
     lead_time_values = np.atleast_1d(x[LEAD_TIME_DIMNAME].values)
     # x = x.assign_coords(
@@ -146,7 +147,7 @@ def load_from_stf2_file(file_path: str, time_zone_timestamps: bool) -> xr.Datase
     # Handle station names separately
     station_names_var = x[STATION_NAME_VARNAME]
     new_dataset[STATION_NAME_VARNAME] = xr.DataArray(
-        data=station_names_var.values.astype(np.str_),
+        data=station_names_var.values.astype(np.str_),  # noqa: PD011
         dims=[STATION_ID_DIMNAME],
         coords={STATION_ID_DIMNAME: new_dataset[STATION_ID_DIMNAME]},
         attrs=station_names_var.attrs,
@@ -185,7 +186,6 @@ class EftsDataSet:
         self.ENS_MEMBER_DIMNAME = ENS_MEMBER_DIMNAME
         # self.identifiers_dimensions: list = []
         self.data: xr.Dataset
-        from pathlib import Path
 
         if data is None:
             raise ValueError("input cannot be None")
@@ -287,16 +287,17 @@ class EftsDataSet:
         message: The message to append.
         timestamp: If not provided, the current UTC time is used.
         """
-        from datetime import UTC
+        from datetime import UTC  # noqa: PLC0415
 
         if timestamp is None:
-            timestamp = datetime.now(UTC).isoformat()
+            timestamp = datetime.now(UTC)
+        ts_str = timestamp.isoformat()
 
         current_history = self.data.attrs.get(HISTORY_ATTR_KEY, "")
         if current_history:
-            self.data.attrs[HISTORY_ATTR_KEY] = f"{current_history}\n{timestamp} - {message}"
+            self.data.attrs[HISTORY_ATTR_KEY] = f"{current_history}\n{ts_str} - {message}"
         else:
-            self.data.attrs[HISTORY_ATTR_KEY] = f"{timestamp} - {message}"
+            self.data.attrs[HISTORY_ATTR_KEY] = f"{ts_str} - {message}"
 
     def to_netcdf(self, path: str, version: str | None = "2.0") -> None:
         """Write the data set to a netCDF file."""
@@ -338,7 +339,7 @@ class EftsDataSet:
         Returns:
             bool: True if the dataset can be written to a STF 2.0 compliant netCDF file, False otherwise.
         """
-        from efts_io.conventions import exportable_to_stf2
+        from efts_io.conventions import exportable_to_stf2  # noqa: PLC0415
 
         return exportable_to_stf2(self.data)
 
@@ -365,7 +366,7 @@ class EftsDataSet:
         data_qual: xr.DataArray | None = None,
     ) -> None:
         """Save to file."""
-        from efts_io._ncdf_stf2 import write_nc_stf2
+        from efts_io._ncdf_stf2 import write_nc_stf2  # noqa: PLC0415
 
         if isinstance(self.data, xr.Dataset):
             if variable_name is None:
@@ -418,7 +419,7 @@ class EftsDataSet:
         ]:
             for x in vardefs:
                 varname = x["name"]
-                # TODO:
+                # TODO: perhaps check for keys here
                 # _check_mandatory_keys(x)
                 self._new_variable_from_legacy_specs(dims_shape, dims_names, x, varname)
 
@@ -589,7 +590,7 @@ class EftsDataSet:
 
     def get_lead_time_values(self) -> np.ndarray:
         """Return the values of the lead time dimension."""
-        return self.data[self.LEAD_TIME_DIMNAME].values
+        return self.data[self.LEAD_TIME_DIMNAME].to_numpy()
 
     def put_lead_time_values(self, values: Iterable[float]) -> None:
         """Set the values of the lead time dimension."""
@@ -620,7 +621,7 @@ class EftsDataSet:
     def get_time_dim(self) -> np.ndarray:
         """Return the time dimension variable as a vector of date-time stamps."""
         # Gets the time dimension variable as a vector of date-time stamps
-        return self.data.time.values  # but loosing attributes.
+        return self.data.time.to_numpy()  # but loosing attributes.
 
     # def get_time_unit(self) -> str:
     #     """Return the time units of a read time series."""
@@ -903,7 +904,7 @@ def create_mandatory_global_attributes(
 
 def __default_history_attval() -> str:
     try:
-        from importlib.metadata import version
+        from importlib.metadata import version  # noqa: PLC0415
 
         pkg_version = version("efts-io")
     except Exception:  # noqa: BLE001

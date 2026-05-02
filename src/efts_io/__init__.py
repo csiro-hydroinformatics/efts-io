@@ -34,14 +34,12 @@ from efts_io.wrapper import EftsDataSet, create_mandatory_global_attributes, ope
 
 
 __all__: list[str] = [
-    "get_parser",
-    "main",
     "DataOriginType",
     # Main classes
     "EftsDataSet",
+    "LocationType",
     # Deprecated — use DataOriginType instead
     "StfVariable",
-    "LocationType",
     # Metadata enumerations
     "TimeSeriesType",
     # Dataset creation functions
@@ -52,6 +50,8 @@ __all__: list[str] = [
     "create_var_attribute_definition",
     # Attribute creation functions
     "create_variable_attributes",
+    "get_parser",
+    "main",
     "open_efts",
     "template_variable_attributes",
     # Attribute validation functions

@@ -201,7 +201,7 @@ def template_variable_attributes(
         - efts_io.attributes.DataOriginType: Valid data origin types
         - efts_io.attributes.LocationType: Valid location types
     """
-    from efts_io.attributes import LocationType
+    from efts_io.attributes import LocationType  # noqa: PLC0415
 
     if location_type is None:
         location_type = LocationType.POINT

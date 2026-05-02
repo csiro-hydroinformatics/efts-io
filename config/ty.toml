@@ -1,5 +1,5 @@
 [src]
-exclude = ["tests/fixtures"]
+exclude = ["tests/fixtures", "tests"]
 
 [terminal]
 error-on-warning = true

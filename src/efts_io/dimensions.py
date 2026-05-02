@@ -39,11 +39,11 @@ def iso_date_time_str(t: Any) -> str:
 #'
 def check_is_utc(d: Any) -> bool:
     """Check that a date-time is in the UTC time zone."""
+    from datetime import timezone  # noqa: PLC0415
     a = pd.Timestamp(d)
     if a.tz is None:
         return True  # ?
     z = a.tz
-    from datetime import timezone
 
     return z == timezone.utc
 
@@ -318,7 +318,7 @@ def create_timestamps(
     tz_str: str | None = None,
 ) -> np.ndarray[pd.Timestamp, pd.Timestamp]:
     """Create time axis timestamps given the time dimension information."""
-    import xarray as xr
+    import xarray as xr  # noqa: PLC0415
 
     axis_units = time_dim_info[UNITS_ATTR_KEY]
     axis_values = time_dim_info["values"]
@@ -330,8 +330,7 @@ def create_timestamps(
             UNITS_ATTR_KEY: axis_units,
         },
     )
-    from xarray.coding import times
-
+    from xarray.coding import times  # noqa: PLC0415
     decod = times.CFDatetimeCoder(use_cftime=True)
     time_coords = decod.decode(var, name=TIME_DIMNAME)
     return cftimes_to_pdtstamps(time_coords.values, tz_str=tz_str)

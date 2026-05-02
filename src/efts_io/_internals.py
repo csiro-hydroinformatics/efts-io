@@ -1,13 +1,12 @@
 from typing import Any
 
+import numpy as np
 import xarray as xr
 
 from efts_io.conventions import FILLVALUE_ATTR_KEY, UNITS_ATTR_KEY
 
 
 def create_data_variable(data_var_def: dict[str, Any], dimensions: tuple[str, tuple]) -> xr.Variable:
-    import numpy as np
-    import xarray as xr
 
     a = data_var_def
     #    (c("name", UNITS_ATTR_KEY) %in% names(a)) %>% all %>% stopifnot

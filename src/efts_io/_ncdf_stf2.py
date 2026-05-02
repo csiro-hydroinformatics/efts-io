@@ -4,17 +4,18 @@ These are functions ported from a collection of utilities initially in
 https://bitbucket.csiro.au/projects/SF/repos/python_functions/browse/swift_utility/swift_io.py
 """
 
-import os  # noqa: I001
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from types import TracebackType
 from typing import Any
-
-from typing_extensions import Self
 
 import numpy as np
 import pandas as pd
 import xarray as xr
+from netCDF4 import Dataset
+from typing_extensions import Self
+from xarray.coding import times
 
 from efts_io.conventions import (
     AREA_VARNAME,
@@ -65,9 +66,6 @@ from efts_io.conventions import (
     mandatory_xarray_dimensions,
     validate_fixed_offset_timezone,
 )
-
-from netCDF4 import Dataset
-
 
 # ---------------------------------------------------------------------------
 # Public enums
@@ -312,9 +310,7 @@ def _create_cf_time_axis(data: xr.DataArray, timestep_str: str) -> tuple[np.ndar
         TypeError: If time values are not convertible to timestamps.
         NotImplementedError: If timezone observes daylight saving time (DST).
     """
-    from xarray.coding import times
-
-    tt = data[TIME_DIMNAME].values
+    tt = data[TIME_DIMNAME].to_numpy()
     if len(tt) == 0:
         raise ValueError("Cannot create CF time axis from empty data array.")
     origin = tt[0]
@@ -437,7 +433,7 @@ def _coerce_station_ids(dataset: xr.Dataset) -> np.ndarray:
     Raises:
         TypeError: If station_id values cannot be converted to integers.
     """
-    station_id = dataset[STATION_ID_VARNAME].values
+    station_id = dataset[STATION_ID_VARNAME].to_numpy()
     if not np.issubdtype(station_id.dtype, np.integer):
         try:
             station_id = station_id.astype(np.int64)
@@ -459,12 +455,13 @@ def _handle_existing_file(out_nc_file: str, overwrite: bool) -> None:  # noqa: F
     Raises:
         FileExistsError: If the file exists and ``overwrite`` is ``False``.
     """
-    if os.path.exists(out_nc_file):
+    p = Path(out_nc_file)
+    if p.exists():
         if not overwrite:
             raise FileExistsError(
                 f"Warning: The file '{out_nc_file}' exists, so either set overwrite=True to overwrite or give new filename.",
             )
-        os.remove(out_nc_file)
+        Path.unlink(p)
 
 
 # ---------------------------------------------------------------------------
@@ -519,8 +516,10 @@ class _StfFileBuilder:
         if self._ncfile is None:
             return
         self._ncfile.close()
-        if exc_type is not None and os.path.exists(self._path):
-            os.remove(self._path)
+        p = Path(self._path)
+        if exc_type is not None and p.exists():
+            # If an exception occurred, remove the incomplete file.
+            Path.unlink(p)
 
     # -- public entry point ---------------------------------------------------
 
@@ -600,7 +599,7 @@ class _StfFileBuilder:
     def _write_station_name(self) -> None:
         nc = self._ncfile
         assert nc is not None  # noqa: S101
-        station_names = self._dataset[STATION_NAME_VARNAME].values
+        station_names = self._dataset[STATION_NAME_VARNAME].to_numpy()
         str_len = 30
         nc.createDimension(STR_LEN_DIMNAME, str_len)
         station_name_var = nc.createVariable(STATION_NAME_VARNAME, "c", (STATION_DIMNAME, STR_LEN_DIMNAME))
@@ -616,14 +615,14 @@ class _StfFileBuilder:
             LAT_VARNAME,
             "f",
             (STATION_DIMNAME,),
-            self._dataset[LAT_VARNAME].values,
+            self._dataset[LAT_VARNAME].to_numpy(),
             attrs={LONG_NAME_ATTR_KEY: "latitude", UNITS_ATTR_KEY: "degrees_north", AXIS_ATTR_KEY: "y"},
         )
         self._add_variable(
             LON_VARNAME,
             "f",
             (STATION_DIMNAME,),
-            self._dataset[LON_VARNAME].values,
+            self._dataset[LON_VARNAME].to_numpy(),
             attrs={LONG_NAME_ATTR_KEY: "longitude", UNITS_ATTR_KEY: "degrees_east", AXIS_ATTR_KEY: "x"},
         )
 
@@ -635,7 +634,7 @@ class _StfFileBuilder:
                 continue
             xrvar = self._dataset[var_id]
             var = nc.createVariable(var_id, "f", (STATION_DIMNAME,), fill_value=-9999)
-            var[:] = xrvar.values
+            var[:] = xrvar.values  # noqa: PD011
             for attr_key in (STANDARD_NAME_ATTR_KEY, LONG_NAME_ATTR_KEY, UNITS_ATTR_KEY):
                 var.setncattr(attr_key, xrvar.attrs[attr_key])
 
@@ -648,7 +647,7 @@ class _StfFileBuilder:
     def _write_lead_time_dimension(self) -> None:
         nc = self._ncfile
         assert nc is not None  # noqa: S101
-        lt_values = self._data[LEAD_TIME_DIMNAME].values
+        lt_values = self._data[LEAD_TIME_DIMNAME].to_numpy()
         nc.createDimension(LEAD_TIME_DIMNAME, len(lt_values))
         self._add_variable(
             LEAD_TIME_DIMNAME,
@@ -741,7 +740,7 @@ class _StfFileBuilder:
             var.setncattr(DAT_TYPE_ATTR_KEY, data_attrs.get(DAT_TYPE_ATTR_KEY, naming.dat_type))
             var.setncattr(DAT_TYPE_DESCRIPTION_ATTR_KEY, naming.dat_type_description)
 
-        var[:, :, :, :] = self._data.values[:]
+        var[:, :, :, :] = self._data.values[:]  # noqa: PD011
 
     def _write_quality_variable(self) -> None:
         """Write the data quality variable."""
@@ -762,7 +761,7 @@ class _StfFileBuilder:
             dims = (TIME_DIMNAME, ENS_MEMBER_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME)
 
         var = nc.createVariable(qu_var_name_s, "f", dims, fill_value=-1)
-        var[:] = self._data_qual.values[:]
+        var[:] = self._data_qual.values[:]  # noqa: PD011
 
         var.setncattr(STANDARD_NAME_ATTR_KEY, qu_var_name_s)
         var.setncattr(LONG_NAME_ATTR_KEY, f"{naming.long_name} data quality")
@@ -840,7 +839,7 @@ def make_ready_for_saving(data: xr.DataArray, dataset: xr.Dataset, dimensions_or
     Raises:
         ValueError: Unexpected dimension in the dataarray, not in
     """
-    from efts_io.conventions import xr_to_stf_dims, stf_to_xr_dims  # noqa: I001
+    from efts_io.conventions import xr_to_stf_dims, stf_to_xr_dims  # noqa: I001, PLC0415
 
     known_xr_dims = tuple(xr_to_stf_dims.keys())
     present_xr_dims = tuple(data.sizes.keys())

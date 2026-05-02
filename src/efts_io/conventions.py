@@ -12,7 +12,7 @@ from enum import Enum
 # It may be important to import this AFTER xarray...
 import netCDF4 as nc  # noqa: N813
 
-ConvertibleToTimestamp = Union[str, datetime, np.datetime64, pd.Timestamp]
+ConvertibleToTimestamp = Union[str, datetime, np.datetime64, pd.Timestamp]  # noqa: UP007
 TYPES_CONVERTIBLE_TO_TIMESTAMP = [str, datetime, np.datetime64, pd.Timestamp]
 """Definition of a 'type' for type hints.
 """
@@ -196,7 +196,7 @@ def check_index_found(
 
 
 # MdDatasetsType = Union[nc.Dataset, xr.Dataset, xr.DataArray]
-MdDatasetsType = Union[xr.Dataset, xr.DataArray]
+MdDatasetsType = Union[xr.Dataset, xr.DataArray]  # noqa: UP007
 
 
 def _is_nc_dataset(d: Any) -> bool:
@@ -217,7 +217,7 @@ def _has_required_dimensions(
 ) -> bool:
     if _is_nc_dataset(d):
         return set(d.dimensions.keys()) == set(mandatory_dimensions)
-    import warnings
+    import warnings  # noqa: PLC0415
 
     with warnings.catch_warnings():
         warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -237,7 +237,7 @@ def _is_subset_required_dimensions(
     if _is_nc_dataset(d):
         d_set = set(d.dimensions.keys())
         return d_set.intersection(set(mandatory_dimensions)) == d_set
-    import warnings
+    import warnings  # noqa: PLC0415
 
     with warnings.catch_warnings():
         warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -710,11 +710,11 @@ def detect_timezone_info(
                 tz = idx.tz
             else:
                 # Fallback: convert first value to Timestamp
-                sample_ts = pd.Timestamp(timestamps.values[0])
+                sample_ts = pd.Timestamp(timestamps.values[0])  # noqa: PD011
                 tz = sample_ts.tz
         except (AttributeError, TypeError):
             # Fallback: convert first value to Timestamp
-            sample_ts = pd.Timestamp(timestamps.values[0])
+            sample_ts = pd.Timestamp(timestamps.values[0])  # noqa: PD011
             tz = sample_ts.tz
     else:
         raise TypeError(f"Cannot detect timezone from type {type(timestamps)}")
@@ -795,19 +795,19 @@ def validate_fixed_offset_timezone(
     try:
         # Try to use zoneinfo (Python 3.9+) to check for DST transitions
         try:
-            from zoneinfo import ZoneInfo
+            from zoneinfo import ZoneInfo  # noqa: PLC0415
 
             tz = ZoneInfo(timezone_string)
         except (ImportError, ModuleNotFoundError, KeyError):
             # Fall back to using dateutil or pytz
             # KeyError is raised when ZoneInfo can't find the timezone (e.g., for fixed offset strings like "UTC-08:00")
             try:
-                from dateutil import tz as dateutil_tz
+                from dateutil import tz as dateutil_tz  # noqa: PLC0415
 
                 tz = dateutil_tz.gettz(timezone_string)
             except ImportError:
                 # Last resort: try pytz
-                import pytz
+                import pytz  # noqa: PLC0415
 
                 tz = pytz.timezone(timezone_string)
 
@@ -956,12 +956,12 @@ def extract_utc_offset_string(timestamps_or_tz: pd.DatetimeIndex | pd.Timestamp 
             raise ValueError(f"Could not extract offset from timezone string '{timestamps_or_tz}': {e}") from e
 
     else:
-        from datetime import (
+        from datetime import (  # noqa: PLC0415
             timezone,  # Note: I need to import. if I test isinstance for datetime.timezone, it throws an error. Weird.
         )
-        from zoneinfo import ZoneInfo
+        from zoneinfo import ZoneInfo  # noqa: PLC0415
 
-        from dateutil import tz as dateutil_tz
+        from dateutil import tz as dateutil_tz  # noqa: PLC0415
 
         # test whether it's one of the timezone object (zoneinfo.ZoneInfo, pytz.timezone, dateutil.tz)
         if isinstance(timestamps_or_tz, (ZoneInfo, dateutil_tz.tzfile, dateutil_tz.tzoffset, timezone)):
@@ -1002,7 +1002,7 @@ def exportable_to_stf2(data: MdDatasetsType) -> bool:
     Returns:
         bool: True if the dataset can be written to a STF 2.0 compliant netCDF file, False otherwise.
     """
-    from efts_io.conventions import has_required_stf2_dimensions, has_required_variables_xr, mandatory_xarray_dimensions  # noqa: I001
+    from efts_io.conventions import has_required_stf2_dimensions, has_required_variables_xr, mandatory_xarray_dimensions  # noqa: I001, PLC0415
 
     required_stf2_dimensions = has_required_stf2_dimensions(data, mandatory_xarray_dimensions)
     required_attributes = has_required_xarray_global_attributes(data)
@@ -1010,7 +1010,7 @@ def exportable_to_stf2(data: MdDatasetsType) -> bool:
     # Check that station_ids are not strings though:
     if STATION_ID_DIMNAME not in data:  # must be because of above checks, but no harm in checking
         return False
-    station_ids = data[STATION_ID_DIMNAME].values
+    station_ids = data[STATION_ID_DIMNAME].to_numpy()
     # it can be an object type of string or integer, so let's check:
     supported_types = (np.integer, np.bytes_, np.str_)
     if not issubclass(station_ids.dtype.type, supported_types):
