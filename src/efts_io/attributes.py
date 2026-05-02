@@ -689,4 +689,7 @@ def validate_global_attributes(attrs: dict[str, Any]) -> list[str]:
     if TITLE_ATTR_KEY in attrs and isinstance(attrs[TITLE_ATTR_KEY], str) and attrs[TITLE_ATTR_KEY] == "":
         errors.append(f"Attribute '{TITLE_ATTR_KEY}' must not be empty")
 
+    if CATCHMENT_ATTR_KEY in attrs and isinstance(attrs[CATCHMENT_ATTR_KEY], str) and " " in attrs[CATCHMENT_ATTR_KEY]:
+        errors.append(f"Attribute '{CATCHMENT_ATTR_KEY}' must not contain spaces (use underscores instead)")
+
     return errors

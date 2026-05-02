@@ -27,7 +27,11 @@ STR_LEN_DIMNAME = "strLen"
 # New names for in-memory representation in an xarray way
 # https://github.com/csiro-hydroinformatics/efts-io/issues/2
 STATION_ID_DIMNAME = "station_id"
-REALISATION_DIMNAME = "realisation"
+
+# a bit of research, albeit probably biased by nature (Gemini deep research),
+# indicates a resignation to submit to US spelling on this front.
+# Je passe a autre chose, mais je n'en pense pas moins.
+REALISATION_DIMNAME = "realization"
 
 # int station_id[station]
 STATION_ID_VARNAME = "station_id"
@@ -1037,6 +1041,12 @@ def exportable_to_stf2(data: MdDatasetsType) -> bool:
             return False
         except (ValueError, TypeError):
             # Error parsing timezone or timestamps - consider as not exportable
+            return False
+
+    # Check that lead_time coordinate does not contain zero (STF 2.0 convention §Description of Variables)
+    if LEAD_TIME_DIMNAME in data.coords:
+        lead_time_values = data[LEAD_TIME_DIMNAME].values
+        if 0 in lead_time_values:
             return False
 
     return required_stf2_dimensions and required_attributes and required_variables
