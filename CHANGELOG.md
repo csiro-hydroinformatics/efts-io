@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 <!-- insertion marker -->
+## [0.10.3](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.10.3) - 2026-05-03
+
+<small>[Compare with 0.10.2](https://github.com/csiro-hydroinformatics/efts-io/compare/0.10.2...0.10.3)</small>
+
+### Code Refactoring
+
+- deprecate eftsdataset methods that are legacy or may need a rethink ([caf2793](https://github.com/csiro-hydroinformatics/efts-io/commit/caf27936974e7f229147620f8b81c2ef89cea93f) by J-M).
+- create in memory data with dimensions in the C order not Fortran order. Not really a bug fix, but more consistent with the spirit of the specs. Mostly, had to adjust unite test sentinel data values... ([51e2d85](https://github.com/csiro-hydroinformatics/efts-io/commit/51e2d857dded2856e22cdf2fe903f8d9fd237977) by J-M).
+
 ## [0.10.2](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.10.2) - 2026-05-02
 
 <small>[Compare with 0.10.1](https://github.com/csiro-hydroinformatics/efts-io/compare/0.10.1...0.10.2)</small>
