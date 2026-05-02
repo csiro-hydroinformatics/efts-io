@@ -5,7 +5,7 @@
 [![pypi version](https://img.shields.io/pypi/v/efts-io.svg)](https://pypi.org/project/efts-io/)
 [![gitter](https://img.shields.io/badge/matrix-chat-4DB798.svg?style=flat)](https://app.gitter.im/#/room/#efts-io:gitter.im)
 
-Ensemble forecast time series
+Ensemble forecast time series - input/output with netcdf
 
 ## Overview
 
