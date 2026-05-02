@@ -114,6 +114,11 @@ def stf2_nc():
     station_ids = [101, 202]
     lead_times = np.arange(1, 4)  # [1, 2, 3] — zero excluded per convention
 
+    _TIME_DIMLEN = 5
+    _STATION_DIMLEN = 2
+    _LEADTIME_DIMLEN = 3
+    _ENS_DIMLEN = 3 # blelow
+
     xr_ds = xr_efts(
         issue_times=issue_times,
         station_ids=station_ids,
@@ -147,8 +152,10 @@ def stf2_nc():
             },
         },
     )
-    eds.data["q_var"].loc[:, :, :, :] = np.ones((3, 2, 3, 5)) * 1.5
 
+    # C order dimensions in the file: reverse of Fortran (lead_time, station, ens_member, time)
+    # _TIME_DIMLEN, _ENS_DIMLEN, _STATION_DIMLEN, _LEADTIME_DIMLEN,  
+    eds.data["q_var"].loc[:, :, :, :] = np.ones((_TIME_DIMLEN, _ENS_DIMLEN, _STATION_DIMLEN, _LEADTIME_DIMLEN)) * 1.5
     with _temporary_named_file() as tmp:
         filename = tmp.name
 
@@ -358,7 +365,15 @@ def stf2_nc_hourly():
             },
         },
     )
-    eds.data["q_var"].loc[:, :, :, :] = np.ones((3, 2, 2, 5)) * 1.5
+
+    _TIME_DIMLEN = 5
+    _STATION_DIMLEN = 2
+    _LEADTIME_DIMLEN = 3
+    _ENS_DIMLEN = 2 
+
+    # C order dimensions in the file: reverse of Fortran (lead_time, station, ens_member, time)
+    # _TIME_DIMLEN, _ENS_DIMLEN, _STATION_DIMLEN, _LEADTIME_DIMLEN,  
+    eds.data["q_var"].loc[:, :, :, :] = np.ones((_TIME_DIMLEN, _ENS_DIMLEN, _STATION_DIMLEN, _LEADTIME_DIMLEN)) * 1.5
 
     with _temporary_named_file() as tmp:
         filename = tmp.name
@@ -532,7 +547,7 @@ def forecast_nc_hourly():
     for lt_i, lt in enumerate(lead_times):
         for st_i, st in enumerate([10, 20]):
             for t_i, t in enumerate(issue_times):
-                eds.data["q_sim"].loc[lt, st, :, t] = lt_i * 100 + st_i * 10 + t_i
+                eds.data["q_sim"].loc[t, :, st, lt] = lt_i * 100 + st_i * 10 + t_i
 
     with _temporary_named_file() as tmp:
         filename = tmp.name

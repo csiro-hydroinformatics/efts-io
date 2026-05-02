@@ -413,9 +413,9 @@ def test_station_id_int64_preserved_on_read():
     )
 
     # populate some values for the data variable, a mix of missing values and real values
-    eds.data["rain_obs"].loc[:, :, :, :] = np.random.rand(3, 2, 1, 10) * 10.0
-    # Use actual coordinate values: lead_time=1, station_id=first station, all realisations, time=first time
-    eds.data["rain_obs"].loc[1, station_ids[0], :, issue_times[0]] = np.nan  # introduce a missing value
+    eds.data["rain_obs"].loc[:, :, :, :] = np.random.rand(10, 1, 2, 3) * 10.0
+    # Use actual coordinate values: REVERSED fortran order that fortran:lead_time=1, station_id=first station, all realisations, time=first time
+    eds.data["rain_obs"].loc[issue_times[0], :, station_ids[0], 1] = np.nan  # introduce a missing value
 
     # 2. Save to STF2 file
     with _temporary_named_file() as tmp:
@@ -530,9 +530,9 @@ def test_station_id_int32_preserved_on_read():
     )
 
     # populate some values for the data variable, a mix of missing values and real values
-    eds.data["flow_obs"].loc[:, :, :, :] = np.random.rand(2, 3, 1, 5) * 100.0
-    # Use actual coordinate values: lead_time=1, station_id=first station, all realisations, time=first time
-    eds.data["flow_obs"].loc[1, station_ids[0], :, issue_times[0]] = np.nan  # introduce a missing value
+    eds.data["flow_obs"].loc[:, :, :, :] = np.random.rand(5, 1, 3, 2) * 100.0
+    # Use actual coordinate values: REVERSED from fortran lead_time=1, station_id=first station, all realisations, time=first time
+    eds.data["flow_obs"].loc[issue_times[0], :, station_ids[0], 1] = np.nan  # introduce a missing value
 
     # Save to STF2 file
     with _temporary_named_file() as tmp:
@@ -682,7 +682,7 @@ def test_save_to_stf2_preserves_data_array_attributes():
     assert data_var.attrs[LOCATION_TYPE_ATTR_KEY] == custom_location_type
 
     # Populate with test data
-    eds.data["test_var"].loc[:, :, :, :] = np.random.rand(3, 2, 2, 5) * 10.0
+    eds.data["test_var"].loc[:, :, :, :] = np.random.rand(5, 2, 2, 3) * 10.0
 
     # Save to STF2 file
     with _temporary_named_file() as tmp:
@@ -853,7 +853,7 @@ def test_stf2_default_attributes_match_conventions():
         },
     )
 
-    eds.data["flow_var"].loc[:, :, :, :] = np.random.rand(3, 2, 2, 5) * 10.0
+    eds.data["flow_var"].loc[:, :, :, :] = np.random.rand(5, 2, 2, 3) * 10.0
 
     with _temporary_named_file() as tmp:
         filename = tmp.name
@@ -1007,7 +1007,7 @@ def test_quality_variable_name_suffix_matches_convention():
         },
     )
 
-    eds.data["rain_var"].loc[:, :, :, :] = np.random.rand(3, 2, 2, 5) * 10.0
+    eds.data["rain_var"].loc[:, :, :, :] = np.random.rand(5, 2, 2, 3) * 10.0
 
     # Create a quality data array with the same shape
     qual_data = xr.DataArray(
@@ -1113,9 +1113,11 @@ def _verify_time_attributes_preservation(timezone_str: str):
     )
 
     # Populate with deterministic sentinel values: value = (time_index + 1) * 10.0
-    # Same value across all spatial dims, unique per time step — detects any time-axis shift on read-back
+    # Same value across all spatial dims, unique per time step — detects any time-axis shift on read-back.
+    # dims are C-order (time, realization, station_id, lead_time), so time is axis 0.
+    # Reshape to (7, 1, 1, 1) so numpy broadcasts the sentinel along the time axis, not the lead_time axis.
     sentinel_values = np.arange(1, 8, dtype=float) * 10.0
-    eds.data["tmax_obs"].loc[:, :, :, :] = sentinel_values  # broadcasts over (lead, station, ens) dims
+    eds.data["tmax_obs"].values[:, :, :, :] = sentinel_values.reshape(-1, 1, 1, 1)
 
     # Save to STF2 file
     with _temporary_named_file() as tmp:
@@ -1462,7 +1464,7 @@ def test_timezone_naive_timestamps_localized_to_utc():
         },
     )
 
-    eds.data["precip_obs"].loc[:, :, :, :] = np.random.rand(3, 2, 1, 5) * 25.0
+    eds.data["precip_obs"].loc[:, :, :, :] = np.random.rand(5, 1, 2, 3) * 25.0
 
     with _temporary_named_file() as tmp:
         filename = tmp.name
@@ -1639,7 +1641,7 @@ def test_roundtrip_precision_with_hourly_timestep():
         },
     )
 
-    eds.data["flow_hourly"].loc[:, :, :, :] = np.random.rand(2, 1, 1, 24) * 50.0
+    eds.data["flow_hourly"].loc[:, :, :, :] = np.random.rand(24, 1, 1, 2) * 50.0
 
     with _temporary_named_file() as tmp:
         filename = tmp.name
@@ -1720,7 +1722,7 @@ def test_roundtrip_precision_with_minute_timestep():
         },
     )
 
-    eds.data["level_minute"].loc[:, :, :, :] = np.random.rand(2, 1, 1, 60) * 10.0
+    eds.data["level_minute"].loc[:, :, :, :] = np.random.rand(60, 1, 1, 2) * 10.0
 
     with _temporary_named_file() as tmp:
         filename = tmp.name
@@ -1809,8 +1811,8 @@ def test_single_station_single_ensemble_single_leadtime():
         },
     )
 
-    # Populate with test data - shape is (lead_time, station, realisation, time)
-    eds.data["flow_obs"].loc[:, :, :, :] = np.random.rand(1, 1, 1, 10) * 50.0
+    # Populate with test data - shape is C-order (time, realization, station_id, lead_time)
+    eds.data["flow_obs"].loc[:, :, :, :] = np.random.rand(10, 1, 1, 1) * 50.0
 
     # Save to STF2 file
     with tempfile.NamedTemporaryFile(suffix=".nc", delete=False) as tmp:

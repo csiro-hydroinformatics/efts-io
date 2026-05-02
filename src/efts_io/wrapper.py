@@ -117,8 +117,8 @@ def load_from_stf2_file(file_path: str, time_zone_timestamps: bool) -> xr.Datase
     # Create a new dataset with the desired structure
     new_dataset = xr.Dataset(
         coords={
-            REALISATION_DIMNAME: (REALISATION_DIMNAME, ens_member_values),
             LEAD_TIME_DIMNAME: (LEAD_TIME_DIMNAME, lead_time_values),
+            REALISATION_DIMNAME: (REALISATION_DIMNAME, ens_member_values),
             STATION_ID_DIMNAME: (STATION_ID_DIMNAME, station_ids_strings),
             TIME_DIMNAME: (TIME_DIMNAME, time_coords),
         },
@@ -159,34 +159,13 @@ def load_from_stf2_file(file_path: str, time_zone_timestamps: bool) -> xr.Datase
 
 class EftsDataSet:
     """Convenience class for access to a Ensemble Forecast Time Series in netCDF file."""
-
-    # Reference class convenient for access to a Ensemble Forecast Time Series in netCDF file.
-    # Description
-    # Reference class convenient for access to a Ensemble Forecast Time Series in netCDF file.
-
-    # Fields
-    # time_dim
-    # a cached POSIXct vector, the values for the time dimension of the data set.
-
-    # time_zone
-    # the time zone for the time dimensions of this data set.
-
-    # identifiers_dimensions
-    # a cache, list of values of the primary data identifiers; e.g. station_name or station_id
-
-    # stations_varname
-    # name of the variable that stores the names of the stations for this data set.
-
     def __init__(self, data: str | xr.Dataset) -> None:
         """Create a new EftsDataSet object."""
-        self.time_dim = None
-        self.time_zone = "UTC"
         self.time_zone_timestamps = True  # Not sure about https://github.com/csiro-hydroinformatics/efts-io/issues/3
         self.STATION_DIMNAME = STATION_DIMNAME
         self.stations_varname = STATION_ID_VARNAME
         self.LEAD_TIME_DIMNAME = LEAD_TIME_DIMNAME
         self.ENS_MEMBER_DIMNAME = ENS_MEMBER_DIMNAME
-        # self.identifiers_dimensions: list = []
         self.data: xr.Dataset
 
         if data is None:
@@ -302,7 +281,17 @@ class EftsDataSet:
             self.data.attrs[HISTORY_ATTR_KEY] = f"{ts_str} - {message}"
 
     def to_netcdf(self, path: str, version: str | None = "2.0") -> None:
-        """Write the data set to a netCDF file."""
+        """Write the data set to a netCDF file.
+
+        If version is "2.0", the dataset is written using the save_to_stf2 method, which ensures
+        compliance with the STF 2.0 specification. Only version "2.0" is currently supported.
+        If version is None, the dataset is written using xarray's built-in to_netcdf method,
+        which may not be compliant with any specific convention.
+
+        Args:
+            path (str): The file path to write the netCDF file to.
+            version (str | None, optional): The version of the netCDF format to write. Defaults to "2.0". If None, uses xarray's default writing method.
+        """
         if version is None:
             self.data.to_netcdf(path)
         elif version == "2.0":
@@ -407,9 +396,17 @@ class EftsDataSet:
         ens_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "3"]
         point_data_var_def = [x for x in data_var_def.values() if x["dim_type"] == "2"]
 
-        four_dims_names = (LEAD_TIME_DIMNAME, STATION_ID_DIMNAME, REALISATION_DIMNAME, TIME_DIMNAME)
-        three_dims_names = (STATION_ID_DIMNAME, REALISATION_DIMNAME, TIME_DIMNAME)
-        two_dims_names = (STATION_ID_DIMNAME, TIME_DIMNAME)
+        # Dimension order follows C (row-major) convention: slowest-varying axis first, fastest last.
+        # The STF 2.0 specification lists dimensions in Fortran order
+        # (lead_time, station, ens_member, time), but Python/NumPy arrays are C-order.
+        # Both the on-disk write path (make_ready_for_saving) and the read path
+        # (load_from_stf2_file) use C order: (time, realization, station_id, lead_time).
+        # Using the same order here ensures freshly created variables are laid out
+        # identically to variables reconstructed after a save/reload cycle, preventing
+        # silent axis-mismatch bugs when indexing with positional notation.
+        four_dims_names = (TIME_DIMNAME, REALISATION_DIMNAME, STATION_ID_DIMNAME, LEAD_TIME_DIMNAME)
+        three_dims_names = (TIME_DIMNAME, REALISATION_DIMNAME, STATION_ID_DIMNAME)
+        two_dims_names = (TIME_DIMNAME, STATION_ID_DIMNAME)
 
         four_dims_shape = tuple(self.data.sizes[dimname] for dimname in four_dims_names)
         three_dims_shape = tuple(self.data.sizes[dimname] for dimname in three_dims_names)

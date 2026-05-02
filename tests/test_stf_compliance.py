@@ -86,7 +86,14 @@ def _write_valid_stf2_file(filename: str) -> None:
             },
         },
     )
-    eds.data["q_var"].loc[:, :, :, :] = np.ones((3, 2, 2, 4)) * 1.0
+    _TIME_DIMLEN = 4
+    _STATION_DIMLEN = 2
+    _LEADTIME_DIMLEN = 3
+    _ENS_DIMLEN = 2
+    # C order dimensions in the file: reverse of Fortran (lead_time, station, ens_member, time)
+    # _TIME_DIMLEN, _ENS_DIMLEN, _STATION_DIMLEN, _LEADTIME_DIMLEN,  
+    eds.data["q_var"].loc[:, :, :, :] = np.ones((_TIME_DIMLEN, _ENS_DIMLEN, _STATION_DIMLEN, _LEADTIME_DIMLEN)) * 1.5
+
     eds.save_to_stf2(
         path=filename,
         variable_name="q_var",

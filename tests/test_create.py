@@ -1,4 +1,6 @@
 # import netCDF4
+import os
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -7,6 +9,7 @@ from efts_io._ncdf_stf2 import StfVariable
 from efts_io.attributes import template_variable_attributes
 from efts_io.conventions import DataOriginType
 from efts_io.wrapper import EftsDataSet, xr_efts
+from tests.test_write_stf import _temporary_named_file
 
 
 def test_create_new_efts_stf2():
@@ -332,6 +335,174 @@ def test_new_variable():
     assert "streamflow" in eds.data.variables
     assert new_var_4.attrs["units"] == "m3/s"
     assert new_var_4.attrs["long_name"] == "Streamflow"
+
+
+def _make_stf2_roundtrip_dataset(ensemble_size, n_stations=2, n_lead_times=3, n_times=5):
+    """Helper: build an EftsDataSet with a 4D variable and return (eds, shape info)."""
+    issue_times = pd.date_range("2020-01-01", periods=n_times, freq="D")
+    station_ids = list(range(1, n_stations + 1))
+    lead_times = np.arange(1, n_lead_times + 1)
+
+    xr_ds = xr_efts(
+        issue_times=issue_times,
+        station_ids=station_ids,
+        lead_times=lead_times,
+        lead_time_tstep="hours",
+        ensemble_size=ensemble_size,
+        station_names=[f"station_{i}" for i in station_ids],
+        nc_attributes={
+            "title": "Ensemble round-trip test",
+            "institution": "Test",
+            "source": "Test",
+            "catchment": "Test_Catchment",
+            "comment": "",
+            "history": "",
+        },
+        latitudes=[-33.0 + i * 0.1 for i in range(n_stations)],
+        longitudes=[150.0 + i * 0.1 for i in range(n_stations)],
+    )
+    eds = EftsDataSet(xr_ds)
+    eds.create_data_variables(
+        {
+            "q_sim": {
+                "name": "q_sim",
+                "longname": "simulated streamflow",
+                "units": "m3/s",
+                "dim_type": "4",
+                "missval": -9999.0,
+                "precision": "double",
+                "attributes": {},
+            },
+        },
+    )
+    return eds, issue_times, station_ids, lead_times
+
+
+def test_ensemble_member_data_values_roundtrip():
+    """Per-member data values must survive a full write-to-disk / reload cycle.
+
+    Each ensemble member N is filled with a unique sentinel value N * 100.0 so that
+    any axis transposition between the ensemble, station, or lead-time dimensions
+    would produce wrong values and be caught immediately.
+    """
+    ensemble_size = 4
+    n_stations = 2
+    n_lead_times = 3
+    n_times = 5
+
+    eds, _, _, _ = _make_stf2_roundtrip_dataset(ensemble_size, n_stations, n_lead_times, n_times)
+
+    # Fill each ensemble member with its own sentinel: member index i → value (i+1)*100
+    # q_sim dims are (time, realization, station_id, lead_time) — C order, matching the
+    # read path so that pre- and post-roundtrip arrays are always identically laid out.
+    for i in range(ensemble_size):
+        eds.data["q_sim"].values[:, i, :, :] = (i + 1) * 100.0
+
+    with _temporary_named_file() as tmp:
+        filename = tmp.name
+
+    try:
+        eds.save_to_stf2(
+            path=filename,
+            variable_name="q_sim",
+            var_type=StfVariable.STREAMFLOW,
+            data_type=DataOriginType.SIMULATED,
+            timestep="hours",
+        )
+
+        reloaded = EftsDataSet(filename)
+        q = reloaded.data["q_sim"]  # dims: (lead_time, station_id, realization, time)
+
+        # After reload the variable has C-order dims: (time, realization, station_id, lead_time)
+        assert q.sizes["time"] == n_times
+        assert q.sizes["realization"] == ensemble_size
+        assert q.sizes["station_id"] == n_stations
+        assert q.sizes["lead_time"] == n_lead_times
+
+        for i in range(ensemble_size):
+            expected = (i + 1) * 100.0
+            actual = q.values[:, i, :, :]  # axis 1 is realization in C order
+            assert np.all(actual == expected), (
+                f"Member {i + 1}: expected all values = {expected}, got min={actual.min()}, max={actual.max()}"
+            )
+    finally:
+        if os.path.exists(filename):
+            os.remove(filename)
+
+
+def test_ensemble_member_ids_roundtrip():
+    """Ensemble member coordinate values must round-trip as consecutive integers starting at 1.
+
+    The STF spec defines ens_member as a vector 1:N.  After reload the realization
+    coordinate in the xarray dataset must equal [1, 2, ..., N].
+    """
+    ensemble_size = 6
+
+    eds, _, _, _ = _make_stf2_roundtrip_dataset(ensemble_size)
+    eds.data["q_sim"].values[:] = 1.0
+
+    with _temporary_named_file() as tmp:
+        filename = tmp.name
+
+    try:
+        eds.save_to_stf2(
+            path=filename,
+            variable_name="q_sim",
+            var_type=StfVariable.STREAMFLOW,
+            data_type=DataOriginType.SIMULATED,
+            timestep="hours",
+        )
+
+        reloaded = EftsDataSet(filename)
+        member_ids = reloaded.data["realization"].values.tolist()
+        assert member_ids == list(range(1, ensemble_size + 1)), (
+            f"Expected member IDs {list(range(1, ensemble_size + 1))}, got {member_ids}"
+        )
+    finally:
+        if os.path.exists(filename):
+            os.remove(filename)
+
+
+def test_non_sequential_member_ids_normalised_on_write():
+    """Non-sequential realization coordinate values are normalised to [1..N] on write.
+
+    The STF spec defines ens_member values as 1:N regardless of the xarray realization
+    coordinate values in the source dataset.  This test documents that behaviour so
+    that any accidental change is caught.
+    """
+    import xarray as xr
+    from efts_io.conventions import REALISATION_DIMNAME
+
+    ensemble_size = 3
+
+    eds, _, _, _ = _make_stf2_roundtrip_dataset(ensemble_size)
+
+    # Overwrite the realization coordinate with non-sequential values
+    eds.data = eds.data.assign_coords(
+        {REALISATION_DIMNAME: xr.DataArray([5, 10, 15], dims=[REALISATION_DIMNAME])}
+    )
+    eds.data["q_sim"].values[:] = 1.0
+
+    with _temporary_named_file() as tmp:
+        filename = tmp.name
+
+    try:
+        eds.save_to_stf2(
+            path=filename,
+            variable_name="q_sim",
+            var_type=StfVariable.STREAMFLOW,
+            data_type=DataOriginType.SIMULATED,
+            timestep="hours",
+        )
+
+        reloaded = EftsDataSet(filename)
+        member_ids = reloaded.data["realization"].values.tolist()
+        assert member_ids == [1, 2, 3], (
+            f"Expected normalised member IDs [1, 2, 3], got {member_ids}"
+        )
+    finally:
+        if os.path.exists(filename):
+            os.remove(filename)
 
 
 if __name__ == "__main__":
