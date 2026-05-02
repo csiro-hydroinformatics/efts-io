@@ -69,6 +69,7 @@ def check_docs(ctx: Context) -> None:
     ctx.run(
         tools.zensical.build(strict=True),
         title=pyprefix("Building documentation"),
+        capture=False,
     )
 
 
