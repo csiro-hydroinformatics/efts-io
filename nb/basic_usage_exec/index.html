@@ -1078,9 +1078,9 @@ unable to decode time units 'days since time' with 'the default calendar'. Try o
 <div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">rain_stf</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
 </code></pre></div>
 <xarray.Dataset> Size: 676B
-Dimensions:       (realization: 1, lead_time: 1, station_id: 3, time: 7)
+Dimensions:       (realisation: 1, lead_time: 1, station_id: 3, time: 7)
 Coordinates:
-  * realization   (realization) int32 4B 1
+  * realisation   (realisation) int32 4B 1
   * lead_time     (lead_time) int32 4B 0
   * station_id    (station_id) <U11 132B '28286670' '28294676' '28294677'
   * time          (time) object 56B 2023-11-04T23:00:00+00:00 ... 2023-11-10T...
@@ -1088,7 +1088,7 @@ Data variables:
     area          (station_id) float32 12B 3.353 1.76 4.988
     lat           (station_id) float32 12B -41.85 -41.82 -41.85
     lon           (station_id) float32 12B 145.6 145.6 145.6
-    rain_obs      (time, realization, station_id, lead_time) float32 84B 0.09...
+    rain_obs      (time, realisation, station_id, lead_time) float32 84B 0.09...
     station_name  (station_id) <U30 360B '28286670' '28294676' '28294677'
 Attributes:
     title:                   Precip from Hydro Tasmania's observation network...
