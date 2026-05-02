@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 <!-- insertion marker -->
+## [0.10.1](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.10.1) - 2026-05-02
+
+<small>[Compare with 0.10.0](https://github.com/csiro-hydroinformatics/efts-io/compare/0.10.0...0.10.1)</small>
+
+### Bug Fixes
+
+- merge code quality checks with bulk of new features restored ([a02e08e](https://github.com/csiro-hydroinformatics/efts-io/commit/a02e08e9f6b69fe5f3157c487935c5438b6fa77a) by J-M).
+- restore code lost trying to remediate to commit message cariage return saga ([1dff553](https://github.com/csiro-hydroinformatics/efts-io/commit/1dff553f7f83ace8b9f3ba24901cba59b5f67a94) by J-M).
+
 ## [0.10.0](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.10.0) - 2026-05-02
 
 <small>[Compare with 0.9.0](https://github.com/csiro-hydroinformatics/efts-io/compare/0.9.0...0.10.0)</small>
