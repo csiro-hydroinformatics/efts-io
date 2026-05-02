@@ -299,28 +299,28 @@ class EftsDataSet:
         else:
             raise ValueError("Only version 2.0 is supported for now")
 
-    def set_mandatory_global_attributes(
-        self,
-        title: str = "not provided",
-        institution: str = "not provided",
-        catchment: str = "not provided",
-        source: str = "not provided",
-        comment: str = "not provided",
-        history: str = "not provided",
-        append_history: bool = False,  # noqa: FBT001, FBT002
-    ) -> None:
-        """Sets mandatory global attributes for an EFTS dataset."""
-        self.title = title
-        self.institution = institution
-        self.catchment = catchment
-        self.source = source
-        self.comment = comment
-        if append_history:
-            self.append_history(history)
-        else:
-            self.history = history
-        self.stf_convention_version = "2.0"
-        self.stf_nc_spec = STF_2_0_URL
+    # def set_mandatory_global_attributes(
+    #     self,
+    #     title: str = "not provided",
+    #     institution: str = "not provided",
+    #     catchment: str = "not provided",
+    #     source: str = "not provided",
+    #     comment: str = "not provided",
+    #     history: str = "not provided",
+    #     append_history: bool = False,  # noqa: FBT001, FBT002
+    # ) -> None:
+    #     """Sets mandatory global attributes for an EFTS dataset."""
+    #     self.title = title
+    #     self.institution = institution
+    #     self.catchment = catchment
+    #     self.source = source
+    #     self.comment = comment
+    #     if append_history:
+    #         self.append_history(history)
+    #     else:
+    #         self.history = history
+    #     self.stf_convention_version = "2.0"
+    #     self.stf_nc_spec = STF_2_0_URL
 
     def writeable_to_stf2(self) -> bool:
         """Check if the dataset can be written to a netCDF file compliant with STF 2.0 specification.
@@ -493,33 +493,33 @@ class EftsDataSet:
         self.data[varname] = new_array
         return new_array
 
-    def get_all_series(
-        self,
-        variable_name: str = "rain_obs",
-        dimension_id: str | None = None,  # noqa: ARG002
-    ) -> xr.DataArray:
-        """Return a multivariate time series, where each column is the series for one of the identifiers."""
-        # Return a multivariate time series, where each column is the series for one of the identifiers (self, e.g. rainfall station identifiers):
-        return self.data[variable_name]
-        # stopifnot(variable_name %in% names(ncfile$var))
-        # td = self.get_time_dim()
-        # if dimension_id is None: dimension_id = self.get_stations_varname()
-        # identifiers = self._get_values(dimension_id)
-        # ncdims = self.get_variable_dim_names(variable_name)
-        # could be e.g.: double q_obs[lead_time,station,ens_member,time] float
-        # rain_obs[station,time] lead_time,station,ens_member,time reordered
-        # according to the variable present dimensions:
-        # tsstart = splice_named_var(c(1, 1, 1, 1), ncdims)
-        # tscount = splice_named_var(c(1, length(identifiers), 1, length(td)), ncdims)
-        # rawData = ncdf4::ncvar_get(ncfile, variable_name, start = tsstart, count = tscount,
-        # collapse_degen = FALSE)
-        # dim_names(rawData) = ncdims
-        # # [station,time] to [time, station] for xts creation
-        # # NOTE: why can this not be dimension_id instead of STATION_DIMNAME?
-        # tsData = reduce_dimensions(rawData,c(TIME_DIMNAME, STATION_DIMNAME))
-        # v = xts(x = tsData, order.by = td, tzone = tz(td))
-        # colnames(v) = identifiers
-        # return(v)
+    # def get_all_series(
+    #     self,
+    #     variable_name: str = "rain_obs",
+    #     dimension_id: str | None = None,  # noqa: ARG002
+    # ) -> xr.DataArray:
+    #     """Return a multivariate time series, where each column is the series for one of the identifiers."""
+    #     # Return a multivariate time series, where each column is the series for one of the identifiers (self, e.g. rainfall station identifiers):
+    #     return self.data[variable_name]
+    #     # stopifnot(variable_name %in% names(ncfile$var))
+    #     # td = self.get_time_dim()
+    #     # if dimension_id is None: dimension_id = self.get_stations_varname()
+    #     # identifiers = self._get_values(dimension_id)
+    #     # ncdims = self.get_variable_dim_names(variable_name)
+    #     # could be e.g.: double q_obs[lead_time,station,ens_member,time] float
+    #     # rain_obs[station,time] lead_time,station,ens_member,time reordered
+    #     # according to the variable present dimensions:
+    #     # tsstart = splice_named_var(c(1, 1, 1, 1), ncdims)
+    #     # tscount = splice_named_var(c(1, length(identifiers), 1, length(td)), ncdims)
+    #     # rawData = ncdf4::ncvar_get(ncfile, variable_name, start = tsstart, count = tscount,
+    #     # collapse_degen = FALSE)
+    #     # dim_names(rawData) = ncdims
+    #     # # [station,time] to [time, station] for xts creation
+    #     # # NOTE: why can this not be dimension_id instead of STATION_DIMNAME?
+    #     # tsData = reduce_dimensions(rawData,c(TIME_DIMNAME, STATION_DIMNAME))
+    #     # v = xts(x = tsData, order.by = td, tzone = tz(td))
+    #     # colnames(v) = identifiers
+    #     # return(v)
 
     def get_dim_names(self) -> list[str]:
         """Gets the name of all dimensions in the data set."""
@@ -527,31 +527,31 @@ class EftsDataSet:
         # Note: self._dim_size will return a list of str in the future
         # return [x for x in self._dim_size.keys()]
 
-    def get_ensemble_for_stations(
-        self,
-        variable_name: str = "rain_sim",
-        identifier: str | None = None,
-        dimension_id: str = ENS_MEMBER_DIMNAME,
-        start_time: pd.Timestamp = None,
-        lead_time_count: int | None = None,
-    ) -> xr.DataArray:
-        """Not yet implemented."""
-        # Return a time series, representing a single ensemble member forecast for all stations over the lead time
-        raise NotImplementedError
+    # def get_ensemble_for_stations(
+    #     self,
+    #     variable_name: str = "rain_sim",
+    #     identifier: str | None = None,
+    #     dimension_id: str = ENS_MEMBER_DIMNAME,
+    #     start_time: pd.Timestamp = None,
+    #     lead_time_count: int | None = None,
+    # ) -> xr.DataArray:
+    #     """Not yet implemented."""
+    #     # Return a time series, representing a single ensemble member forecast for all stations over the lead time
+    #     raise NotImplementedError
 
-    def get_ensemble_forecasts(
-        self,
-        variable_name: str = "rain_sim",
-        identifier: str | None = None,
-        dimension_id: str | None = None,
-        start_time: pd.Timestamp | None = None,
-        lead_time_count: int | None = None,
-    ) -> xr.DataArray:
-        """Not yet implemented. Gets an ensemble forecast for a variable."""
-        # Return a time series, ensemble of forecasts over the lead time
-        raise NotImplementedError(
-            "get_ensemble_forecasts: not yet implemented",
-        )
+    # def get_ensemble_forecasts(
+    #     self,
+    #     variable_name: str = "rain_sim",
+    #     identifier: str | None = None,
+    #     dimension_id: str | None = None,
+    #     start_time: pd.Timestamp | None = None,
+    #     lead_time_count: int | None = None,
+    # ) -> xr.DataArray:
+    #     """Not yet implemented. Gets an ensemble forecast for a variable."""
+    #     # Return a time series, ensemble of forecasts over the lead time
+    #     raise NotImplementedError(
+    #         "get_ensemble_forecasts: not yet implemented",
+    #     )
 
     # def get_ensemble_forecasts_for_station(
     #     self,
@@ -595,27 +595,27 @@ class EftsDataSet:
         """Set the values of the lead time dimension."""
         self.data[self.LEAD_TIME_DIMNAME].values = np.array(values)
 
-    def get_single_series(
-        self,
-        variable_name: str = "rain_obs",
-        identifier: str | None = None,
-        dimension_id: str | None = None,
-    ) -> xr.DataArray:
-        """Return a single point time series for a station identifier."""
-        # Return a single point time series for a station identifier. Falls back on def get_all_series if the argument "identifier" is missing
-        if dimension_id is None:
-            dimension_id = self.get_stations_varname()
-        return self.data[variable_name].sel({dimension_id: identifier})
+    # def get_single_series(
+    #     self,
+    #     variable_name: str = "rain_obs",
+    #     identifier: str | None = None,
+    #     dimension_id: str | None = None,
+    # ) -> xr.DataArray:
+    #     """Return a single point time series for a station identifier."""
+    #     # Return a single point time series for a station identifier. Falls back on def get_all_series if the argument "identifier" is missing
+    #     if dimension_id is None:
+    #         dimension_id = self.get_stations_varname()
+    #     return self.data[variable_name].sel({dimension_id: identifier})
 
     def get_station_count(self) -> int:
         """Return the number of stations in the data set."""
         return self._dim_size(STATION_ID_DIMNAME)
 
-    def get_stations_varname(self) -> str:
-        """Return the name of the variable that has the station identifiers."""
-        # Gets the name of the variable that has the station identifiers
-        # TODO: station is integer normally in STF (Euargh)
-        return STATION_ID_VARNAME
+    # def get_stations_varname(self) -> str:
+    #     """Return the name of the variable that has the station identifiers."""
+    #     # Gets the name of the variable that has the station identifiers
+    #     # TODO: station is integer normally in STF (Euargh)
+    #     return STATION_ID_VARNAME
 
     def get_time_dim(self) -> np.ndarray:
         """Return the time dimension variable as a vector of date-time stamps."""
