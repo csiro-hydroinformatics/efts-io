@@ -113,6 +113,7 @@ def load_from_stf2_file(file_path: str, time_zone_timestamps: bool) -> xr.Datase
     #     {TIME_DIMNAME: time_coords, self.STATION_DIMNAME: station_names},
     # )
 
+    lead_time_attrs = dict(x[LEAD_TIME_DIMNAME].attrs)
     # Create a new dataset with the desired structure
     new_dataset = xr.Dataset(
         coords={
@@ -123,6 +124,7 @@ def load_from_stf2_file(file_path: str, time_zone_timestamps: bool) -> xr.Datase
         },
         attrs=x.attrs,
     )
+    new_dataset[LEAD_TIME_DIMNAME].attrs = lead_time_attrs
     # Copy data variables from the renamed dataset
     for var_name in x.data_vars:
         if var_name not in (STATION_ID_VARNAME, STATION_NAME_VARNAME):
@@ -852,7 +854,7 @@ def xr_efts(
         AXIS_ATTR_KEY: "v",
         UNITS_ATTR_KEY: f"{lead_time_tstep} since time",
     }
-    d.realisation.attrs = {
+    d.realization.attrs = {
         STANDARD_NAME_ATTR_KEY: ENS_MEMBER_DIMNAME,  # TODO: should we keep the STF 2.0 ens_member as a standard name?
         LONG_NAME_ATTR_KEY: "ensemble member",
         UNITS_ATTR_KEY: "member id",

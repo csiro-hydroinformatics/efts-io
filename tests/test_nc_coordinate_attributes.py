@@ -90,6 +90,12 @@ EXPECTED_LEAD_TIME_UNITS_HOURS = "hours since time"
 # ---------------------------------------------------------------------------
 
 
+def get_c_order_stf_dimensions():
+    fortran_order = ("lead_time", "station", "ens_member", "time")
+    c_order = tuple(reversed(fortran_order))
+    return c_order
+
+
 def _temporary_named_file():
     """Create a temporary file, using RAM disk (/dev/shm) on Linux for faster tests."""
     if platform.system() == "Linux" and os.path.exists("/dev/shm"):
@@ -471,3 +477,173 @@ class TestOptionalGeolocationVariableAttributes:
     def test_area_dimension_is_station(self, stf2_nc):
         """Convention: area variable must have dimension (station,)."""
         assert stf2_nc.variables["area"].dimensions == ("station",)
+
+
+# ---------------------------------------------------------------------------
+# Phase 3 — lead_time round-trip: dtype, values, units, and attrs preservation
+# ---------------------------------------------------------------------------
+# These tests drive the following fixes:
+#   Fix A: _write_lead_time_dimension should use the units from lead_time.attrs
+#          (set by xr_efts) rather than hardcoding "days since time".
+#   Fix B: load_from_stf2_file should copy lead_time.attrs from the raw NetCDF
+#          variable into the reconstructed xarray coordinate.
+
+
+@pytest.fixture(scope="module")
+def forecast_nc_hourly():
+    """Minimal STF2 file with hourly lead_time=[1, 6, 24]; yields open netCDF4.Dataset.
+
+    The dataset is created via xr_efts (which sets lead_time.attrs correctly),
+    saved with timestep='hours', then opened raw with netCDF4 for attribute inspection.
+    """
+    issue_times = pd.date_range("2024-07-01", periods=4, freq="h", tz="UTC")
+    lead_times = [1, 6, 24]
+    xr_ds = xr_efts(
+        issue_times=issue_times,
+        station_ids=[10, 20],
+        lead_times=lead_times,
+        lead_time_tstep="hours",
+        ensemble_size=2,
+        station_names=["S1", "S2"],
+        nc_attributes={
+            "title": "Phase 3 hourly lead_time round-trip test",
+            "institution": "Test",
+            "source": "Unit test",
+            "catchment": "Test_Catchment",
+            "comment": "Testing lead_time dtype/values/units/attrs round-trip",
+            "history": "Created for unit testing",
+        },
+    )
+    eds = EftsDataSet(xr_ds)
+    eds.create_data_variables(
+        {
+            "q_sim": {
+                "name": "q_sim",
+                "longname": "simulated streamflow",
+                "units": "m3/s",
+                "dim_type": "4",
+                "missval": -9999.0,
+                "precision": "double",
+                "attributes": {},
+            },
+        },
+    )
+    # Predictable values: lead_time index * 100 + station index * 10 + time index
+    for lt_i, lt in enumerate(lead_times):
+        for st_i, st in enumerate([10, 20]):
+            for t_i, t in enumerate(issue_times):
+                eds.data["q_sim"].loc[lt, st, :, t] = lt_i * 100 + st_i * 10 + t_i
+
+    with _temporary_named_file() as tmp:
+        filename = tmp.name
+
+    eds.save_to_stf2(
+        path=filename,
+        variable_name="q_sim",
+        var_type=StfVariable.STREAMFLOW,
+        data_type=DataOriginType.SIMULATED,
+        timestep="hours",
+    )
+
+    ds = nc.Dataset(filename, "r")
+    yield ds, filename
+    ds.close()
+    if os.path.exists(filename):
+        os.remove(filename)
+
+
+class TestLeadTimeRoundTrip:
+    """Phase 3: lead_time dtype, values, units, and attrs survive a write/read cycle.
+
+    Tests 1-4 inspect the raw NetCDF file (Fix A target).
+    Tests 5-6 reload via load_from_stf2_file and check xarray attrs (Fix B target).
+    Test 7 verifies the 4D variable dimension order matches the STF 2.0 convention.
+    """
+
+    def test_lead_time_dtype_is_integer_in_netcdf(self, forecast_nc_hourly):
+        """Lead_time variable must be stored as an integer type (resolves spec ambiguity).
+
+        The STF 2.0 spec mentions NF90_FLOAT for lead_time but existing implementations
+        use integers.  We assert integer dtype here to pin this decision.
+        """
+        ds, _ = forecast_nc_hourly
+        dtype = ds.variables[LEAD_TIME_DIMNAME].dtype
+        assert np.issubdtype(dtype, np.integer), (
+            f"lead_time dtype should be integer, got {dtype}"
+        )
+
+    def test_lead_time_values_preserved_in_netcdf(self, forecast_nc_hourly):
+        """Lead_time coordinate values must survive the write unchanged."""
+        ds, _ = forecast_nc_hourly
+        saved_values = ds.variables[LEAD_TIME_DIMNAME][:].tolist()
+        assert saved_values == [1, 6, 24], (
+            f"Expected lead_time values [1, 6, 24], got {saved_values}"
+        )
+
+    def test_lead_time_units_hours_in_netcdf(self, forecast_nc_hourly):
+        """Lead_time units must be 'hours since time' when timestep='hours'.
+
+        This test is expected to fail until Fix A is applied:
+        _write_lead_time_dimension currently hardcodes 'days since time'.
+        """
+        ds, _ = forecast_nc_hourly
+        units = ds.variables[LEAD_TIME_DIMNAME].getncattr(UNITS_ATTR_KEY)
+        assert units == EXPECTED_LEAD_TIME_UNITS_HOURS, (
+            f"Expected lead_time units '{EXPECTED_LEAD_TIME_UNITS_HOURS}', got '{units}'"
+        )
+
+    def test_lead_time_units_days_in_netcdf(self, stf2_nc):
+        """Lead_time units must be 'days since time' when timestep='days'.
+
+        Regression guard: the daily fixture (stf2_nc) uses timestep='days'.
+        """
+        units = stf2_nc.variables[LEAD_TIME_DIMNAME].getncattr(UNITS_ATTR_KEY)
+        assert units == EXPECTED_LEAD_TIME_UNITS_DAYS, (
+            f"Expected lead_time units '{EXPECTED_LEAD_TIME_UNITS_DAYS}', got '{units}'"
+        )
+
+    def test_lead_time_attrs_preserved_after_load(self, forecast_nc_hourly):
+        """Lead_time coordinate attrs (units, standard_name, long_name, axis) must survive reload.
+
+        This test is expected to fail until Fix B is applied:
+        load_from_stf2_file currently builds the lead_time coordinate without copying attrs.
+        """
+        from efts_io.wrapper import load_from_stf2_file
+
+        _, filename = forecast_nc_hourly
+        reloaded = load_from_stf2_file(filename, time_zone_timestamps=False)
+        lt_attrs = reloaded[LEAD_TIME_DIMNAME].attrs
+        assert lt_attrs.get(UNITS_ATTR_KEY) == EXPECTED_LEAD_TIME_UNITS_HOURS, (
+            f"Expected lead_time units '{EXPECTED_LEAD_TIME_UNITS_HOURS}' after reload, got '{lt_attrs.get(UNITS_ATTR_KEY)}'"
+        )
+        assert lt_attrs.get(STANDARD_NAME_ATTR_KEY) == EXPECTED_LEAD_TIME_STANDARD_NAME, (
+            f"Expected standard_name '{EXPECTED_LEAD_TIME_STANDARD_NAME}' after reload, got '{lt_attrs.get(STANDARD_NAME_ATTR_KEY)}'"
+        )
+        assert lt_attrs.get(LONG_NAME_ATTR_KEY) == EXPECTED_LEAD_TIME_LONG_NAME, (
+            f"Expected long_name '{EXPECTED_LEAD_TIME_LONG_NAME}' after reload, got '{lt_attrs.get(LONG_NAME_ATTR_KEY)}'"
+        )
+        assert lt_attrs.get(AXIS_ATTR_KEY) == EXPECTED_LEAD_TIME_AXIS, (
+            f"Expected axis '{EXPECTED_LEAD_TIME_AXIS}' after reload, got '{lt_attrs.get(AXIS_ATTR_KEY)}'"
+        )
+
+    def test_lead_time_values_roundtrip(self, forecast_nc_hourly):
+        """Lead_time coordinate values must survive a full write/reload cycle."""
+        from efts_io.wrapper import load_from_stf2_file
+
+        _, filename = forecast_nc_hourly
+        reloaded = load_from_stf2_file(filename, time_zone_timestamps=False)
+        values = reloaded[LEAD_TIME_DIMNAME].values.tolist()
+        assert values == [1, 6, 24], (
+            f"Expected lead_time values [1, 6, 24] after reload, got {values}"
+        )
+
+    def test_4d_variable_dimension_order_in_netcdf(self, forecast_nc_hourly):
+        """STF 2.0: 4D data variable dims must be (lead_time, station, ens_member, time).
+
+        This is the FORTRAN/C ordering used by the convention (row-major in the file).
+        """
+        ds, _ = forecast_nc_hourly
+        c_order = get_c_order_stf_dimensions()
+        assert ds.variables["q_sim"].dimensions == c_order, (
+            f"Expected (lead_time, station, ens_member, time), got {ds.variables['q_sim'].dimensions}"
+        )

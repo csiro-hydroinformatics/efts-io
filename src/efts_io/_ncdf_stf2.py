@@ -649,6 +649,9 @@ class _StfFileBuilder:
         assert nc is not None  # noqa: S101
         lt_values = self._data[LEAD_TIME_DIMNAME].to_numpy()
         nc.createDimension(LEAD_TIME_DIMNAME, len(lt_values))
+        lt_units = self._dataset[LEAD_TIME_DIMNAME].attrs.get(
+            UNITS_ATTR_KEY, f"{self._timestep_str} since time"
+        )
         self._add_variable(
             LEAD_TIME_DIMNAME,
             self._intdata_type,
@@ -657,7 +660,7 @@ class _StfFileBuilder:
             attrs={
                 STANDARD_NAME_ATTR_KEY: "lead time",
                 LONG_NAME_ATTR_KEY: "forecast lead time",
-                UNITS_ATTR_KEY: "days since time",
+                UNITS_ATTR_KEY: lt_units,
                 AXIS_ATTR_KEY: "v",
             },
         )
@@ -761,7 +764,8 @@ class _StfFileBuilder:
             dims = (TIME_DIMNAME, ENS_MEMBER_DIMNAME, STATION_DIMNAME, LEAD_TIME_DIMNAME)
 
         var = nc.createVariable(qu_var_name_s, "f", dims, fill_value=-1)
-        var[:] = self._data_qual.values[:]  # noqa: PD011
+        qual_ready = make_ready_for_saving(self._data_qual, self._dataset, dims)
+        var[:] = qual_ready.values[:]
 
         var.setncattr(STANDARD_NAME_ATTR_KEY, qu_var_name_s)
         var.setncattr(LONG_NAME_ATTR_KEY, f"{naming.long_name} data quality")

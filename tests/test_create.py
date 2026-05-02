@@ -279,12 +279,12 @@ def test_new_variable():
     }
     new_var_3 = eds.new_variable(
         varname="rain_fcast",
-        dim_names=["lead_time", "station_id", "realisation", "time"],
+        dim_names=["lead_time", "station_id", "realization", "time"],
         var_attributes=var_attrs_3,
     )
 
     assert "rain_fcast" in eds.data.variables
-    assert new_var_3.dims == ("lead_time", "station_id", "realisation", "time")
+    assert new_var_3.dims == ("lead_time", "station_id", "realization", "time")
     expected_shape = (
         len(lead_times),
         len(station_ids),

@@ -22,6 +22,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Bug Fixes
 
 - markdown had unresolved link that made the CI check-docs fail ([0a3f520](https://github.com/csiro-hydroinformatics/efts-io/commit/0a3f52045eeeaf87b532995bb6ad780d286ada03) by J-M).
+### Features
+
+- use the US spelling 'realization' for realisation (in memory array). ([f04f363](https://github.com/csiro-hydroinformatics/efts-io/commit/f04f363e568278208e54eb678b1360880c71fe76) by J-M).
+- work in progress to support the lead time dimension; test driven implementation of the I/O. ([e216c8c](https://github.com/csiro-hydroinformatics/efts-io/commit/e216c8ceb5e78b45b5a042159e04be28153e7586) by J-M).
+
+### Code Refactoring
+
+- tackle remaining unit tests failures, overly zealous or checking against STF conventions actually not respected de facto. ([d3cf6f4](https://github.com/csiro-hydroinformatics/efts-io/commit/d3cf6f4dabd8be281ec44a17eae4f07fc1542532) by J-M).
 
 ## [0.8.1](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.8.1) - 2026-04-08
 
