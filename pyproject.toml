@@ -99,8 +99,9 @@ ci = [
     "ty>=0.0.14",
     "types-markdown>=3.6",
     "types-pyyaml>=6.0",
+    "pytz"
 ]
- docs = [
+docs = [
     "ghp-import>=2.1",
     "markdown-callouts>=0.4",
     "markdown-exec>=1.8",

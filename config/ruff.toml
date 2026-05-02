@@ -5,7 +5,9 @@ output-format = "concise"
 [lint]
 exclude = [
     "tests/fixtures/*.py",
+    "tests/*.py",
 ]
+
 select = ["ALL"]
 ignore = [
     "A001",  # Variable is shadowing a Python builtin

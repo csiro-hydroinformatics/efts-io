@@ -16,6 +16,8 @@ if TYPE_CHECKING:
 
 PY_SRC_PATHS = (Path(_) for _ in ("src", "tests", "duties.py", "scripts"))
 PY_SRC_LIST = tuple(str(_) for _ in PY_SRC_PATHS)
+# below is because typing checks seem to apply to tests even if excluded via py.toml.
+PY_SRC_NO_TESTS = tuple(str(_) for _ in (Path(_) for _ in ("src", "scripts")))
 PY_SRC = " ".join(PY_SRC_LIST)
 CI = os.environ.get("CI", "0") in {"1", "true", "yes", ""}
 WINDOWS = os.name == "nt"
@@ -79,7 +81,7 @@ def check_types(ctx: Context) -> None:
     py = f"{sys.version_info.major}.{sys.version_info.minor}"
     ctx.run(
         tools.ty.check(
-            *PY_SRC_LIST,
+            *PY_SRC_NO_TESTS,
             config_file="config/ty.toml",
             color=True,
             python_version=py,
