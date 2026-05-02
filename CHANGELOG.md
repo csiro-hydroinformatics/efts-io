@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 <!-- insertion marker -->
+## [0.10.0](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.10.0) - 2026-05-02
+
+<small>[Compare with 0.9.0](https://github.com/csiro-hydroinformatics/efts-io/compare/0.9.0...0.10.0)</small>
+
+### Features
+
+- support lead time dimension; use US spelling 'realization'; apply formatting; fix unit tests.  This is a squash to try to get rid of stupid Mac Format and/or carriage returns that found their way in commit messages like a plague. ([44de2bf](https://github.com/csiro-hydroinformatics/efts-io/commit/44de2bf38fc63bbbe98eabb8c654d6d031f159d7) by J-M).
+
+## [0.9.0](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.9.0) - 2026-05-02
+
+<small>[Compare with 0.8.1](https://github.com/csiro-hydroinformatics/efts-io/compare/0.8.1...0.9.0)</small>
+
+### Bug Fixes
+
+- markdown had unresolved link that made the CI check-docs fail ([0a3f520](https://github.com/csiro-hydroinformatics/efts-io/commit/0a3f52045eeeaf87b532995bb6ad780d286ada03) by J-M).
+
 ## [0.8.1](https://github.com/csiro-hydroinformatics/efts-io/releases/tag/0.8.1) - 2026-04-08
 
 <small>[Compare with 0.8.0](https://github.com/csiro-hydroinformatics/efts-io/compare/0.8.0...0.8.1)</small>
