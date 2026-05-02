@@ -1078,10 +1078,10 @@ unable to decode time units 'days since time' with 'the default calendar'. Try o
 <div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">rain_stf</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
 </code></pre></div>
 <xarray.Dataset> Size: 676B
-Dimensions:       (realization: 1, lead_time: 1, station_id: 3, time: 7)
+Dimensions:       (lead_time: 1, realization: 1, station_id: 3, time: 7)
 Coordinates:
-  * realization   (realization) int32 4B 1
   * lead_time     (lead_time) int32 4B 0
+  * realization   (realization) int32 4B 1
   * station_id    (station_id) <U11 132B '28286670' '28294676' '28294677'
   * time          (time) object 56B 2023-11-04T23:00:00+00:00 ... 2023-11-10T...
 Data variables:
